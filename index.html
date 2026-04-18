@@ -228,8 +228,8 @@ textarea{resize:vertical;min-height:60px}
 
 <!-- Main -->
 <div class="main">
-  <div class="topbar">
-    <div class="topbar-title" id="topbarTitle">總覽</div>
+  <div class="topbar" id="topbar">
+    <div class="topbar-title" id="topbarTitle" style="display:none">總覽</div>
   </div>
   <div class="content">
 
@@ -844,7 +844,13 @@ function switchView(v,el){
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
   if(el)el.classList.add('active');
   const titles={dashboard:'總覽',tasks:'代辦工作'};
-  document.getElementById('topbarTitle').textContent=titles[v]||v;
+  const titleEl=document.getElementById('topbarTitle');
+  if(v==='dashboard'){
+    titleEl.style.display='none';
+  }else{
+    titleEl.style.display='block';
+    titleEl.textContent=titles[v]||v;
+  }
   if(v==='tasks')renderTaskList();
 }
 
