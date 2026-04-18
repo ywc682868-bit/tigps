@@ -446,14 +446,14 @@ const CAL_CHIP_STYLE={
 };
 
 const TW_HOLIDAYS_2025={
-  '2025-01-01':true,'2025-02-08':true,'2025-02-09':true,'2025-02-10':true,'2025-02-28':true,
-  '2025-04-04':true,'2025-04-05':true,'2025-06-10':true,'2025-09-17':true,'2025-10-10':true,
+  '2025-01-01':true,'2025-02-08':true,'2025-02-09':true,'2025-02-10':true,'2025-02-11':true,'2025-02-12':true,
+  '2025-02-28':true,'2025-04-04':true,'2025-04-05':true,'2025-06-10':true,'2025-09-17':true,'2025-10-10':true,
   '2025-12-25':true
 };
 const TW_HOLIDAYS_2026={
-  '2026-01-01':true,'2026-01-29':true,'2026-01-30':true,'2026-01-31':true,'2026-02-01':true,
-  '2026-02-28':true,'2026-04-04':true,'2026-04-05':true,'2026-06-10':true,'2026-09-17':true,
-  '2026-10-10':true,'2026-12-25':true
+  '2026-01-01':true,'2026-01-29':true,'2026-01-30':true,'2026-01-31':true,'2026-02-01':true,'2026-02-02':true,
+  '2026-02-28':true,'2026-04-04':true,'2026-04-05':true,'2026-06-10':true,'2026-09-17':true,'2026-10-10':true,
+  '2026-12-25':true
 };
 const TW_HOLIDAYS={...TW_HOLIDAYS_2025,...TW_HOLIDAYS_2026};
 
@@ -530,7 +530,17 @@ function renderCalendar(){
   const monthTasks=tasks.filter(t=>t.date&&t.date.startsWith(monthStr));
 
   let cells='';
-  for(let i=0;i<startDow;i++)cells+=`<div class="cal-cell other-month" style="border:none"></div>`;
+  let dayCounter=1;
+  const prevMonth=calMonth===0?11:calMonth-1;
+  const prevYear=calMonth===0?calYear-1:calYear;
+  const prevLastDay=new Date(prevYear,prevMonth+1,0).getDate();
+  
+  for(let i=0;i<startDow;i++){
+    const prevD=prevLastDay-startDow+i+1;
+    const prevDs=`${prevYear}-${String(prevMonth+1).padStart(2,'0')}-${String(prevD).padStart(2,'0')}`;
+    cells+=`<div class="cal-cell other-month" style="border:none;color:var(--text3)"><div class="cal-date-num">${prevD}</div></div>`;
+  }
+  
   for(let d=1;d<=lastDay;d++){
     const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dt=monthTasks.filter(t=>t.date===ds);
@@ -546,11 +556,18 @@ function renderCalendar(){
     const more=dt.length>3?`<div style="font-size:9px;color:var(--text3);padding:1px 3px">+${dt.length-3}</div>`:'';
     cells+=`<div class="cal-cell ${cellCls} ${holidayCls}" onclick="openAddOnDate('${ds}')">${'<div class="'+numCls+'">'+d+'</div>'}${chips}${more}</div>`;
   }
+  
+  const nextMonth=calMonth===11?0:calMonth+1;
+  const nextYear=calMonth===11?calYear+1:calYear;
   const total=startDow+lastDay;
   const rem=(7-total%7)%7;
-  for(let i=0;i<rem;i++)cells+=`<div class="cal-cell other-month" style="border:none"></div>`;
+  for(let i=0;i<rem;i++){
+    const nextD=i+1;
+    const nextDs=`${nextYear}-${String(nextMonth+1).padStart(2,'0')}-${String(nextD).padStart(2,'0')}`;
+    cells+=`<div class="cal-cell other-month" style="border:none;color:var(--text3)"><div class="cal-date-num">${nextD}</div></div>`;
+  }
+  
   bEl.innerHTML=cells;
-
   renderDashSidebar();
 }
 
