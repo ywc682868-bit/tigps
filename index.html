@@ -51,9 +51,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .cal-body{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);flex:1}
 .cal-cell{min-height:100px;padding:6px;background:var(--bg);cursor:pointer;overflow:hidden;display:flex;flex-direction:column;vertical-align:top}
 .cal-cell:hover{background:var(--bg2)}
+.cal-cell.weekend{background:#fdf5f0}
 .cal-cell.weekend .cal-date-num{color:#c97070}
-.cal-cell.holiday{background:#f5ebe0}
+.cal-cell.holiday{background:#fdf5f0}
 .cal-cell.holiday .cal-date-num{color:#c97070;font-weight:600}
+.cal-cell.weekend.holiday{background:#fdf5f0}
 .cal-cell.other-month{background:#fff;opacity:1;color:var(--text3)}
 .cal-cell.other-month .cal-date-num{color:var(--text3)}
 .cal-date-num{font-size:11px;color:var(--text2);margin-bottom:3px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:500}
