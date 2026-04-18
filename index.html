@@ -226,13 +226,16 @@ textarea{resize:vertical;min-height:60px}
 
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
 <div class="modal">
-  <div class="modal-hdr">
-    <button class="close-btn" onclick="closeModal()" style="margin-left:auto">✕</button>
+  <!-- Row 1: 名稱 + 關閉 -->
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <input type="text" id="iTitle" placeholder="輸入名稱..." style="flex:1;margin-right:10px;font-size:15px;font-weight:500;border:none;border-bottom:1.5px solid var(--border2);border-radius:0;padding:4px 0;background:transparent;outline:none">
+    <button class="close-btn" onclick="closeModal()">✕</button>
   </div>
-  <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:14px">
-    <div class="fg" style="flex:0 0 auto;margin-bottom:0">
-      <label class="flabel">分類</label>
-      <select id="iCat" style="width:auto;min-width:72px;padding:7px 6px">
+  <!-- Row 2: 分類 + 重要程度 -->
+  <div style="display:flex;gap:10px;margin-bottom:14px">
+    <div class="fg" style="flex:1;margin-bottom:0">
+      <label class="flabel">類型</label>
+      <select id="iCat" style="width:100%;padding:7px 6px">
         <option value="data">資料</option>
         <option value="meeting">會議</option>
         <option value="admin">行政</option>
@@ -241,44 +244,54 @@ textarea{resize:vertical;min-height:60px}
       </select>
     </div>
     <div class="fg" style="flex:1;margin-bottom:0">
-      <label class="flabel">名稱</label>
-      <input type="text" id="iTitle" placeholder="輸入名稱...">
+      <label class="flabel">重要程度</label>
+      <select id="iUrgency" style="width:100%;padding:7px 6px">
+        <option value="low">低</option>
+        <option value="mid">中</option>
+        <option value="high">高</option>
+        <option value="urgent">緊急</option>
+      </select>
     </div>
   </div>
-  <div class="fg">
+  <!-- Row 3: 日期/時間 + Deadline -->
+  <div style="display:flex;gap:10px;margin-bottom:14px">
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+      <div class="fg" style="margin-bottom:0">
+        <label class="flabel">日期</label>
+        <input type="date" id="iDate">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="flabel">時間</label>
+        <input type="time" id="iTime">
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+      <div class="fg" style="margin-bottom:0">
+        <label class="flabel">Deadline 日期</label>
+        <input type="date" id="iDeadline">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="flabel">Deadline 時間</label>
+        <input type="time" id="iDeadlineTime">
+      </div>
+    </div>
+  </div>
+  <!-- Row 4: 新增者 (avatar circle + name below) -->
+  <div class="fg" style="margin-bottom:14px">
+    <label class="flabel">新增者</label>
+    <div id="creatorChips" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+  </div>
+  <!-- Row 5: 參與成員 -->
+  <div class="fg" style="margin-bottom:14px">
+    <label class="flabel">參與成員</label>
+    <div id="partChips" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+  </div>
+  <!-- Row 6: 說明 -->
+  <div class="fg" style="margin-bottom:0">
     <label class="flabel">說明</label>
     <textarea id="iDesc" style="min-height:48px"></textarea>
   </div>
-  <div class="two-col" style="margin-bottom:0">
-    <div class="fg">
-      <label class="flabel">日期</label>
-      <input type="date" id="iDate">
-    </div>
-    <div class="fg">
-      <label class="flabel">時間</label>
-      <input type="time" id="iTime">
-    </div>
-  </div>
-  <div class="two-col">
-    <div class="fg">
-      <label class="flabel">Deadline 日期</label>
-      <input type="date" id="iDeadline">
-    </div>
-    <div class="fg">
-      <label class="flabel">Deadline 時間</label>
-      <input type="time" id="iDeadlineTime">
-    </div>
-  </div>
-  <div class="fg">
-    <label class="flabel">新增者</label>
-    <div class="chip-row" id="creatorChips"></div>
-  </div>
-  <div class="fg">
-    <label class="flabel">參與成員</label>
-    <div class="chip-row" id="partChips"></div>
-  </div>
-  <div class="modal-footer">
-    <button class="btn" onclick="closeModal()">取消</button>
+  <div class="modal-footer" style="margin-top:14px">
     <button class="btn btn-primary" onclick="saveTask()">新增</button>
   </div>
 </div>
@@ -385,8 +398,6 @@ const TW_HOLIDAYS_2026={
   '2026-04-05':'清明節',
   '2026-04-06':'清明節補假',
   '2026-05-01':'勞動節',
-  '2026-05-02':'勞動節',
-  '2026-05-03':'勞動節',
   '2026-06-19':'端午節',
   '2026-06-20':'端午節',
   '2026-06-21':'端午節',
@@ -585,26 +596,36 @@ function switchTab(t,el){document.querySelectorAll('.tab').forEach(b=>b.classLis
 function openAdd(){editingId=null;selCreator='m1';selParts=[];document.getElementById('iTitle').value='';document.getElementById('iDesc').value='';document.getElementById('iDate').value='';document.getElementById('iTime').value='';document.getElementById('iDeadline').value='';document.getElementById('iDeadlineTime').value='';document.getElementById('iCat').value='data';renderModalMembers();document.getElementById('modalOverlay').classList.add('open');}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
 function renderModalMembers(){
-  document.getElementById('creatorChips').innerHTML=MEMBERS.map(m=>{
+  const visible=MEMBERS.filter(m=>!(memberData[m.id]&&memberData[m.id].deleted));
+  document.getElementById('creatorChips').innerHTML=visible.map(m=>{
     const saved=memberData[m.id]||{};
     const name=saved.name||m.name;
     const photo=saved.photo;
-    const avatarInner=photo
-      ?`<img src="${photo}" style="width:22px;height:22px;border-radius:50%;object-fit:cover">`
-      :`<div style="width:22px;height:22px;border-radius:50%;background:${m.bg};color:#555;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:600">${m.initials}</div>`;
-    return `<div class="mem-chip ${m.id===selCreator?'sel':''}" onclick="selCreator='${m.id}';renderModalMembers()">${avatarInner}<span>${name}</span></div>`;
+    const ring=m.id===selCreator?'box-shadow:0 0 0 2.5px var(--accent);':'';
+    const avatarContent=photo
+      ?`<img src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`
+      :`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
+    return `<div onclick="selCreator='${m.id}';renderModalMembers()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${m.id===selCreator?1:0.5}">
+      ${avatarContent}
+      <span style="font-size:9px;color:var(--text2);white-space:nowrap">${name}</span>
+    </div>`;
   }).join('');
-  document.getElementById('partChips').innerHTML=MEMBERS.map(m=>{
+  document.getElementById('partChips').innerHTML=visible.map(m=>{
     const saved=memberData[m.id]||{};
     const name=saved.name||m.name;
     const photo=saved.photo;
-    const avatarInner=photo
-      ?`<img src="${photo}" style="width:22px;height:22px;border-radius:50%;object-fit:cover">`
-      :`<div style="width:22px;height:22px;border-radius:50%;background:${m.bg};color:#555;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:600">${m.initials}</div>`;
-    return `<div class="mem-chip ${selParts.includes(m.id)?'sel':''}" onclick="const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers()">${avatarInner}<span>${name}</span></div>`;
+    const sel=selParts.includes(m.id);
+    const ring=sel?'box-shadow:0 0 0 2.5px var(--accent);':'';
+    const avatarContent=photo
+      ?`<img src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`
+      :`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
+    return `<div onclick="const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${sel?1:0.5}">
+      ${avatarContent}
+      <span style="font-size:9px;color:var(--text2);white-space:nowrap">${name}</span>
+    </div>`;
   }).join('');
 }
-function saveTask(){const title=document.getElementById('iTitle').value.trim();if(!title){alert('請輸入工作名稱');return;}const data={title,desc:document.getElementById('iDesc').value,date:document.getElementById('iDate').value,time:document.getElementById('iTime').value||'',deadline:document.getElementById('iDeadline').value,deadlineTime:document.getElementById('iDeadlineTime').value||'',cat:document.getElementById('iCat').value,status:'notstarted',creator:selCreator,parts:[...selParts],notes:'',done:false,timestamp:new Date().toISOString()};if(editingId){db.ref('tasks/'+editingId).update(data);}else{db.ref('tasks').push(data);}closeModal();}
+function saveTask(){const title=document.getElementById('iTitle').value.trim();if(!title){alert('請輸入工作名稱');return;}const data={title,desc:document.getElementById('iDesc').value,date:document.getElementById('iDate').value,time:document.getElementById('iTime').value||'',deadline:document.getElementById('iDeadline').value,deadlineTime:document.getElementById('iDeadlineTime').value||'',cat:document.getElementById('iCat').value,urgency:document.getElementById('iUrgency').value,status:'notstarted',creator:selCreator,parts:[...selParts],notes:'',done:false,timestamp:new Date().toISOString()};if(editingId){db.ref('tasks/'+editingId).update(data);}else{db.ref('tasks').push(data);}closeModal();}
 
 function openDetail(id){const t=tasks.find(x=>x.id===id);if(!t)return;document.getElementById('detailPanel').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:17px;font-weight:600">${t.title}</div><button class="close-btn" onclick="closeDetail()">✕</button></div><div class="detail-field"><div class="detail-field-label">狀態</div><div><span class="status st-${t.status}">${t.status}</span></div></div><div class="detail-field"><div class="detail-field-label">日期</div><div>${t.date||'-'}</div></div><div class="detail-field"><div class="detail-field-label">Deadline</div><div>${t.deadline||'-'}</div></div><div class="detail-field"><div class="detail-field-label">備註</div><textarea class="notes-input" id="detailNotes">${t.notes||''}</textarea></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-primary" onclick="saveDetailNotes('${t.id}')">儲存</button><button class="btn" onclick="deleteTask('${t.id}');closeDetail()">刪除</button></div>`;document.getElementById('detailOverlay').classList.add('open');}
 function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');}
