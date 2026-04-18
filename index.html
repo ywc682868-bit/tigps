@@ -222,42 +222,46 @@ textarea{resize:vertical;min-height:60px}
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
 <div class="modal">
   <div class="modal-hdr">
-    <span class="modal-title" id="modalTitleText">新增工作</span>
-    <button class="close-btn" onclick="closeModal()">✕</button>
+    <button class="close-btn" onclick="closeModal()" style="margin-left:auto">✕</button>
   </div>
-  <div class="fg">
-    <label class="flabel">討論主題</label>
-    <input type="text" id="iTitle">
+  <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:14px">
+    <div class="fg" style="flex:0 0 auto;margin-bottom:0">
+      <label class="flabel">分類</label>
+      <select id="iCat" style="width:auto;min-width:72px;padding:7px 6px">
+        <option value="data">資料</option>
+        <option value="meeting">會議</option>
+        <option value="admin">行政</option>
+        <option value="questionnaire">問卷</option>
+        <option value="platform">平台</option>
+      </select>
+    </div>
+    <div class="fg" style="flex:1;margin-bottom:0">
+      <label class="flabel">名稱</label>
+      <input type="text" id="iTitle" placeholder="輸入名稱...">
+    </div>
   </div>
   <div class="fg">
     <label class="flabel">說明</label>
-    <textarea id="iDesc"></textarea>
+    <textarea id="iDesc" style="min-height:48px"></textarea>
   </div>
-  <div class="two-col">
+  <div class="two-col" style="margin-bottom:0">
     <div class="fg">
       <label class="flabel">日期</label>
       <input type="date" id="iDate">
     </div>
     <div class="fg">
-      <label class="flabel">Deadline</label>
-      <input type="date" id="iDeadline">
+      <label class="flabel">時間</label>
+      <input type="time" id="iTime">
     </div>
   </div>
   <div class="two-col">
     <div class="fg">
-      <label class="flabel">分類</label>
-      <select id="iCat">
-        <option value="data">資料</option>
-        <option value="meeting">會議</option>
-      </select>
+      <label class="flabel">Deadline 日期</label>
+      <input type="date" id="iDeadline">
     </div>
     <div class="fg">
-      <label class="flabel">狀態</label>
-      <select id="iStatus">
-        <option value="notstarted">Not started</option>
-        <option value="inprogress">In progress</option>
-        <option value="done">Done</option>
-      </select>
+      <label class="flabel">Deadline 時間</label>
+      <input type="time" id="iDeadlineTime">
     </div>
   </div>
   <div class="fg">
@@ -442,10 +446,29 @@ function renderProgress(){
 
 function switchTab(t,el){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');if(t==='list'){document.getElementById('taskListPanel').style.display='flex';document.getElementById('progressPanel').style.display='none';}else{document.getElementById('taskListPanel').style.display='none';document.getElementById('progressPanel').style.display='block';renderProgress();}}
 
-function openAdd(){editingId=null;selCreator='m1';selParts=[];document.getElementById('iTitle').value='';document.getElementById('iDesc').value='';document.getElementById('iDate').value='';document.getElementById('iDeadline').value='';document.getElementById('iCat').value='data';document.getElementById('iStatus').value='notstarted';renderModalMembers();document.getElementById('modalTitleText').textContent='新增工作';document.getElementById('modalOverlay').classList.add('open');}
+function openAdd(){editingId=null;selCreator='m1';selParts=[];document.getElementById('iTitle').value='';document.getElementById('iDesc').value='';document.getElementById('iDate').value='';document.getElementById('iTime').value='';document.getElementById('iDeadline').value='';document.getElementById('iDeadlineTime').value='';document.getElementById('iCat').value='data';renderModalMembers();document.getElementById('modalOverlay').classList.add('open');}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
-function renderModalMembers(){document.getElementById('creatorChips').innerHTML=MEMBERS.map(m=>`<div class="mem-chip ${m.id===selCreator?'sel':''}" onclick="selCreator='${m.id}';renderModalMembers()">${m.name}</div>`).join('');document.getElementById('partChips').innerHTML=MEMBERS.map(m=>`<div class="mem-chip ${selParts.includes(m.id)?'sel':''}" onclick="const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers()">${m.name}</div>`).join('');}
-function saveTask(){const title=document.getElementById('iTitle').value.trim();if(!title){alert('請輸入工作名稱');return;}const data={title,desc:document.getElementById('iDesc').value,date:document.getElementById('iDate').value,deadline:document.getElementById('iDeadline').value,cat:document.getElementById('iCat').value,status:document.getElementById('iStatus').value,creator:selCreator,parts:[...selParts],notes:'',done:false,timestamp:new Date().toISOString()};if(editingId){db.ref('tasks/'+editingId).update(data);}else{db.ref('tasks').push(data);}closeModal();}
+function renderModalMembers(){
+  document.getElementById('creatorChips').innerHTML=MEMBERS.map(m=>{
+    const saved=memberData[m.id]||{};
+    const name=saved.name||m.name;
+    const photo=saved.photo;
+    const avatarInner=photo
+      ?`<img src="${photo}" style="width:22px;height:22px;border-radius:50%;object-fit:cover">`
+      :`<div style="width:22px;height:22px;border-radius:50%;background:${m.bg};color:#555;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:600">${m.initials}</div>`;
+    return `<div class="mem-chip ${m.id===selCreator?'sel':''}" onclick="selCreator='${m.id}';renderModalMembers()">${avatarInner}<span>${name}</span></div>`;
+  }).join('');
+  document.getElementById('partChips').innerHTML=MEMBERS.map(m=>{
+    const saved=memberData[m.id]||{};
+    const name=saved.name||m.name;
+    const photo=saved.photo;
+    const avatarInner=photo
+      ?`<img src="${photo}" style="width:22px;height:22px;border-radius:50%;object-fit:cover">`
+      :`<div style="width:22px;height:22px;border-radius:50%;background:${m.bg};color:#555;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:600">${m.initials}</div>`;
+    return `<div class="mem-chip ${selParts.includes(m.id)?'sel':''}" onclick="const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers()">${avatarInner}<span>${name}</span></div>`;
+  }).join('');
+}
+function saveTask(){const title=document.getElementById('iTitle').value.trim();if(!title){alert('請輸入工作名稱');return;}const data={title,desc:document.getElementById('iDesc').value,date:document.getElementById('iDate').value,time:document.getElementById('iTime').value||'',deadline:document.getElementById('iDeadline').value,deadlineTime:document.getElementById('iDeadlineTime').value||'',cat:document.getElementById('iCat').value,status:'notstarted',creator:selCreator,parts:[...selParts],notes:'',done:false,timestamp:new Date().toISOString()};if(editingId){db.ref('tasks/'+editingId).update(data);}else{db.ref('tasks').push(data);}closeModal();}
 
 function openDetail(id){const t=tasks.find(x=>x.id===id);if(!t)return;document.getElementById('detailPanel').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:17px;font-weight:600">${t.title}</div><button class="close-btn" onclick="closeDetail()">✕</button></div><div class="detail-field"><div class="detail-field-label">狀態</div><div><span class="status st-${t.status}">${t.status}</span></div></div><div class="detail-field"><div class="detail-field-label">日期</div><div>${t.date||'-'}</div></div><div class="detail-field"><div class="detail-field-label">Deadline</div><div>${t.deadline||'-'}</div></div><div class="detail-field"><div class="detail-field-label">備註</div><textarea class="notes-input" id="detailNotes">${t.notes||''}</textarea></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-primary" onclick="saveDetailNotes('${t.id}')">儲存</button><button class="btn" onclick="deleteTask('${t.id}');closeDetail()">刪除</button></div>`;document.getElementById('detailOverlay').classList.add('open');}
 function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');}
