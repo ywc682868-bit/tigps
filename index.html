@@ -226,70 +226,67 @@ textarea{resize:vertical;min-height:60px}
 
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
 <div class="modal">
-  <!-- Row 1: 名稱 + 關閉 -->
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <input type="text" id="iTitle" placeholder="輸入名稱..." style="flex:1;margin-right:10px;font-size:15px;font-weight:500;border:none;border-bottom:1.5px solid var(--border2);border-radius:0;padding:4px 0;background:transparent;outline:none">
+  <!-- Row 1: 新增者（圓形，不顯示文字） + 關閉按鈕 -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+    <div id="creatorChips" style="display:flex;gap:8px;flex:1"></div>
     <button class="close-btn" onclick="closeModal()">✕</button>
   </div>
-  <!-- Row 2: 分類 + 重要程度 -->
-  <div style="display:flex;gap:10px;margin-bottom:14px">
-    <div class="fg" style="flex:1;margin-bottom:0">
+  <!-- Row 2: 名稱 -->
+  <div style="margin-bottom:14px">
+    <input type="text" id="iTitle" placeholder="輸入名稱..." style="width:100%;font-size:15px;font-weight:500;border:none;border-bottom:1.5px solid var(--border2);border-radius:0;padding:4px 0;background:transparent;outline:none">
+  </div>
+  <!-- Row 3: 類型（有底色） + 緊急程度（驚嘆號） -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;align-items:flex-end">
+    <div class="fg" style="flex:2;margin-bottom:0">
       <label class="flabel">類型</label>
-      <select id="iCat" style="width:100%;padding:7px 6px">
-        <option value="data">資料</option>
-        <option value="meeting">會議</option>
-        <option value="admin">行政</option>
-        <option value="questionnaire">問卷</option>
-        <option value="platform">平台</option>
+      <select id="iCat" style="width:100%;padding:7px 6px" onchange="updateCatColor(this)">
+        <option value="data"  style="background:#e8f0fe">📋 資料</option>
+        <option value="meeting" style="background:#fce8e6">🗓 會議</option>
+        <option value="admin"   style="background:#e6f4ea">📁 行政</option>
+        <option value="questionnaire" style="background:#fef7e0">📝 問卷</option>
+        <option value="platform"      style="background:#f3e8fd">💻 平台</option>
       </select>
     </div>
     <div class="fg" style="flex:1;margin-bottom:0">
-      <label class="flabel">重要程度</label>
-      <select id="iUrgency" style="width:100%;padding:7px 6px">
-        <option value="low">低</option>
-        <option value="mid">中</option>
-        <option value="high">高</option>
-        <option value="urgent">緊急</option>
+      <label class="flabel" style="display:block;height:16px"></label>
+      <select id="iUrgency" style="width:100%;padding:7px 6px;text-align:center">
+        <option value="low">！</option>
+        <option value="mid">！！</option>
+        <option value="high">！！！</option>
       </select>
     </div>
   </div>
-  <!-- Row 3: 日期/時間 + Deadline -->
+  <!-- Row 4: 日期 + Deadline 日期 -->
+  <div style="display:flex;gap:10px;margin-bottom:6px">
+    <div class="fg" style="flex:1;margin-bottom:0">
+      <label class="flabel">日期</label>
+      <input type="date" id="iDate">
+    </div>
+    <div class="fg" style="flex:1;margin-bottom:0">
+      <label class="flabel">Deadline 日期</label>
+      <input type="date" id="iDeadline">
+    </div>
+  </div>
+  <!-- Row 5: 時間 + Deadline 時間 -->
   <div style="display:flex;gap:10px;margin-bottom:14px">
-    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-      <div class="fg" style="margin-bottom:0">
-        <label class="flabel">日期</label>
-        <input type="date" id="iDate">
-      </div>
-      <div class="fg" style="margin-bottom:0">
-        <label class="flabel">時間</label>
-        <input type="time" id="iTime">
-      </div>
+    <div class="fg" style="flex:1;margin-bottom:0">
+      <label class="flabel">時間</label>
+      <input type="time" id="iTime">
     </div>
-    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-      <div class="fg" style="margin-bottom:0">
-        <label class="flabel">Deadline 日期</label>
-        <input type="date" id="iDeadline">
-      </div>
-      <div class="fg" style="margin-bottom:0">
-        <label class="flabel">Deadline 時間</label>
-        <input type="time" id="iDeadlineTime">
-      </div>
+    <div class="fg" style="flex:1;margin-bottom:0">
+      <label class="flabel">Deadline 時間</label>
+      <input type="time" id="iDeadlineTime">
     </div>
-  </div>
-  <!-- Row 4: 新增者 (avatar circle + name below) -->
-  <div class="fg" style="margin-bottom:14px">
-    <label class="flabel">新增者</label>
-    <div id="creatorChips" style="display:flex;gap:10px;flex-wrap:wrap"></div>
-  </div>
-  <!-- Row 5: 參與成員 -->
-  <div class="fg" style="margin-bottom:14px">
-    <label class="flabel">參與成員</label>
-    <div id="partChips" style="display:flex;gap:10px;flex-wrap:wrap"></div>
   </div>
   <!-- Row 6: 說明 -->
-  <div class="fg" style="margin-bottom:0">
+  <div class="fg" style="margin-bottom:14px">
     <label class="flabel">說明</label>
     <textarea id="iDesc" style="min-height:48px"></textarea>
+  </div>
+  <!-- Row 7: 參與成員 -->
+  <div class="fg" style="margin-bottom:0">
+    <label class="flabel">參與成員</label>
+    <div id="partChips" style="display:flex;gap:10px;flex-wrap:wrap"></div>
   </div>
   <div class="modal-footer" style="margin-top:14px">
     <button class="btn btn-primary" onclick="saveTask()">新增</button>
@@ -596,34 +593,37 @@ function renderProgress(){
 
 function switchTab(t,el){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');if(t==='list'){document.getElementById('taskListPanel').style.display='flex';document.getElementById('progressPanel').style.display='none';}else{document.getElementById('taskListPanel').style.display='none';document.getElementById('progressPanel').style.display='block';renderProgress();}}
 
-function openAdd(){editingId=null;selCreator='m1';selParts=[];document.getElementById('iTitle').value='';document.getElementById('iDesc').value='';document.getElementById('iDate').value='';document.getElementById('iTime').value='';document.getElementById('iDeadline').value='';document.getElementById('iDeadlineTime').value='';document.getElementById('iCat').value='data';renderModalMembers();document.getElementById('modalOverlay').classList.add('open');}
+function openAdd(){editingId=null;selCreator='m1';selParts=[];document.getElementById('iTitle').value='';document.getElementById('iDesc').value='';document.getElementById('iDate').value='';document.getElementById('iTime').value='';document.getElementById('iDeadline').value='';document.getElementById('iDeadlineTime').value='';const cat=document.getElementById('iCat');cat.value='data';updateCatColor(cat);renderModalMembers();document.getElementById('modalOverlay').classList.add('open');}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+function updateCatColor(sel){
+  const colors={data:'#e8f0fe',meeting:'#fce8e6',admin:'#e6f4ea',questionnaire:'#fef7e0',platform:'#f3e8fd'};
+  sel.style.background=colors[sel.value]||'';
+}
 function renderModalMembers(){
   const visible=MEMBERS.filter(m=>!(memberData[m.id]&&memberData[m.id].deleted));
+  // Row 1: creator - avatar only, no name
   document.getElementById('creatorChips').innerHTML=visible.map(m=>{
     const saved=memberData[m.id]||{};
-    const name=saved.name||m.name;
     const photo=saved.photo;
-    const ring=m.id===selCreator?'box-shadow:0 0 0 2.5px var(--accent);':'';
-    const avatarContent=photo
-      ?`<img src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`
-      :`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
-    return `<div onclick="selCreator='${m.id}';renderModalMembers()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${m.id===selCreator?1:0.5}">
-      ${avatarContent}
-      <span style="font-size:9px;color:var(--text2);white-space:nowrap">${name}</span>
-    </div>`;
+    const isSel=m.id===selCreator;
+    const ring=isSel?'box-shadow:0 0 0 2.5px var(--accent);':'';
+    const av=photo
+      ?`<img src="${photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;${ring}">`
+      :`<div style="width:32px;height:32px;border-radius:50%;background:${m.bg};color:#555;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
+    return `<div onclick="selCreator='${m.id}';renderModalMembers()" style="cursor:pointer;opacity:${isSel?1:0.4}">${av}</div>`;
   }).join('');
+  // Row 7: participants - avatar + name below
   document.getElementById('partChips').innerHTML=visible.map(m=>{
     const saved=memberData[m.id]||{};
     const name=saved.name||m.name;
     const photo=saved.photo;
     const sel=selParts.includes(m.id);
     const ring=sel?'box-shadow:0 0 0 2.5px var(--accent);':'';
-    const avatarContent=photo
+    const av=photo
       ?`<img src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`
       :`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
-    return `<div onclick="const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${sel?1:0.5}">
-      ${avatarContent}
+    return `<div onclick="const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${sel?1:0.4}">
+      ${av}
       <span style="font-size:9px;color:var(--text2);white-space:nowrap">${name}</span>
     </div>`;
   }).join('');
