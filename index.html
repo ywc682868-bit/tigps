@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIGPS 研究計畫平台</title>
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf9f7;--bg2:#f1ede8;--bg3:#e8e3db;
+  --text:#5a5651;--text2:#8b8580;--text3:#b4ada5;
+  --border:#e3dcd4;--border2:#d4ccc2;
+  --accent:#6b7171;--radius:8px;--radius-lg:12px;
+}
+html{background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:240px;min-width:240px;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;overflow:hidden;padding:16px 12px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.sb-logo{padding:0 0 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sb-logo-icon{width:32px;height:32px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:13px;font-weight:700;flex-shrink:0;cursor:pointer}
+.sb-logo-text{font-size:16px;font-weight:600;color:var(--text);cursor:pointer}
+.sb-nav{flex:1;overflow-y:auto;padding:12px 0;margin-top:12px}
+.team-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.member-cell{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:default}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.avatar-sm{width:18px;height:18px;font-size:8px;font-weight:600;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;margin-bottom:2px;user-select:none}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--border);color:var(--text);font-weight:500}
+.topbar{display:flex;align-items:center;gap:10px;padding:0;border-bottom:none;flex-shrink:0;min-height:0;height:0;overflow:hidden}
+.content{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.view{display:none;flex:1;overflow:hidden}
+.view.active{display:flex;flex-direction:column}
+.cal-wrap{display:flex;flex:1;overflow:hidden}
+.cal-left{width:200px;min-width:200px;border-right:1px solid var(--border);padding:14px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:12px}
+.cal-center{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-height:0}
+.cal-right{width:200px;min-width:200px;border-left:1px solid var(--border);padding:14px;overflow-y:auto;background:var(--bg2)}
+.cal-side-section{display:flex;flex-direction:column;gap:6px}
+.cal-side-title{font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;display:inline-block;text-transform:uppercase;letter-spacing:0.05em}
+.cal-side-title.current{background:#e5e7e6;color:#6b7171}
+.cal-side-title.next{background:#e8e0d8;color:#8a7460}
+.cal-side-title.deadline{background:#e8e0dd;color:#8a6b66}
+.cal-side-title.meeting{background:#dfe5e3;color:#5f7070}
+.cal-side-item{font-size:11px;padding:5px 7px;border-radius:4px;color:var(--text2);cursor:pointer;display:flex;align-items:flex-start;gap:4px;transition:all 0.2s}
+.cal-side-item:hover{background:var(--border);color:var(--text)}
+.cal-side-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.cal-nav{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.cal-month-year{text-align:center;flex:1}
+.cal-nav-title{font-size:20px;font-weight:600;color:var(--text)}
+.cal-nav-year{font-size:13px;color:var(--text2);margin-top:2px}
+.arrow-btn{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:15px;transition:all 0.2s}
+.arrow-btn:hover{background:var(--bg2);color:var(--text)}
+.cal-today-btn{padding:4px 12px;font-size:11px;border-radius:var(--radius);border:1.5px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.2s;font-weight:500}
+.cal-today-btn:hover{background:var(--bg2);color:var(--text)}
+.add-round{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text2);line-height:1}
+.add-round:hover{background:var(--bg2);color:var(--text)}
+.cal-grid{padding:12px;display:flex;flex-direction:column;gap:0}
+.cal-dow-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;margin-bottom:1px;background:var(--border)}
+.cal-dow{font-size:10px;color:var(--text3);text-align:center;font-weight:600;padding:6px 0;background:var(--bg)}
+.cal-body{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);flex:1}
+.cal-cell{min-height:100px;padding:6px;cursor:pointer;background:var(--bg);vertical-align:top;overflow:hidden;display:flex;flex-direction:column}
+.cal-cell:hover{background:var(--bg2)}
+.cal-cell.other-month{background:var(--bg);opacity:0.6}
+.cal-cell.weekend .cal-date-num{color:#c97070}
+.cal-cell.holiday{background:#f5ebe0}
+.cal-cell.holiday .cal-date-num{color:#c97070;font-weight:600}
+.cal-date-num{font-size:11px;color:var(--text2);margin-bottom:3px;font-weight:500;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.cal-date-num.today{background:var(--accent);color:var(--bg);font-weight:600}
+.cal-chip{font-size:9px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:2px;cursor:pointer;line-height:1.2}
+.cal-chip:hover{opacity:0.8}
+.tab-header{display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0}
+.tab{padding:8px 16px;font-size:12px;border-radius:var(--radius);border:none;background:transparent;cursor:pointer;color:var(--text2);font-weight:500;transition:all 0.2s}
+.tab:hover{background:var(--bg3);color:var(--text)}
+.tab.active{background:var(--border);color:var(--text)}
+.task-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.filter-chip{padding:4px 12px;font-size:11px;border-radius:12px;border:1px solid var(--border2);background:var(--bg);cursor:pointer;color:var(--text2);transition:all 0.2s;font-weight:500}
+.filter-chip:hover{background:var(--bg2)}
+.filter-chip.active{border-color:var(--accent);background:#e5e7e6;color:#6b7171}
+.table-wrap{flex:1;overflow:auto;padding:0}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:2;white-space:nowrap}
+.data-table td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tr:hover td{background:var(--bg2)}
+.data-table tr.done-row td{opacity:0.4}
+.check-cell{width:32px;text-align:center}
+.check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;background:transparent}
+.check.done{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.avatars-stack{display:flex;align-items:center}
+.avatars-stack .avatar-sm{margin-left:-5px;border:1.5px solid var(--bg)}
+.avatars-stack .avatar-sm:first-child{margin-left:0}
+.task-title-cell{font-size:13px;font-weight:500;cursor:pointer;max-width:280px;color:var(--text)}
+.task-title-cell.done{text-decoration:line-through;color:var(--text3)}
+.task-title-cell:hover{color:var(--accent)}
+.status{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500}
+.st-notstarted{background:var(--bg3);color:var(--text2)}
+.st-inprogress{background:#e5e7e6;color:#6b7171}
+.st-done{background:#e5e8e3;color:#6f8070}
+.st-blocked{background:#e8e0dd;color:#8a6b66}
+.priority{display:inline-flex;gap:2px;font-size:11px}
+.tag{display:inline-flex;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:500}
+.tag-questionnaire{background:#e5e3e8;color:#726b7f}
+.tag-data{background:#e5e7e6;color:#6b7171}
+.tag-admin{background:#e8e0d8;color:#8a7460}
+.tag-meeting{background:#dfe5e3;color:#5f7070}
+.tag-platform{background:#e8dfe3;color:#806070}
+.qtag{display:inline-flex;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:500}
+.qt-student{background:#dfe5e0;color:#5f7060}
+.qt-sibling{background:#e8dfe0;color:#805f5f}
+.qt-parent{background:#dfe0e5;color:#5f6070}
+.qt-teacher{background:#e8dfe5;color:#80606f}
+.qt-subject{background:#e5dfe0;color:#80706f}
+.qt-school{background:#dfe5e0;color:#5f7060}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:var(--radius-lg);border:1px solid var(--border);width:520px;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.08)}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-title{font-size:16px;font-weight:600}
+.close-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center}
+.close-btn:hover{background:var(--bg2)}
+.fg{margin-bottom:14px}
+.flabel{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+input[type=text],input[type=date],select,textarea{width:100%;padding:7px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);background:var(--bg2)}
+textarea{resize:vertical;min-height:60px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chip-row{display:flex;gap:5px;flex-wrap:wrap}
+.chip{padding:4px 10px;font-size:11px;border-radius:12px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.2s}
+.chip:hover{background:var(--bg2)}
+.chip.on{border-color:var(--accent);background:#e5e7e6;color:#6b7171}
+.mem-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:11px;border-radius:12px;border:1px solid var(--border2);cursor:pointer;color:var(--text2);transition:all 0.2s}
+.mem-chip:hover{background:var(--bg2)}
+.mem-chip.sel{border-color:var(--accent);background:#e5e7e6;color:#6b7171}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.pstar{font-size:13px;cursor:pointer;color:var(--border2);transition:color 0.2s}
+.pstar.on{color:#8a6b66}
+.btn{padding:6px 14px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:5px;line-height:1.4;transition:all 0.2s}
+.btn:hover{background:var(--bg2)}
+.btn-primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.btn-primary:hover{background:#5a6161}
+.detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:90;align-items:flex-start;justify-content:flex-end}
+.detail-overlay.open{display:flex}
+.detail-panel{width:420px;height:100vh;background:var(--bg);border-left:1px solid var(--border);overflow-y:auto;padding:24px;box-shadow:-4px 0 20px rgba(0,0,0,0.08)}
+.detail-panel-title{font-size:17px;font-weight:600;margin-bottom:4px;color:var(--text)}
+.detail-field{margin-bottom:14px}
+.detail-field-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+.detail-field-val{font-size:13px;color:var(--text)}
+.notes-input{width:100%;padding:8px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);resize:vertical;min-height:80px;font-family:inherit}
+.notes-input:focus{outline:none;border-color:var(--accent);background:var(--bg2)}
+.divider{height:1px;background:var(--border);margin:8px 0}
+</style>
+</head>
+<body>
+
+<div class="app">
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon" onclick="switchView('dashboard',null)">T</div>
+    <div class="sb-logo-text" onclick="switchView('dashboard',null)">TIGPS</div>
+  </div>
+  <div class="sb-nav">
+    <div class="team-grid" id="sidebarTeam"></div>
+    <div class="sb-item active" onclick="switchView('tasks',this)">
+      <svg style="width:18px;height:18px;opacity:0.6" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 5h14M2 9h10M2 13h7"/></svg>
+      代辦工作
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar"></div>
+  <div class="content">
+    <div class="view active" id="view-dashboard">
+      <div class="cal-wrap">
+        <div class="cal-left">
+          <div class="cal-side-section">
+            <div class="cal-side-title current">當月代辦</div>
+            <div id="dashCurrentMonth"></div>
+          </div>
+          <div class="cal-side-section">
+            <div class="cal-side-title next">次月代辦</div>
+            <div id="dashNextMonth"></div>
+          </div>
+        </div>
+        <div class="cal-center">
+          <div class="cal-nav">
+            <button class="arrow-btn" onclick="changeCalMonth(-1)">‹</button>
+            <div class="cal-month-year">
+              <div class="cal-nav-title" id="calMonthTitle"></div>
+              <div class="cal-nav-year" id="calYearLabel"></div>
+            </div>
+            <button class="arrow-btn" onclick="changeCalMonth(1)">›</button>
+            <button class="cal-today-btn" onclick="goToday()">今天</button>
+            <button class="add-round" onclick="openAdd()" title="新增工作" style="margin-left:auto">＋</button>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-dow-row">
+              <div class="cal-dow">日</div><div class="cal-dow">一</div><div class="cal-dow">二</div>
+              <div class="cal-dow">三</div><div class="cal-dow">四</div><div class="cal-dow">五</div><div class="cal-dow">六</div>
+            </div>
+            <div class="cal-body" id="calBody"></div>
+          </div>
+        </div>
+        <div class="cal-right">
+          <div class="cal-side-section">
+            <div class="cal-side-title deadline" style="display:block;margin-bottom:6px">重要事項</div>
+            <div id="dashDeadlines"></div>
+          </div>
+          <div class="divider" style="margin:8px 0"></div>
+          <div class="cal-side-section">
+            <div class="cal-side-title meeting" style="display:block;margin-bottom:6px">會議</div>
+            <div id="dashMeetings"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="view-tasks">
+      <div class="tab-header">
+        <button class="tab active" onclick="switchTab('list',this)">列表</button>
+        <button class="tab" onclick="switchTab('progress',this)">進度</button>
+      </div>
+      <div id="taskListPanel" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+        <div class="task-toolbar">
+          <span style="font-size:11px;color:var(--text2)">分類：</span>
+          <button class="filter-chip active" id="fl-all" onclick="setTaskFilter('all',this)">全部</button>
+          <button class="filter-chip" id="fl-questionnaire" onclick="setTaskFilter('questionnaire',this)">問卷</button>
+          <button class="filter-chip" id="fl-data" onclick="setTaskFilter('data',this)">資料</button>
+          <button class="filter-chip" id="fl-admin" onclick="setTaskFilter('admin',this)">行政</button>
+          <button class="filter-chip" id="fl-meeting" onclick="setTaskFilter('meeting',this)">會議</button>
+          <button class="filter-chip" id="fl-platform" onclick="setTaskFilter('platform',this)">平台</button>
+          <div style="margin-left:auto"><button class="add-round" onclick="openAdd()">＋</button></div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table" id="taskTable">
+            <thead>
+              <tr>
+                <th class="check-cell"></th>
+                <th><button class="sort-btn" onclick="sortTasks('title')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;padding:0">討論主題 ↕</button></th>
+                <th><button class="sort-btn" onclick="sortTasks('date')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;padding:0">日期 ↕</button></th>
+                <th>人員</th>
+                <th><button class="sort-btn" onclick="sortTasks('priority')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;padding:0">緊急程度 ↕</button></th>
+                <th><button class="sort-btn" onclick="sortTasks('status')" style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;padding:0">狀態 ↕</button></th>
+                <th>類型</th>
+                <th>備註</th>
+              </tr>
+            </thead>
+            <tbody id="taskTbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="progressPanel" style="flex:1;overflow-y:auto;padding:20px;display:none">
+        <div style="margin-bottom:24px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">各年度完成率</div>
+          <div id="yearProg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+<div class="modal">
+  <div class="modal-hdr">
+    <span class="modal-title" id="modalTitleText">新增工作</span>
+    <button class="close-btn" onclick="closeModal()">✕</button>
+  </div>
+  <div class="fg">
+    <label class="flabel">討論主題 / 工作名稱</label>
+    <input type="text" id="iTitle" placeholder="輸入標題...">
+  </div>
+  <div class="fg">
+    <label class="flabel">說明 / 備註</label>
+    <textarea id="iDesc" placeholder="說明（選填）"></textarea>
+  </div>
+  <div class="two-col">
+    <div class="fg">
+      <label class="flabel">日期</label>
+      <input type="date" id="iDate">
+    </div>
+    <div class="fg">
+      <label class="flabel">Deadline</label>
+      <input type="date" id="iDeadline">
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="fg">
+      <label class="flabel">分類</label>
+      <select id="iCat">
+        <option value="questionnaire">問卷</option>
+        <option value="data">資料</option>
+        <option value="admin" selected>行政</option>
+        <option value="meeting">會議</option>
+        <option value="platform">平台</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="flabel">狀態</label>
+      <select id="iStatus">
+        <option value="notstarted">Not started</option>
+        <option value="inprogress">In progress</option>
+        <option value="done">Done</option>
+        <option value="blocked">Blocked</option>
+      </select>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="flabel">緊急程度</label>
+    <div class="priority-display" id="priorityStars">
+      <span class="pstar" data-v="1" onclick="setPriority(1)">!</span>
+      <span class="pstar" data-v="2" onclick="setPriority(2)">!</span>
+      <span class="pstar" data-v="3" onclick="setPriority(3)">!</span>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="flabel">相關問卷（可複選）</label>
+    <div class="chip-row" id="qTagChips">
+      <button class="chip" data-q="student" onclick="toggleQChip(this)">學生</button>
+      <button class="chip" data-q="sibling" onclick="toggleQChip(this)">手足</button>
+      <button class="chip" data-q="parent" onclick="toggleQChip(this)">照顧者</button>
+      <button class="chip" data-q="teacher" onclick="toggleQChip(this)">導師</button>
+      <button class="chip" data-q="subject" onclick="toggleQChip(this)">科任</button>
+      <button class="chip" data-q="school" onclick="toggleQChip(this)">學校</button>
+    </div>
+  </div>
+  <div class="fg">
+    <label class="flabel">新增者</label>
+    <div class="chip-row" id="creatorChips"></div>
+  </div>
+  <div class="fg">
+    <label class="flabel">參與成員</label>
+    <div class="chip-row" id="partChips"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" onclick="closeModal()">取消</button>
+    <button class="btn btn-primary" onclick="saveTask()">新增</button>
+  </div>
+</div>
+</div>
+
+<div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+<div class="detail-panel" id="detailPanel"></div>
+</div>
+
+<script>
+const firebaseConfig={apiKey:"AIzaSyDJz-9QQq4W_7wZZ8K7t5M4n3p2q1r0s9t",authDomain:"tigps-7779e.firebaseapp.com",projectId:"tigps-7779e",storageBucket:"tigps-7779e.appspot.com",messagingSenderId:"933488060768",databaseURL:"https://tigps-7779e-default-rtdb.asia-southeast1.firebasedatabase.app"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+
+const MEMBERS=[{id:'m1',name:'李研究員',initials:'李',color:'#b9a79f',bg:'#e5ddd8'},{id:'m2',name:'陳助理',initials:'陳',color:'#8f9f8f',bg:'#dfe5df'},{id:'m3',name:'王助理',initials:'王',color:'#9f8f7f',bg:'#e5dfd8'},{id:'m4',name:'林助理',initials:'林',color:'#9f7f8f',bg:'#e5dfe5'}];
+const CAT_INFO={questionnaire:{label:'問卷',chipCls:'tag-questionnaire'},data:{label:'資料',chipCls:'tag-data'},admin:{label:'行政',chipCls:'tag-admin'},meeting:{label:'會議',chipCls:'tag-meeting'},platform:{label:'平台',chipCls:'tag-platform'}};
+const STATUS_INFO={notstarted:{label:'Not started',cls:'st-notstarted'},inprogress:{label:'In progress',cls:'st-inprogress'},done:{label:'Done',cls:'st-done'},blocked:{label:'Blocked',cls:'st-blocked'}};
+const QTAG_INFO={student:{label:'學生',cls:'qt-student'},sibling:{label:'手足',cls:'qt-sibling'},parent:{label:'照顧者',cls:'qt-parent'},teacher:{label:'導師',cls:'qt-teacher'},subject:{label:'科任',cls:'qt-subject'},school:{label:'學校',cls:'qt-school'}};
+const CAL_CHIP_STYLE={questionnaire:'background:#e5e3e8;color:#726b7f',data:'background:#e5e7e6;color:#6b7171',admin:'background:#e8e0d8;color:#8a7460',meeting:'background:#dfe5e3;color:#5f7070',platform:'background:#e8dfe3;color:#806070'};
+const TW_HOLIDAYS_2025={'2025-01-01':true,'2025-02-08':true,'2025-02-09':true,'2025-02-10':true,'2025-02-11':true,'2025-02-12':true,'2025-02-28':true,'2025-04-04':true,'2025-04-05':true,'2025-06-10':true,'2025-09-17':true,'2025-10-10':true,'2025-12-25':true};
+const TW_HOLIDAYS_2026={'2026-01-01':true,'2026-01-29':true,'2026-01-30':true,'2026-01-31':true,'2026-02-01':true,'2026-02-02':true,'2026-02-28':true,'2026-04-04':true,'2026-04-05':true,'2026-06-10':true,'2026-09-17':true,'2026-10-10':true,'2026-12-25':true};
+const TW_HOLIDAYS={...TW_HOLIDAYS_2025,...TW_HOLIDAYS_2026};
+const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),taskFilter='all',sortKey='date',sortAsc=true,selCreator='m1',selParts=[],selPriority=2,editingId=null,tasks=[];
+const gm=id=>MEMBERS.find(m=>m.id===id);
+const today=new Date();
+today.setHours(0,0,0,0);
+const isWeekend=d=>{const dow=new Date(d).getDay();return dow===0||dow===6};
+const isHoliday=ds=>TW_HOLIDAYS[ds];
+
+function avatarHtml(m,size){const s=size||18;return `<div class="avatar-sm" style="width:${s}px;height:${s}px;font-size:${Math.round(s*0.45)}px;background:${m.bg};color:${m.color}" title="${m.name}">${m.initials}</div>`;}
+function priorityHtml(p){const marks=Array.from({length:3},(_,i)=>`<span style="color:${i<p?'#8a6b66':'#d4ccc2'};font-size:12px">!</span>`).join('');return `<span class="priority">${marks}</span>`;}
+function statusHtml(s){const si=STATUS_INFO[s]||STATUS_INFO.notstarted;return `<span class="status ${si.cls}">${si.label}</span>`;}
+function tagHtml(cat){const ci=CAT_INFO[cat]||CAT_INFO.admin;return `<span class="tag ${ci.chipCls}">${ci.label}</span>`;}
+function qtagHtml(q){const qi=QTAG_INFO[q];return qi?`<span class="qtag ${qi.cls}">${qi.label}</span>`:'';}
+
+function renderTeam(){document.getElementById('sidebarTeam').innerHTML=MEMBERS.map(m=>`<div class="member-cell"><div class="avatar" style="background:${m.bg};color:${m.color}">${m.initials}</div></div>`).join('');}
+
+function loadTasks(){db.ref('tasks').on('value',snapshot=>{tasks=[];snapshot.forEach(child=>{tasks.push({id:child.key,...child.val()});});renderCalendar();renderTaskList();});}
+
+function renderCalendar(){const tEl=document.getElementById('calMonthTitle'),yEl=document.getElementById('calYearLabel'),bEl=document.getElementById('calBody');tEl.textContent=MONTHS[calMonth];yEl.textContent=calYear+'年';const first=new Date(calYear,calMonth,1),lastDay=new Date(calYear,calMonth+1,0).getDate(),startDow=first.getDay(),monthStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}`,monthTasks=tasks.filter(t=>t.date&&t.date.startsWith(monthStr));let cells='';const prevMonth=calMonth===0?11:calMonth-1,prevYear=calMonth===0?calYear-1:calYear,prevLastDay=new Date(prevYear,prevMonth+1,0).getDate();for(let i=0;i<startDow;i++){const prevD=prevLastDay-startDow+i+1;cells+=`<div class="cal-cell other-month" style="border:none;color:var(--text3)"><div class="cal-date-num">${prevD}</div></div>`;}for(let d=1;d<=lastDay;d++){const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,dt=monthTasks.filter(t=>t.date===ds),isT=new Date(calYear,calMonth,d).getTime()===today.getTime(),numCls=isT?'cal-date-num today':'cal-date-num',cellCls=isWeekend(ds)?'weekend':'',holidayCls=isHoliday(ds)?'holiday':'',chips=dt.slice(0,3).map(t=>{const cr=gm(t.creator),st=CAL_CHIP_STYLE[t.cat]||'background:#e5e5e5;color:#777';return `<div class="cal-chip" style="${st}" onclick="openDetail('${t.id}');event.stopPropagation()">${cr?`<div style="width:10px;height:10px;border-radius:50%;background:${cr.bg};color:${cr.color};font-size:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${cr.initials}</div>`:''}${t.title}</div>`;}),more=dt.length>3?`<div style="font-size:9px;color:var(--text3);padding:1px 3px">+${dt.length-3}</div>`:'';cells+=`<div class="cal-cell ${cellCls} ${holidayCls}" onclick="openAddOnDate('${ds}')">${'<div class="'+numCls+'">'+d+'</div>'}${chips}${more}</div>`;}const nextMonth=calMonth===11?0:calMonth+1,nextYear=calMonth===11?calYear+1:calYear,total=startDow+lastDay,rem=(7-total%7)%7;for(let i=0;i<rem;i++){const nextD=i+1;cells+=`<div class="cal-cell other-month" style="border:none;color:var(--text3)"><div class="cal-date-num">${nextD}</div></div>`;}bEl.innerHTML=cells;renderDashSidebar();}
+
+function changeCalMonth(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function goToday(){calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();}
+
+function renderDashSidebar(){const now=new Date(),curY=now.getFullYear(),curM=now.getMonth(),nextY=curM===11?curY+1:curY,nextM=curM===11?0:curM+1,curStr=`${curY}-${String(curM+1).padStart(2,'0')}`,nextStr=`${nextY}-${String(nextM+1).padStart(2,'0')}`,cur=tasks.filter(t=>t.date&&t.date.startsWith(curStr)&&t.status!=='done'),nxt=tasks.filter(t=>t.date&&t.date.startsWith(nextStr)&&t.status!=='done'),dl=tasks.filter(t=>t.deadline&&t.priority===3&&t.status!=='done').sort((a,b)=>a.deadline.localeCompare(b.deadline)).slice(0,5),mtg=tasks.filter(t=>t.cat==='meeting'&&t.date&&t.date>=curStr).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6),renderSideItem=(t,dotColor)=>`<div class="cal-side-item" onclick="openDetail('${t.id}')"><div class="cal-side-dot" style="background:${dotColor}"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||t.deadline||''}</div></div></div>`;document.getElementById('dashCurrentMonth').innerHTML=cur.length?cur.map(t=>renderSideItem(t,'#8a6b66')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;document.getElementById('dashNextMonth').innerHTML=nxt.length?nxt.map(t=>renderSideItem(t,'#8a7460')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;document.getElementById('dashDeadlines').innerHTML=dl.length?dl.map(t=>renderSideItem(t,'#c97070')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;document.getElementById('dashMeetings').innerHTML=mtg.length?mtg.map(t=>`<div class="cal-side-item" onclick="openDetail('${t.id}')"><div class="cal-side-dot" style="background:#5f7070"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||''}</div></div></div>`).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;}
+
+function renderTaskList(){let filtered=taskFilter==='all'?[...tasks]:tasks.filter(t=>t.cat===taskFilter);filtered.sort((a,b)=>{let va=a[sortKey]||'',vb=b[sortKey]||'';if(sortKey==='priority'){va=a.priority;vb=b.priority;}if(sortKey==='status'){va=a.status;vb=b.status;}return sortAsc?(va>vb?1:-1):(va<vb?1:-1);});document.getElementById('taskTbody').innerHTML=filtered.map(t=>{const cr=gm(t.creator),pts=(t.parts||[]).map(gm).filter(Boolean),si=STATUS_INFO[t.status]||STATUS_INFO.notstarted;return `<tr class="${t.done?'done-row':''}"><td class="check-cell"><div class="check ${t.done?'done':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</div></td><td><div class="task-title-cell ${t.done?'done':''}" onclick="openDetail('${t.id}')">${t.title}</div>${t.qtags&&t.qtags.length?'<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">'+t.qtags.map(qtagHtml).join('')+'</div>':''}</td><td style="white-space:nowrap"><div style="font-size:12px;color:var(--text2)">${t.date||''}</div>${t.deadline&&t.deadline!==t.date?`<div style="font-size:11px;color:#8a6b66">→${t.deadline}</div>`:''}</td><td><div style="display:flex;align-items:center;gap:4px">${cr?avatarHtml(cr):''}${pts.length?'<div class="avatars-stack">'+pts.map(m=>avatarHtml(m)).join('')+'</div>':''}</div></td><td class="priority-cell">${priorityHtml(t.priority)}</td><td>${statusHtml(t.status)}</td><td>${tagHtml(t.cat)}</td><td style="font-size:11px;color:var(--text2);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes||''}</td></tr>`;}).join('');}
+
+function setTaskFilter(f,el){taskFilter=f;document.querySelectorAll('[id^="fl-"]').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active');renderTaskList();}
+function sortTasks(k){if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=true;}renderTaskList();}
+function toggleTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;t.status=t.done?'done':(t.status==='done'?'notstarted':t.status);db.ref('tasks/'+id).update(t);}
+
+function renderProgress(){const years=Array.from(new Set(tasks.map(t=>t.date?t.date.split('-')[0]:''))).filter(Boolean).sort();document.getElementById('yearProg').innerHTML=years.map(y=>{const yt=tasks.filter(t=>t.date&&t.date.startsWith(y)),yd=yt.filter(t=>t.done).length,pct=yt.length?Math.round(yd/yt.length*100):0;return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>${y}</span><span>${yd}/${yt.length}(${pct}%)</span></div><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;background:var(--accent);width:${pct}%"></div></div></div>`;}).join('');}
+
+function switchTab(t,el){if(el){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');}if(t==='list'){document.getElementById('taskListPanel').style.display='flex';document.getElementById('progressPanel').style.display='none';}else{document.getElementById('taskListPanel').style.display='none';document.getElementById('progressPanel').style.display='block';renderProgress();}}
+
+function openAdd(){editingId=null;selCreator='m1';selParts=[];selPriority=2;document.getElementById('iTitle').value='';document.getElementById('iDesc').value='';document.getElementById('iDate').value='';document.getElementById('iDeadline').value='';document.getElementById('iCat').value='admin';document.getElementById('iStatus').value='notstarted';document.querySelectorAll('#qTagChips .chip').forEach(b=>b.className='chip');renderModalMembers();updatePriorityStars();document.getElementById('modalTitleText').textContent='新增工作';document.getElementById('modalOverlay').classList.add('open');}
+function openAddOnDate(ds){openAdd();document.getElementById('iDate').value=ds;}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+function renderModalMembers(){document.getElementById('creatorChips').innerHTML=MEMBERS.map(m=>`<div class="mem-chip ${m.id===selCreator?'sel':''}" id="cr-${m.id}" onclick="pickCreator('${m.id}')"><div style="width:16px;height:16px;border-radius:50%;background:${m.bg};color:${m.color};font-size:8px;display:flex;align-items:center;justify-content:center">${m.initials}</div>${m.name}</div>`).join('');document.getElementById('partChips').innerHTML=MEMBERS.map(m=>`<div class="mem-chip ${selParts.includes(m.id)?'sel':''}" id="pt-${m.id}" onclick="togglePart('${m.id}')"><div style="width:16px;height:16px;border-radius:50%;background:${m.bg};color:${m.color};font-size:8px;display:flex;align-items:center;justify-content:center">${m.initials}</div>${m.name}</div>`).join('');}
+function pickCreator(id){selCreator=id;document.querySelectorAll('[id^="cr-"]').forEach(el=>el.classList.remove('sel'));const el=document.getElementById('cr-'+id);if(el)el.classList.add('sel');}
+function togglePart(id){const i=selParts.indexOf(id);if(i>=0)selParts.splice(i,1);else selParts.push(id);document.querySelectorAll('[id^="pt-"]').forEach(el=>el.classList.remove('sel'));selParts.forEach(pid=>{const el=document.getElementById('pt-'+pid);if(el)el.classList.add('sel');});}
+function setPriority(v){selPriority=v;updatePriorityStars();}
+function updatePriorityStars(){document.querySelectorAll('.pstar').forEach(s=>{s.classList.toggle('on',parseInt(s.dataset.v)<=selPriority);});}
+function toggleQChip(btn){const q=btn.dataset.q;if(btn.classList.contains('on-'+q))btn.className='chip';else btn.className='chip on';}
+function saveTask(){const title=document.getElementById('iTitle').value.trim();if(!title){alert('請輸入工作名稱');return;}const qtags=[...document.querySelectorAll('#qTagChips .chip')].filter(b=>b.className!=='chip').map(b=>b.dataset.q),data={title,desc:document.getElementById('iDesc').value,date:document.getElementById('iDate').value,deadline:document.getElementById('iDeadline').value,cat:document.getElementById('iCat').value,status:document.getElementById('iStatus').value,priority:selPriority,qtags,creator:selCreator,parts:[...selParts],notes:'',done:document.getElementById('iStatus').value==='done',timestamp:new Date().toISOString()};if(editingId){db.ref('tasks/'+editingId).update(data);}else{db.ref('tasks').push(data);}closeModal();}
+
+function openDetail(id){const t=tasks.find(x=>x.id===id);if(!t)return;const cr=gm(t.creator),pts=(t.parts||[]).map(gm).filter(Boolean),si=STATUS_INFO[t.status]||STATUS_INFO.notstarted;document.getElementById('detailPanel').innerHTML=`<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px"><div style="font-size:17px;font-weight:600;flex:1;line-height:1.4;color:var(--text)">${t.title}</div><button class="close-btn" onclick="closeDetail()" style="flex-shrink:0;margin-left:8px">✕</button></div>${t.desc?`<div style="font-size:13px;color:var(--text2);margin-bottom:16px">${t.desc}</div>`:''}<div class="detail-field"><div class="detail-field-label">狀態</div><div class="detail-field-val">${statusHtml(t.status)}</div></div><div class="detail-field"><div class="detail-field-label">分類</div><div class="detail-field-val">${tagHtml(t.cat)}</div></div><div class="detail-field"><div class="detail-field-label">緊急程度</div><div class="detail-field-val">${priorityHtml(t.priority)}</div></div>${t.date?`<div class="detail-field"><div class="detail-field-label">日期</div><div class="detail-field-val">${t.date}</div></div>`:''} ${t.deadline?`<div class="detail-field"><div class="detail-field-label">Deadline</div><div class="detail-field-val" style="color:#8a6b66">${t.deadline}</div></div>`:''}${t.qtags&&t.qtags.length?`<div class="detail-field"><div class="detail-field-label">相關問卷</div><div style="display:flex;gap:4px;flex-wrap:wrap">${t.qtags.map(qtagHtml).join('')}</div></div>`:''}<div class="detail-field"><div class="detail-field-label">新增者</div><div style="display:flex;align-items:center;gap:6px">${cr?`${avatarHtml(cr,22)}<span style="font-size:13px">${cr.name}</span>`:'-'}</div></div><div class="detail-field"><div class="detail-field-label">參與成員</div><div style="display:flex;gap:6px;flex-wrap:wrap">${pts.map(m=>`<div style="display:flex;align-items:center;gap:4px">${avatarHtml(m,22)}<span style="font-size:12px">${m.name}</span></div>`).join('')||'-'}</div></div><div class="detail-field"><div class="detail-field-label">備註</div><textarea class="notes-input" id="detailNotes" placeholder="新增備註...">${t.notes||''}</textarea></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-primary" onclick="saveDetailNotes('${t.id}')">儲存備註</button><button class="btn" onclick="editTask('${t.id}')">編輯</button><button class="btn" style="margin-left:auto;color:#8a6b66;border-color:#e0d0c5" onclick="deleteTask('${t.id}')">刪除</button></div>`;document.getElementById('detailOverlay').classList.add('open');}
+function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');}
+function saveDetailNotes(id){const t=tasks.find(x=>x.id===id);if(t){t.notes=document.getElementById('detailNotes').value;db.ref('tasks/'+id).update({notes:t.notes});}closeDetail();}
+function editTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;closeDetail();editingId=id;selCreator=t.creator||'m1';selParts=[...(t.parts||[])];selPriority=t.priority||2;document.getElementById('iTitle').value=t.title;document.getElementById('iDesc').value=t.desc||'';document.getElementById('iDate').value=t.date||'';document.getElementById('iDeadline').value=t.deadline||'';document.getElementById('iCat').value=t.cat||'admin';document.getElementById('iStatus').value=t.status||'notstarted';document.querySelectorAll('#qTagChips .chip').forEach(b=>{const q=b.dataset.q;b.className=(t.qtags||[]).includes(q)?'chip on-'+q:'chip';});renderModalMembers();updatePriorityStars();document.getElementById('modalTitleText').textContent='編輯工作';document.getElementById('modalOverlay').classList.add('open');}
+function deleteTask(id){if(!confirm('確定要刪除這項工作嗎?'))return;db.ref('tasks/'+id).remove().then(()=>{closeDetail();renderCalendar();renderTaskList();}).catch(err=>alert('刪除失敗: '+err));}
+
+function switchView(v,el){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');if(v==='tasks')renderTaskList();}
+
+renderTeam();
+loadTasks();
+</script>
+</body>
+</html>
