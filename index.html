@@ -7,54 +7,49 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#ffffff;--bg2:#f7f6f3;--bg3:#efede8;
-  --text:#1a1a1a;--text2:#6b6b6b;--text3:#9b9b9b;
-  --border:#e3e2de;--border2:#d1cfc9;
-  --blue-bg:#e8f0f9;--blue-text:#2a5db0;
-  --green-bg:#e3f5e1;--green-text:#2a6e32;
-  --red-bg:#fce8e6;--red-text:#b03030;
-  --orange-bg:#fef3e2;--orange-text:#9a5c00;
-  --purple-bg:#f0ecfd;--purple-text:#5b3da8;
-  --pink-bg:#fde8f0;--pink-text:#a0306a;
-  --teal-bg:#e2f4f1;--teal-text:#1a6b60;
-  --yellow-bg:#fef9e2;--yellow-text:#7a5c00;
-  --accent:#2a5db0;
-  --radius:6px;--radius-lg:10px;
+  --bg:#faf9f7;--bg2:#f1ede8;--bg3:#e8e3db;
+  --text:#5a5651;--text2:#8b8580;--text3:#b4ada5;
+  --border:#e3dcd4;--border2:#d4ccc2;
+  --blue-bg:#e5e7e6;--blue-text:#6b7171;
+  --green-bg:#e5e8e3;--green-text:#6f8070;
+  --red-bg:#e8e0dd;--red-text:#8a6b66;
+  --orange-bg:#e8e0d8;--orange-text:#8a7460;
+  --purple-bg:#e5e3e8;--purple-text:#726b7f;
+  --pink-bg:#e8dfe3;--pink-text:#806070;
+  --teal-bg:#dfe5e3;--teal-text:#5f7070;
+  --yellow-bg:#e8e5d8;--yellow-text:#8a7d60;
+  --accent:#6b7171;
+  --radius:8px;--radius-lg:12px;
 }
+html{background:var(--bg)}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5}
 
 /* Layout */
 .app{display:flex;height:100vh;overflow:hidden}
-.sidebar{width:220px;min-width:220px;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;overflow:hidden}
+.sidebar{width:240px;min-width:240px;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;overflow:hidden;padding:16px 12px}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
 
 /* Sidebar */
-.sb-logo{padding:16px 18px 10px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
-.sb-logo-icon{width:26px;height:26px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
-.sb-logo-text{font-size:14px;font-weight:600;color:var(--text)}
-.sb-section{padding:10px 10px 4px;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase}
-.sb-nav{flex:1;overflow-y:auto;padding:0 8px 12px}
-.sb-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;margin-bottom:1px;user-select:none}
+.sb-logo{padding:0 0 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sb-logo-icon{width:32px;height:32px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:13px;font-weight:700;flex-shrink:0}
+.sb-logo-text{font-size:16px;font-weight:600;color:var(--text)}
+.sb-nav{flex:1;overflow-y:auto;padding:12px 0;margin-top:12px}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;margin-bottom:2px;user-select:none}
 .sb-item:hover{background:var(--bg3);color:var(--text)}
 .sb-item.active{background:var(--border);color:var(--text);font-weight:500}
-.sb-icon{width:16px;height:16px;flex-shrink:0;opacity:0.7}
-.sb-team{padding:12px 10px;border-top:1px solid var(--border)}
-.sb-team-title{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:10px}
-.team-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.member-cell{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:default}
-.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
-.avatar-sm{width:20px;height:20px;font-size:9px;font-weight:600;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.member-name{font-size:10px;color:var(--text2);text-align:center;line-height:1.3}
+.sb-icon{width:18px;height:18px;flex-shrink:0;opacity:0.6}
+.sb-team{padding:12px 0;border-top:1px solid var(--border);margin-top:auto}
+.team-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.member-cell{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:default}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.avatar-sm{width:18px;height:18px;font-size:8px;font-weight:600;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.member-name{font-size:9px;color:var(--text2);text-align:center;line-height:1.2}
 
 /* Topbar */
-.topbar{display:flex;align-items:center;gap:10px;padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;min-height:48px}
-.topbar-title{font-size:16px;font-weight:600;flex:1;color:var(--text)}
+.topbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0;min-height:52px}
+.topbar-title{font-size:18px;font-weight:600;flex:1;color:var(--text)}
 .topbar-actions{display:flex;align-items:center;gap:6px}
-.btn{padding:5px 12px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg);cursor:pointer;color:var(--text);display:flex;align-items:center;gap:5px;line-height:1.4}
-.btn:hover{background:var(--bg2)}
-.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-.btn-primary:hover{background:#1e4d9e}
-.add-round{width:28px;height:28px;border-radius:50%;border:1px solid var(--border2);background:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--text2);line-height:1}
+.add-round{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text2);line-height:1}
 .add-round:hover{background:var(--bg2);color:var(--text)}
 
 /* Content */
@@ -64,54 +59,84 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 
 /* === CALENDAR VIEW === */
 .cal-wrap{display:flex;flex:1;overflow:hidden}
-.cal-left{width:220px;min-width:220px;border-right:1px solid var(--border);padding:16px;overflow-y:auto;background:var(--bg2)}
+.cal-left{width:200px;min-width:200px;border-right:1px solid var(--border);padding:14px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:12px}
 .cal-center{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-height:0}
 .cal-right{width:200px;min-width:200px;border-left:1px solid var(--border);padding:14px;overflow-y:auto;background:var(--bg2)}
 
-.cal-side-section{margin-bottom:18px}
-.cal-side-title{font-size:11px;font-weight:700;padding:4px 8px;border-radius:4px;margin-bottom:8px;display:inline-block}
+.cal-side-section{display:flex;flex-direction:column;gap:6px}
+.cal-side-title{font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;display:inline-block;text-transform:uppercase;letter-spacing:0.05em}
 .cal-side-title.current{background:var(--blue-bg);color:var(--blue-text)}
 .cal-side-title.next{background:var(--orange-bg);color:var(--orange-text)}
 .cal-side-title.deadline{background:var(--red-bg);color:var(--red-text)}
 .cal-side-title.meeting{background:var(--teal-bg);color:var(--teal-text)}
-.cal-side-item{font-size:12px;padding:5px 8px;border-radius:4px;margin-bottom:3px;color:var(--text2);cursor:pointer;display:flex;align-items:flex-start;gap:5px}
+.cal-side-item{font-size:11px;padding:5px 7px;border-radius:4px;color:var(--text2);cursor:pointer;display:flex;align-items:flex-start;gap:4px;transition:all 0.2s}
 .cal-side-item:hover{background:var(--border);color:var(--text)}
-.cal-side-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.cal-side-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:3px}
 
-.cal-nav{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
-.cal-nav-title{font-size:15px;font-weight:600;min-width:80px}
-.cal-nav-year{font-size:12px;color:var(--text3);margin-left:4px}
-.arrow-btn{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:14px}
-.arrow-btn:hover{background:var(--bg3);color:var(--text)}
-.cal-today-btn{padding:3px 10px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg);cursor:pointer;color:var(--text2)}
-.cal-today-btn:hover{background:var(--bg2)}
+.cal-nav{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0;position:relative}
+.cal-month-year{text-align:center;flex:1}
+.cal-nav-title{font-size:20px;font-weight:600;color:var(--text)}
+.cal-nav-year{font-size:13px;color:var(--text2);margin-top:2px}
+.arrow-btn{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:15px;transition:all 0.2s}
+.arrow-btn:hover{background:var(--bg2);color:var(--text)}
+.cal-today-btn{padding:4px 12px;font-size:11px;border-radius:var(--radius);border:1.5px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.2s;font-weight:500}
+.cal-today-btn:hover{background:var(--bg2);color:var(--text)}
 
-.cal-grid{padding:0 12px 12px;display:flex;flex-direction:column}
-.cal-dow-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));position:sticky;top:0;background:var(--bg);z-index:2;border-bottom:1px solid var(--border);padding:6px 0}
-.cal-dow{font-size:11px;color:var(--text3);text-align:center;font-weight:500}
-.cal-body{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));flex:1}
-.cal-cell{min-height:100px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;cursor:pointer;vertical-align:top}
+.cal-grid{padding:12px;display:flex;flex-direction:column;gap:0}
+.cal-dow-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;margin-bottom:1px;background:var(--border)}
+.cal-dow{font-size:10px;color:var(--text3);text-align:center;font-weight:600;padding:6px 0;background:var(--bg)}
+.cal-body{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);flex:1}
+.cal-cell{min-height:100px;padding:6px;cursor:pointer;background:var(--bg);vertical-align:top;overflow:hidden;display:flex;flex-direction:column}
 .cal-cell:hover{background:var(--bg2)}
-.cal-cell.empty{cursor:default;background:transparent}
-.cal-cell.empty:hover{background:transparent}
-.cal-cell.other-month{background:var(--bg2);opacity:0.6}
+.cal-cell.other-month{background:var(--bg3);opacity:0.6}
+.cal-cell.weekend .cal-date-num{color:#c97070}
+.cal-cell.holiday{background:#f5ebe0}
+.cal-cell.holiday .cal-date-num{color:#c97070;font-weight:600}
 .cal-date-num{font-size:11px;color:var(--text2);margin-bottom:3px;font-weight:500;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%}
-.cal-date-num.today{background:var(--accent);color:#fff;font-weight:600}
-.cal-chip{font-size:10px;padding:2px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;cursor:pointer}
+.cal-date-num.today{background:var(--accent);color:var(--bg);font-weight:600}
+.cal-chip{font-size:9px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:2px;cursor:pointer;line-height:1.2}
 .cal-chip:hover{opacity:0.8}
-.cal-more{font-size:10px;color:var(--text3);padding:1px 4px}
+.cal-more{font-size:9px;color:var(--text3);padding:1px 3px}
+
+/* Task List View */
+.tab-header{display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0}
+.tab{padding:8px 16px;font-size:12px;border-radius:var(--radius);border:none;background:transparent;cursor:pointer;color:var(--text2);font-weight:500;transition:all 0.2s}
+.tab:hover{background:var(--bg3);color:var(--text)}
+.tab.active{background:var(--border);color:var(--text)}
+.task-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.filter-chip{padding:4px 12px;font-size:11px;border-radius:12px;border:1px solid var(--border2);background:var(--bg);cursor:pointer;color:var(--text2);transition:all 0.2s;font-weight:500}
+.filter-chip:hover{background:var(--bg2)}
+.filter-chip.active{border-color:var(--accent);background:var(--blue-bg);color:var(--blue-text)}
+.table-wrap{flex:1;overflow:auto;padding:0}
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:2;white-space:nowrap}
+.data-table td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tr:hover td{background:var(--bg2)}
+.data-table tr.done-row td{opacity:0.4}
+.sort-btn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;padding:0}
+.sort-btn:hover{color:var(--text)}
+.check-cell{width:32px;text-align:center}
+.check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;background:transparent}
+.check.done{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.priority-cell{text-align:center}
+.avatars-stack{display:flex;align-items:center}
+.avatars-stack .avatar-sm{margin-left:-5px;border:1.5px solid var(--bg)}
+.avatars-stack .avatar-sm:first-child{margin-left:0}
+.task-title-cell{font-size:13px;font-weight:500;cursor:pointer;max-width:280px;color:var(--text)}
+.task-title-cell.done{text-decoration:line-through;color:var(--text3)}
+.task-title-cell:hover{color:var(--accent)}
 
 /* Status & priority badges */
-.status{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:10px;font-size:11px;font-weight:500}
+.status{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500}
 .st-notstarted{background:var(--bg3);color:var(--text2)}
 .st-inprogress{background:var(--blue-bg);color:var(--blue-text)}
 .st-done{background:var(--green-bg);color:var(--green-text)}
 .st-blocked{background:var(--red-bg);color:var(--red-text)}
 .priority{display:inline-flex;gap:2px;font-size:11px}
-.p1{color:#e84b4b}.p2{color:#f59e0b}.p3{color:#6b7280}
+.p1{color:#8a6b66}.p2{color:#8a7460}.p3{color:#8a8570}
 
 /* Type tags */
-.tag{display:inline-flex;padding:1px 7px;border-radius:3px;font-size:11px;font-weight:500}
+.tag{display:inline-flex;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:500}
 .tag-questionnaire{background:var(--purple-bg);color:var(--purple-text)}
 .tag-data{background:var(--blue-bg);color:var(--blue-text)}
 .tag-admin{background:var(--orange-bg);color:var(--orange-text)}
@@ -119,108 +144,65 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .tag-platform{background:var(--pink-bg);color:var(--pink-text)}
 
 /* Questionnaire type tags */
-.qtag{display:inline-flex;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:500}
-.qt-student{background:#e3f0fd;color:#1a5fa0}
-.qt-sibling{background:#fde8e8;color:#9a2525}
-.qt-parent{background:#e3f5e1;color:#2a6e32}
-.qt-teacher{background:#fde8f5;color:#8a2060}
-.qt-subject{background:#fff3e0;color:#8a5000}
-.qt-school{background:#e8f0e8;color:#2a5030}
-
-/* === TABLE VIEW === */
-.table-wrap{flex:1;overflow:auto;padding:0}
-.data-table{width:100%;border-collapse:collapse;font-size:12px}
-.data-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:2;white-space:nowrap}
-.data-table td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
-.data-table tr:hover td{background:var(--bg2)}
-.data-table tr.done-row td{opacity:0.5}
-.sort-btn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;padding:0}
-.sort-btn:hover{color:var(--text)}
-.check-cell{width:32px;text-align:center}
-.check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;background:transparent}
-.check.done{background:var(--accent);border-color:var(--accent);color:#fff}
-.priority-cell{text-align:center}
-.avatars-stack{display:flex;align-items:center}
-.avatars-stack .avatar-sm{margin-left:-5px;border:1.5px solid var(--bg)}
-.avatars-stack .avatar-sm:first-child{margin-left:0}
-.task-title-cell{font-size:13px;font-weight:500;cursor:pointer;max-width:280px}
-.task-title-cell.done{text-decoration:line-through;color:var(--text3)}
-.task-title-cell:hover{color:var(--accent)}
-
-/* === DATA TRACKER VIEW === */
-.data-tracker{flex:1;overflow:auto;padding:16px}
-.tracker-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
-.filter-chip{padding:3px 10px;font-size:12px;border-radius:12px;border:1px solid var(--border2);background:var(--bg);cursor:pointer;color:var(--text2)}
-.filter-chip:hover{background:var(--bg2)}
-.filter-chip.active{border-color:var(--accent);background:var(--blue-bg);color:var(--blue-text)}
-.tracker-table{width:100%;border-collapse:collapse;font-size:12px}
-.tracker-table th{padding:7px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg2);white-space:nowrap;position:sticky;top:0;z-index:2}
-.tracker-table td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-.tracker-table tr:hover td{background:var(--bg2)}
-.tracker-table tr.done-row td:not(:first-child):not(:nth-child(2)){opacity:0.5}
-.item-type-col{width:70px}
-
-/* Progress view */
-.progress-view{flex:1;overflow-y:auto;padding:20px}
-.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px}
-.stat-card{background:var(--bg2);border-radius:var(--radius-lg);padding:14px 16px;border:1px solid var(--border)}
-.stat-val{font-size:24px;font-weight:700;margin-bottom:3px}
-.stat-lbl{font-size:11px;color:var(--text2)}
-.prog-section{margin-bottom:24px}
-.prog-section-title{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)}
-.prog-row{margin-bottom:10px}
-.prog-label-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px}
-.prog-bar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
-.prog-fill{height:100%;border-radius:4px;background:var(--accent)}
-.prog-fill.cat-q{background:#5b3da8}
-.prog-fill.cat-d{background:#2a5db0}
-.prog-fill.cat-a{background:#9a5c00}
-.prog-fill.cat-m{background:#1a6b60}
+.qtag{display:inline-flex;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:500}
+.qt-student{background:#dfe5e0;color:#5f7060}
+.qt-sibling{background:#e8dfe0;color:#805f5f}
+.qt-parent{background:#dfe0e5;color:#5f6070}
+.qt-teacher{background:#e8dfe5;color:#80606f}
+.qt-subject{background:#e5dfe0;color:#80706f}
+.qt-school{background:#dfe5e0;color:#5f7060}
 
 /* Modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;align-items:center;justify-content:center}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg);border-radius:var(--radius-lg);border:1px solid var(--border);width:520px;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+.modal{background:var(--bg);border-radius:var(--radius-lg);border:1px solid var(--border);width:520px;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.08)}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .modal-title{font-size:16px;font-weight:600}
-.close-btn{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center}
+.close-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center}
 .close-btn:hover{background:var(--bg2)}
 .fg{margin-bottom:14px}
-.flabel{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.04em}
+.flabel{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.05em}
 input[type=text],input[type=date],select,textarea{width:100%;padding:7px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;font-family:inherit}
-input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);background:var(--bg2)}
 textarea{resize:vertical;min-height:60px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .chip-row{display:flex;gap:5px;flex-wrap:wrap}
-.chip{padding:4px 10px;font-size:12px;border-radius:12px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2)}
+.chip{padding:4px 10px;font-size:11px;border-radius:12px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.2s}
 .chip:hover{background:var(--bg2)}
 .chip.on{border-color:var(--accent);background:var(--blue-bg);color:var(--blue-text)}
-.chip.on-student{background:#e3f0fd;color:#1a5fa0;border-color:#90bde8}
-.chip.on-sibling{background:#fde8e8;color:#9a2525;border-color:#f0a0a0}
-.chip.on-parent{background:#e3f5e1;color:#2a6e32;border-color:#80c880}
-.chip.on-teacher{background:#fde8f5;color:#8a2060;border-color:#e080b8}
-.chip.on-subject{background:#fff3e0;color:#8a5000;border-color:#f0c060}
-.chip.on-school{background:#e8f0e8;color:#2a5030;border-color:#80a880}
-.mem-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:12px;border-radius:12px;border:1px solid var(--border2);cursor:pointer;color:var(--text2)}
+.chip.on-student{background:#dfe5e0;color:#5f7060;border-color:#afc5a0}
+.chip.on-sibling{background:#e8dfe0;color:#805f5f;border-color:#d0b0a0}
+.chip.on-parent{background:#dfe0e5;color:#5f6070;border-color:#b0a0d0}
+.chip.on-teacher{background:#e8dfe5;color:#80606f;border-color:#d0a0c0}
+.chip.on-subject{background:#e5dfe0;color:#80706f;border-color:#d0b0a0}
+.chip.on-school{background:#dfe5e0;color:#5f7060;border-color:#afc5a0}
+.mem-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:11px;border-radius:12px;border:1px solid var(--border2);cursor:pointer;color:var(--text2);transition:all 0.2s}
 .mem-chip:hover{background:var(--bg2)}
 .mem-chip.sel{border-color:var(--accent);background:var(--blue-bg);color:var(--blue-text)}
 .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
 .priority-display{display:flex;gap:3px}
-.pstar{font-size:13px;cursor:pointer;color:var(--border2)}
-.pstar.on{color:#e84b4b}
+.pstar{font-size:13px;cursor:pointer;color:var(--border2);transition:color 0.2s}
+.pstar.on{color:#8a6b66}
+.btn{padding:6px 14px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:5px;line-height:1.4;transition:all 0.2s}
+.btn:hover{background:var(--bg2)}
+.btn-primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.btn-primary:hover{background:#5a6161}
+
+/* Progress bar */
+.prog-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;background:var(--accent)}
 
 /* Detail panel */
 .detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:90;align-items:flex-start;justify-content:flex-end}
 .detail-overlay.open{display:flex}
 .detail-panel{width:420px;height:100vh;background:var(--bg);border-left:1px solid var(--border);overflow-y:auto;padding:24px;box-shadow:-4px 0 20px rgba(0,0,0,0.08)}
-.detail-panel-title{font-size:17px;font-weight:600;margin-bottom:4px}
+.detail-panel-title{font-size:17px;font-weight:600;margin-bottom:4px;color:var(--text)}
 .detail-field{margin-bottom:14px}
-.detail-field-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px}
+.detail-field-label{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
 .detail-field-val{font-size:13px;color:var(--text)}
 .notes-input{width:100%;padding:8px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);resize:vertical;min-height:80px;font-family:inherit}
-.notes-input:focus{outline:none;border-color:var(--accent)}
+.notes-input:focus{outline:none;border-color:var(--accent);background:var(--bg2)}
 
-/* Misc */
 .empty{text-align:center;padding:40px;color:var(--text3);font-size:13px}
 .divider{height:1px;background:var(--border);margin:8px 0}
 </style>
@@ -236,30 +218,17 @@ textarea{resize:vertical;min-height:60px}
     <div class="sb-logo-text">TIGPS</div>
   </div>
   <div class="sb-nav">
-    <div class="sb-section">主要頁面</div>
     <div class="sb-item active" onclick="switchView('dashboard',this)">
-      <svg class="sb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="2" width="5.5" height="5.5" rx="1"/><rect x="9" y="2" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9.5" width="5.5" height="4.5" rx="1"/><rect x="9" y="9.5" width="5.5" height="4.5" rx="1"/></svg>
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="6" height="6" rx="1"/><rect x="10" y="2" width="6" height="6" rx="1"/><rect x="2" y="10" width="6" height="6" rx="1"/><rect x="10" y="10" width="6" height="6" rx="1"/></svg>
       總覽
     </div>
-    <div class="sb-item" onclick="switchView('calendar',this)">
-      <svg class="sb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="2.5" width="13" height="12" rx="1.5"/><path d="M5 1.5v2M11 1.5v2M1.5 6.5h13"/></svg>
-      行事曆
-    </div>
-    <div class="sb-item" onclick="switchView('tasklist',this)">
-      <svg class="sb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 4h12M2 8h9M2 12h6"/></svg>
-      工作清單
-    </div>
-    <div class="sb-item" onclick="switchView('datatracker',this)">
-      <svg class="sb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="1.5" width="13" height="13" rx="1.5"/><path d="M1.5 5.5h13M1.5 9.5h13M5.5 5.5v9M10.5 5.5v9"/></svg>
-      資料追蹤
-    </div>
-    <div class="sb-item" onclick="switchView('progress',this)">
-      <svg class="sb-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 12L5 8.5L8 10L11 5.5L14 7.5"/></svg>
-      進度追蹤
+    <div class="sb-item" onclick="switchView('tasks',this)">
+      <svg class="sb-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 5h14M2 9h10M2 13h7"/></svg>
+      代辦工作
     </div>
   </div>
   <div class="sb-team">
-    <div class="sb-team-title">研究團隊</div>
+    <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px">研究團隊</div>
     <div class="team-grid" id="teamGrid"></div>
   </div>
 </div>
@@ -284,26 +253,20 @@ textarea{resize:vertical;min-height:60px}
             <div id="dashCurrentMonth"></div>
           </div>
           <div class="cal-side-section">
-            <div class="cal-side-title next">下月代辦</div>
+            <div class="cal-side-title next">次月代辦</div>
             <div id="dashNextMonth"></div>
-          </div>
-          <div class="divider"></div>
-          <div class="cal-side-section" style="margin-top:10px">
-            <div class="cal-side-title deadline">重要 Deadline</div>
-            <div id="dashDeadlines"></div>
           </div>
         </div>
         <!-- Center calendar -->
         <div class="cal-center">
-          <div class="cal-nav" style="flex-shrink:0">
+          <div class="cal-nav">
             <button class="arrow-btn" onclick="changeCalMonth(-1)">‹</button>
-            <div>
-              <span class="cal-nav-title" id="calMonthTitle"></span>
-              <span class="cal-nav-year" id="calYearLabel"></span>
+            <div class="cal-month-year">
+              <div class="cal-nav-title" id="calMonthTitle"></div>
+              <div class="cal-nav-year" id="calYearLabel"></div>
             </div>
             <button class="arrow-btn" onclick="changeCalMonth(1)">›</button>
             <button class="cal-today-btn" onclick="goToday()">今天</button>
-            <div style="margin-left:auto"><button class="add-round" onclick="openAdd()" title="新增工作">＋</button></div>
           </div>
           <div class="cal-grid">
             <div class="cal-dow-row">
@@ -315,112 +278,62 @@ textarea{resize:vertical;min-height:60px}
         </div>
         <!-- Right panel -->
         <div class="cal-right">
-          <div class="cal-side-title meeting" style="display:block;margin-bottom:10px">會議安排</div>
-          <div id="dashMeetings"></div>
+          <div class="cal-side-section">
+            <div class="cal-side-title deadline" style="display:block;margin-bottom:6px">重要事項</div>
+            <div id="dashDeadlines"></div>
+          </div>
+          <div class="divider" style="margin:8px 0"></div>
+          <div class="cal-side-section">
+            <div class="cal-side-title meeting" style="display:block;margin-bottom:6px">會議</div>
+            <div id="dashMeetings"></div>
+          </div>
         </div>
-      </div>
-    </div>
-
-    <!-- CALENDAR VIEW (standalone) -->
-    <div class="view" id="view-calendar">
-      <div class="cal-nav" style="padding:10px 20px">
-        <button class="arrow-btn" onclick="changeCalMonth(-1)">‹</button>
-        <div>
-          <span class="cal-nav-title" id="calMonthTitle2"></span>
-          <span class="cal-nav-year" id="calYearLabel2"></span>
-        </div>
-        <button class="arrow-btn" onclick="changeCalMonth(1)">›</button>
-        <button class="cal-today-btn" onclick="goToday()">今天</button>
-        <div style="margin-left:auto"><button class="add-round" onclick="openAdd()">＋</button></div>
-      </div>
-      <div style="flex:1;overflow-y:auto;min-height:0;padding:0 12px 12px;display:flex;flex-direction:column">
-        <div class="cal-dow-row">
-          <div class="cal-dow">日</div><div class="cal-dow">一</div><div class="cal-dow">二</div>
-          <div class="cal-dow">三</div><div class="cal-dow">四</div><div class="cal-dow">五</div><div class="cal-dow">六</div>
-        </div>
-        <div class="cal-body" id="calBody2"></div>
       </div>
     </div>
 
     <!-- TASK LIST VIEW -->
-    <div class="view" id="view-tasklist">
-      <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:var(--bg)">
-        <span style="font-size:12px;color:var(--text2)">分類：</span>
-        <button class="filter-chip active" id="fl-all" onclick="setTaskFilter('all',this)">全部</button>
-        <button class="filter-chip" id="fl-questionnaire" onclick="setTaskFilter('questionnaire',this)">問卷</button>
-        <button class="filter-chip" id="fl-data" onclick="setTaskFilter('data',this)">資料</button>
-        <button class="filter-chip" id="fl-admin" onclick="setTaskFilter('admin',this)">行政</button>
-        <button class="filter-chip" id="fl-meeting" onclick="setTaskFilter('meeting',this)">會議</button>
-        <button class="filter-chip" id="fl-platform" onclick="setTaskFilter('platform',this)">平台</button>
-        <div style="margin-left:auto"><button class="add-round" onclick="openAdd()">＋</button></div>
+    <div class="view" id="view-tasks">
+      <div class="tab-header">
+        <button class="tab active" onclick="switchTab('list',this)">列表</button>
+        <button class="tab" onclick="switchTab('progress',this)">進度</button>
       </div>
-      <div class="table-wrap">
-        <table class="data-table" id="taskTable">
-          <thead>
-            <tr>
-              <th class="check-cell"></th>
-              <th><button class="sort-btn" onclick="sortTasks('title')">討論主題 ↕</button></th>
-              <th><button class="sort-btn" onclick="sortTasks('date')">日期 ↕</button></th>
-              <th>人員</th>
-              <th><button class="sort-btn" onclick="sortTasks('priority')">緊急程度 ↕</button></th>
-              <th><button class="sort-btn" onclick="sortTasks('status')">狀態 ↕</button></th>
-              <th>類型</th>
-              <th>備註</th>
-            </tr>
-          </thead>
-          <tbody id="taskTbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- DATA TRACKER VIEW -->
-    <div class="view" id="view-datatracker">
-      <div class="data-tracker">
-        <div class="tracker-toolbar">
-          <span style="font-size:12px;color:var(--text2)">問卷類型：</span>
-          <button class="filter-chip active" id="dt-all" onclick="setDtFilter('all',this)">全部</button>
-          <button class="filter-chip" id="dt-student" onclick="setDtFilter('student',this)">學生</button>
-          <button class="filter-chip" id="dt-sibling" onclick="setDtFilter('sibling',this)">手足</button>
-          <button class="filter-chip" id="dt-parent" onclick="setDtFilter('parent',this)">照顧者</button>
-          <button class="filter-chip" id="dt-teacher" onclick="setDtFilter('teacher',this)">導師</button>
-          <button class="filter-chip" id="dt-subject" onclick="setDtFilter('subject',this)">科任</button>
-          <button class="filter-chip" id="dt-school" onclick="setDtFilter('school',this)">學校</button>
+      <div id="taskListPanel" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+        <div class="task-toolbar">
+          <span style="font-size:11px;color:var(--text2)">分類：</span>
+          <button class="filter-chip active" id="fl-all" onclick="setTaskFilter('all',this)">全部</button>
+          <button class="filter-chip" id="fl-questionnaire" onclick="setTaskFilter('questionnaire',this)">問卷</button>
+          <button class="filter-chip" id="fl-data" onclick="setTaskFilter('data',this)">資料</button>
+          <button class="filter-chip" id="fl-admin" onclick="setTaskFilter('admin',this)">行政</button>
+          <button class="filter-chip" id="fl-meeting" onclick="setTaskFilter('meeting',this)">會議</button>
+          <button class="filter-chip" id="fl-platform" onclick="setTaskFilter('platform',this)">平台</button>
+          <div style="margin-left:auto"><button class="add-round" onclick="openAdd()">＋</button></div>
         </div>
-        <table class="tracker-table" id="trackerTable">
-          <thead>
-            <tr>
-              <th class="check-cell"></th>
-              <th>問卷</th>
-              <th>事項</th>
-              <th>狀態</th>
-              <th>緊急程度</th>
-              <th>開始日期</th>
-              <th>Deadline</th>
-              <th>結束日期</th>
-              <th>負責人</th>
-              <th>備註</th>
-            </tr>
-          </thead>
-          <tbody id="trackerTbody"></tbody>
-        </table>
+        <div class="table-wrap">
+          <table class="data-table" id="taskTable">
+            <thead>
+              <tr>
+                <th class="check-cell"></th>
+                <th><button class="sort-btn" onclick="sortTasks('title')">討論主題 ↕</button></th>
+                <th><button class="sort-btn" onclick="sortTasks('date')">日期 ↕</button></th>
+                <th>人員</th>
+                <th><button class="sort-btn" onclick="sortTasks('priority')">緊急程度 ↕</button></th>
+                <th><button class="sort-btn" onclick="sortTasks('status')">狀態 ↕</button></th>
+                <th>類型</th>
+                <th>備註</th>
+              </tr>
+            </thead>
+            <tbody id="taskTbody"></tbody>
+          </table>
+        </div>
       </div>
-    </div>
-
-    <!-- PROGRESS VIEW -->
-    <div class="view" id="view-progress">
-      <div class="progress-view">
-        <div class="stat-grid" id="statGrid"></div>
-        <div class="prog-section">
-          <div class="prog-section-title">各年度完成率</div>
+      <div id="progressPanel" style="flex:1;overflow-y:auto;padding:20px;display:none">
+        <div style="margin-bottom:24px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">各年度完成率</div>
           <div id="yearProg"></div>
         </div>
-        <div class="prog-section">
-          <div class="prog-section-title">各分類完成率</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">各分類完成率</div>
           <div id="catProg"></div>
-        </div>
-        <div class="prog-section">
-          <div class="prog-section-title">資料追蹤完成率（依問卷類型）</div>
-          <div id="dtProg"></div>
         </div>
       </div>
     </div>
@@ -516,17 +429,17 @@ textarea{resize:vertical;min-height:60px}
 
 <script>
 const MEMBERS=[
-  {id:'m1',name:'李研究員',initials:'李',color:'#0C447C',bg:'#B5D4F4'},
-  {id:'m2',name:'陳助理',initials:'陳',color:'#085041',bg:'#9FE1CB'},
-  {id:'m3',name:'王助理',initials:'王',color:'#712B13',bg:'#F5C4B3'},
-  {id:'m4',name:'林助理',initials:'林',color:'#72243E',bg:'#F4C0D1'},
+  {id:'m1',name:'李研究員',initials:'李',color:'#b9a79f',bg:'#e5ddd8'},
+  {id:'m2',name:'陳助理',initials:'陳',color:'#8f9f8f',bg:'#dfe5df'},
+  {id:'m3',name:'王助理',initials:'王',color:'#9f8f7f',bg:'#e5dfd8'},
+  {id:'m4',name:'林助理',initials:'林',color:'#9f7f8f',bg:'#e5dfe5'},
 ];
 const CAT_INFO={
-  questionnaire:{label:'問卷',chipCls:'tag-questionnaire',calCls:'cal-questionnaire',filterCls:'active-q'},
-  data:{label:'資料',chipCls:'tag-data',calCls:'cal-data',filterCls:'active-d'},
-  admin:{label:'行政',chipCls:'tag-admin',calCls:'cal-admin',filterCls:'active-a'},
-  meeting:{label:'會議',chipCls:'tag-meeting',calCls:'cal-meeting',filterCls:'active-m'},
-  platform:{label:'平台',chipCls:'tag-platform',calCls:'cal-platform',filterCls:'active-p'},
+  questionnaire:{label:'問卷',chipCls:'tag-questionnaire'},
+  data:{label:'資料',chipCls:'tag-data'},
+  admin:{label:'行政',chipCls:'tag-admin'},
+  meeting:{label:'會議',chipCls:'tag-meeting'},
+  platform:{label:'平台',chipCls:'tag-platform'},
 };
 const STATUS_INFO={
   notstarted:{label:'Not started',cls:'st-notstarted'},
@@ -542,23 +455,30 @@ const QTAG_INFO={
   subject:{label:'科任',cls:'qt-subject'},
   school:{label:'學校',cls:'qt-school'},
 };
-// CAL chip colours per category
 const CAL_CHIP_STYLE={
-  questionnaire:'background:#f0ecfd;color:#5b3da8',
-  data:'background:#e8f0f9;color:#2a5db0',
-  admin:'background:#fef3e2;color:#9a5c00',
-  meeting:'background:#e2f4f1;color:#1a6b60',
-  platform:'background:#fde8f0;color:#a0306a',
+  questionnaire:'background:#e5e3e8;color:#726b7f',
+  data:'background:#e5e7e6;color:#6b7171',
+  admin:'background:#e8e0d8;color:#8a7460',
+  meeting:'background:#dfe5e3;color:#5f7070',
+  platform:'background:#e8dfe3;color:#806070',
 };
 
-const DT_ITEMS=['問卷','第一次檢旗','第二次檢旗','編碼簿','資料檔','標籤說明','資料使用說明','使用手冊'];
-const DT_QTYPES=['student','sibling','parent','teacher','subject','school'];
+const TW_HOLIDAYS_2025={
+  '2025-01-01':true,'2025-02-08':true,'2025-02-09':true,'2025-02-10':true,'2025-02-28':true,
+  '2025-04-04':true,'2025-04-05':true,'2025-06-10':true,'2025-09-17':true,'2025-10-10':true,
+  '2025-12-25':true
+};
+const TW_HOLIDAYS_2026={
+  '2026-01-01':true,'2026-01-29':true,'2026-01-30':true,'2026-01-31':true,'2026-02-01':true,
+  '2026-02-28':true,'2026-04-04':true,'2026-04-05':true,'2026-06-10':true,'2026-09-17':true,
+  '2026-10-10':true,'2026-12-25':true
+};
+const TW_HOLIDAYS={...TW_HOLIDAYS_2025,...TW_HOLIDAYS_2026};
 
-// --- State ---
+const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 let calYear=new Date().getFullYear();
 let calMonth=new Date().getMonth();
 let taskFilter='all';
-let dtFilter='all';
 let sortKey='date';
 let sortAsc=true;
 let selCreator='m1';
@@ -566,37 +486,7 @@ let selParts=[];
 let selPriority=2;
 let editingId=null;
 let nextId=100;
-
-// Generate tracker data
-function makeDtId(qt,item){return `dt_${qt}_${item.replace(/[^a-zA-Z0-9]/g,'')}`}
-
-let dtData=[];
-DT_QTYPES.forEach(qt=>{
-  DT_ITEMS.forEach(item=>{
-    dtData.push({
-      id:makeDtId(qt,item),
-      qtype:qt,item,
-      status:'notstarted',
-      priority:2,
-      startDate:'',
-      deadline:'',
-      endDate:'',
-      assignee:'',
-      notes:'',
-      done:false,
-    });
-  });
-});
-// Seed some sample data
-function setDt(qt,item,s,pr,sd,dl,ed,as,n){
-  const d=dtData.find(x=>x.qtype===qt&&x.item===item);
-  if(d){d.status=s;d.priority=pr;d.startDate=sd;d.deadline=dl;d.endDate=ed;d.assignee=as;d.notes=n;d.done=(s==='done')}
-}
-setDt('student','第一次檢旗','inprogress',3,'2024-07-22','2024-10-31','','m1','07/21 報表已出');
-setDt('school','第一次檢旗','done',3,'','2024-10-31','','m1','');
-setDt('sibling','第一次檢旗','notstarted',3,'','2024-10-31','','','');
-setDt('teacher','第一次檢旗','done',3,'2024-07-16','2024-10-31','2024-07-22','m2','07/16 報表已出');
-setDt('parent','第一次檢旗','notstarted',3,'','2024-10-31','','m1','');
+let currentTab='list';
 
 let tasks=[
   {id:1,title:'W2資料釋出',desc:'',date:'2026-03-31',deadline:'2026-03-31',cat:'data',status:'notstarted',priority:3,qtags:[],creator:'m1',parts:['m1'],notes:''},
@@ -614,17 +504,19 @@ let tasks=[
   {id:13,title:'清理樣本問卷',desc:'',date:'2026-04-30',deadline:'',cat:'admin',status:'inprogress',priority:2,qtags:[],creator:'m3',parts:['m3'],notes:''},
 ];
 
-// --- Helpers ---
 const gm=id=>MEMBERS.find(m=>m.id===id);
 const today=new Date();
 today.setHours(0,0,0,0);
 
+function isWeekend(d){const dow=new Date(d).getDay();return dow===0||dow===6}
+function isHoliday(ds){return TW_HOLIDAYS[ds]}
+
 function avatarHtml(m,size){
-  const s=size||20;
+  const s=size||18;
   return `<div class="avatar-sm" style="width:${s}px;height:${s}px;font-size:${Math.round(s*0.45)}px;background:${m.bg};color:${m.color}" title="${m.name}">${m.initials}</div>`;
 }
 function priorityHtml(p){
-  const marks=Array.from({length:3},(_,i)=>`<span style="color:${i<p?'#e84b4b':'#d1cfc9'};font-size:12px">!</span>`).join('');
+  const marks=Array.from({length:3},(_,i)=>`<span style="color:${i<p?'#8a6b66':'#d4ccc2'};font-size:12px">!</span>`).join('');
   return `<span class="priority">${marks}</span>`;
 }
 function statusHtml(s){
@@ -640,7 +532,6 @@ function qtagHtml(q){
   return qi?`<span class="qtag ${qi.cls}">${qi.label}</span>`:'';
 }
 
-// --- Team ---
 function renderTeam(){
   document.getElementById('teamGrid').innerHTML=MEMBERS.map(m=>`
     <div class="member-cell">
@@ -649,45 +540,40 @@ function renderTeam(){
     </div>`).join('');
 }
 
-// --- Calendar ---
 function renderCalendar(){
-  const MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-  ['','2'].forEach(suf=>{
-    const tEl=document.getElementById('calMonthTitle'+suf);
-    const yEl=document.getElementById('calYearLabel'+suf);
-    const bEl=document.getElementById('calBody'+suf);
-    if(!tEl)return;
-    tEl.textContent=MONTHS[calMonth];
-    yEl.textContent=calYear+'年';
+  const tEl=document.getElementById('calMonthTitle');
+  const yEl=document.getElementById('calYearLabel');
+  const bEl=document.getElementById('calBody');
+  tEl.textContent=MONTHS[calMonth];
+  yEl.textContent=calYear+'年';
 
-    const first=new Date(calYear,calMonth,1);
-    const lastDay=new Date(calYear,calMonth+1,0).getDate();
-    const startDow=first.getDay();
-    const monthStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}`;
-    const monthTasks=tasks.filter(t=>t.date&&t.date.startsWith(monthStr));
+  const first=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0).getDate();
+  const startDow=first.getDay();
+  const monthStr=`${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+  const monthTasks=tasks.filter(t=>t.date&&t.date.startsWith(monthStr));
 
-    let cells='';
-    for(let i=0;i<startDow;i++) cells+=`<div class="cal-cell empty"></div>`;
-    for(let d=1;d<=lastDay;d++){
-      const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const dt=monthTasks.filter(t=>t.date===ds);
-      const isT=new Date(calYear,calMonth,d).getTime()===today.getTime();
-      const numCls=isT?'cal-date-num today':'cal-date-num';
-      let chips=dt.slice(0,3).map(t=>{
-        const cr=gm(t.creator);
-        const st=CAL_CHIP_STYLE[t.cat]||'background:#f0f0f0;color:#555';
-        return `<div class="cal-chip" style="${st}" onclick="openDetail(${t.id});event.stopPropagation()">
-          ${cr?`<div style="width:12px;height:12px;border-radius:50%;background:${cr.bg};color:${cr.color};font-size:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${cr.initials}</div>`:''}
-          ${t.title}</div>`;
-      }).join('');
-      const more=dt.length>3?`<div class="cal-more">+${dt.length-3}</div>`:'';
-      cells+=`<div class="cal-cell" onclick="openAddOnDate('${ds}')">${'<div class="'+numCls+'">'+d+'</div>'}${chips}${more}</div>`;
-    }
-    const total=startDow+lastDay;
-    const rem=(7-total%7)%7;
-    for(let i=0;i<rem;i++) cells+=`<div class="cal-cell empty"></div>`;
-    bEl.innerHTML=cells;
-  });
+  let cells='';
+  for(let i=0;i<startDow;i++)cells+=`<div class="cal-cell empty" style="background:transparent;border:none"></div>`;
+  for(let d=1;d<=lastDay;d++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dt=monthTasks.filter(t=>t.date===ds);
+    const isT=new Date(calYear,calMonth,d).getTime()===today.getTime();
+    const numCls=isT?'cal-date-num today':'cal-date-num';
+    const cellCls=isWeekend(ds)?'weekend':'';
+    const holidayCls=isHoliday(ds)?'holiday':'';
+    let chips=dt.slice(0,3).map(t=>{
+      const cr=gm(t.creator);
+      const st=CAL_CHIP_STYLE[t.cat]||'background:#e5e5e5;color:#777';
+      return `<div class="cal-chip" style="${st}" onclick="openDetail(${t.id});event.stopPropagation()">${cr?`<div style="width:10px;height:10px;border-radius:50%;background:${cr.bg};color:${cr.color};font-size:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${cr.initials}</div>`:''}${t.title}</div>`;
+    }).join('');
+    const more=dt.length>3?`<div class="cal-more">+${dt.length-3}</div>`:'';
+    cells+=`<div class="cal-cell ${cellCls} ${holidayCls}" onclick="openAddOnDate('${ds}')">${'<div class="'+numCls+'">'+d+'</div>'}${chips}${more}</div>`;
+  }
+  const total=startDow+lastDay;
+  const rem=(7-total%7)%7;
+  for(let i=0;i<rem;i++)cells+=`<div class="cal-cell empty" style="background:transparent;border:none"></div>`;
+  bEl.innerHTML=cells;
 
   renderDashSidebar();
 }
@@ -716,28 +602,14 @@ function renderDashSidebar(){
   const dl=tasks.filter(t=>t.deadline&&t.priority===3&&t.status!=='done').sort((a,b)=>a.deadline.localeCompare(b.deadline)).slice(0,5);
   const mtg=tasks.filter(t=>t.cat==='meeting'&&t.date&&t.date>=curStr).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
 
-  const renderSideItem=(t,dotColor)=>`<div class="cal-side-item" onclick="openDetail(${t.id})">
-    <div class="cal-side-dot" style="background:${dotColor}"></div>
-    <div>
-      <div style="font-size:12px">${t.title}</div>
-      <div style="font-size:10px;color:var(--text3)">${t.date||t.deadline||''}</div>
-    </div>
-  </div>`;
+  const renderSideItem=(t,dotColor)=>`<div class="cal-side-item" onclick="openDetail(${t.id})"><div class="cal-side-dot" style="background:${dotColor}"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||t.deadline||''}</div></div></div>`;
 
-  document.getElementById('dashCurrentMonth').innerHTML=cur.length?cur.map(t=>renderSideItem(t,'#2a5db0')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 8px">無</div>`;
-  document.getElementById('dashNextMonth').innerHTML=nxt.length?nxt.map(t=>renderSideItem(t,'#9a5c00')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 8px">無</div>`;
-  document.getElementById('dashDeadlines').innerHTML=dl.length?dl.map(t=>renderSideItem(t,'#b03030')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 8px">無</div>`;
-  document.getElementById('dashMeetings').innerHTML=mtg.length?mtg.map(t=>`<div class="cal-side-item" onclick="openDetail(${t.id})">
-    <div class="cal-side-dot" style="background:#1a6b60"></div>
-    <div>
-      <div style="font-size:12px">${t.title}</div>
-      <div style="font-size:10px;color:var(--text3)">${t.date||''}</div>
-    </div>
-  </div>`).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 8px">無</div>`;
+  document.getElementById('dashCurrentMonth').innerHTML=cur.length?cur.map(t=>renderSideItem(t,'#8a6b66')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;
+  document.getElementById('dashNextMonth').innerHTML=nxt.length?nxt.map(t=>renderSideItem(t,'#8a7460')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;
+  document.getElementById('dashDeadlines').innerHTML=dl.length?dl.map(t=>renderSideItem(t,'#c97070')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;
+  document.getElementById('dashMeetings').innerHTML=mtg.length?mtg.map(t=>`<div class="cal-side-item" onclick="openDetail(${t.id})"><div class="cal-side-dot" style="background:#5f7070"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||''}</div></div></div>`).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;
 }
 
-// --- Task List ---
-let sortedTasks=[];
 function renderTaskList(){
   let filtered=taskFilter==='all'?[...tasks]:tasks.filter(t=>t.cat===taskFilter);
   filtered.sort((a,b)=>{
@@ -746,7 +618,6 @@ function renderTaskList(){
     if(sortKey==='status'){va=a.status;vb=b.status}
     return sortAsc?(va>vb?1:-1):(va<vb?1:-1);
   });
-  sortedTasks=filtered;
   document.getElementById('taskTbody').innerHTML=filtered.map(t=>{
     const cr=gm(t.creator);
     const pts=(t.parts||[]).map(gm).filter(Boolean);
@@ -754,18 +625,16 @@ function renderTaskList(){
     return `<tr class="${t.done?'done-row':''}">
       <td class="check-cell"><div class="check ${t.done?'done':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div></td>
       <td><div class="task-title-cell ${t.done?'done':''}" onclick="openDetail(${t.id})">${t.title}</div>${t.qtags&&t.qtags.length?'<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">'+t.qtags.map(qtagHtml).join('')+'</div>':''}</td>
-      <td style="white-space:nowrap"><div style="font-size:12px;color:var(--text2)">${t.date||''}</div>${t.deadline&&t.deadline!==t.date?`<div style="font-size:11px;color:#b03030">→ ${t.deadline}</div>`:''}</td>
-      <td><div style="display:flex;align-items:center;gap:4px">
-        ${cr?avatarHtml(cr):''}
-        <div class="avatars-stack">${pts.map(m=>avatarHtml(m)).join('')}</div>
-      </div></td>
+      <td style="white-space:nowrap"><div style="font-size:12px;color:var(--text2)">${t.date||''}</div>${t.deadline&&t.deadline!==t.date?`<div style="font-size:11px;color:#8a6b66">→${t.deadline}</div>`:''}</td>
+      <td><div style="display:flex;align-items:center;gap:4px">${cr?avatarHtml(cr):''}${pts.length?'<div class="avatars-stack">'+pts.map(m=>avatarHtml(m)).join('')+'</div>':''}</div></td>
       <td class="priority-cell">${priorityHtml(t.priority)}</td>
-      <td><span class="status ${si.cls}">${si.label}</span></td>
+      <td>${statusHtml(t.status)}</td>
       <td>${tagHtml(t.cat)}</td>
-      <td style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes||''}</td>
+      <td style="font-size:11px;color:var(--text2);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes||''}</td>
     </tr>`;
   }).join('');
 }
+
 function setTaskFilter(f,el){
   taskFilter=f;
   document.querySelectorAll('[id^="fl-"]').forEach(b=>b.classList.remove('active'));
@@ -773,7 +642,7 @@ function setTaskFilter(f,el){
   renderTaskList();
 }
 function sortTasks(k){
-  if(sortKey===k)sortAsc=!sortAsc; else{sortKey=k;sortAsc=true}
+  if(sortKey===k)sortAsc=!sortAsc;else{sortKey=k;sortAsc=true}
   renderTaskList();
 }
 function toggleTask(id){
@@ -784,83 +653,39 @@ function toggleTask(id){
   renderTaskList();renderCalendar();renderProgress();
 }
 
-// --- Data Tracker ---
-function renderTracker(){
-  let filtered=dtFilter==='all'?[...dtData]:dtData.filter(x=>x.qtype===dtFilter);
-  document.getElementById('trackerTbody').innerHTML=filtered.map(x=>{
-    const qi=QTAG_INFO[x.qtype]||{label:x.qtype,cls:''};
-    const as=x.assignee?gm(x.assignee):null;
-    const si=STATUS_INFO[x.status]||STATUS_INFO.notstarted;
-    return `<tr class="${x.done?'done-row':''}">
-      <td class="check-cell"><div class="check ${x.done?'done':''}" onclick="toggleDt('${x.id}')">${x.done?'✓':''}</div></td>
-      <td><span class="qtag ${qi.cls}">${qi.label}</span></td>
-      <td style="font-size:13px;font-weight:500">${x.item}</td>
-      <td><span class="status ${si.cls}">${si.label}</span></td>
-      <td>${priorityHtml(x.priority)}</td>
-      <td style="font-size:12px;color:var(--text2);white-space:nowrap">${x.startDate||''}</td>
-      <td style="font-size:12px;color:${x.deadline?'#b03030':'var(--text2)'};white-space:nowrap">${x.deadline||''}</td>
-      <td style="font-size:12px;color:var(--text2);white-space:nowrap">${x.endDate||''}</td>
-      <td>${as?`<div style="display:flex;align-items:center;gap:5px">${avatarHtml(as)}<span style="font-size:11px;color:var(--text2)">${as.name}</span></div>`:''}</td>
-      <td style="font-size:11px;color:var(--text2);max-width:120px">${x.notes||''}</td>
-    </tr>`;
-  }).join('');
-}
-function setDtFilter(f,el){
-  dtFilter=f;
-  document.querySelectorAll('[id^="dt-"]').forEach(b=>b.classList.remove('active'));
-  if(el)el.classList.add('active');
-  renderTracker();
-}
-function toggleDt(id){
-  const x=dtData.find(d=>d.id===id);
-  if(!x)return;
-  x.done=!x.done;
-  x.status=x.done?'done':(x.status==='done'?'notstarted':x.status);
-  renderTracker();renderProgress();
-}
-
-// --- Progress ---
 function renderProgress(){
-  const total=tasks.length;
-  const done=tasks.filter(t=>t.done).length;
-  const high=tasks.filter(t=>t.priority===3&&!t.done).length;
-  const inprog=tasks.filter(t=>t.status==='inprogress').length;
-  document.getElementById('statGrid').innerHTML=`
-    <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-lbl">工作總數</div></div>
-    <div class="stat-card"><div class="stat-val">${done}</div><div class="stat-lbl">已完成</div></div>
-    <div class="stat-card"><div class="stat-val">${inprog}</div><div class="stat-lbl">進行中</div></div>
-    <div class="stat-card"><div class="stat-val">${high}</div><div class="stat-lbl">高優先待辦</div></div>`;
-
   const years=Array.from(new Set(tasks.map(t=>t.date?t.date.split('-')[0]:''))).filter(Boolean).sort();
   document.getElementById('yearProg').innerHTML=years.map(y=>{
     const yt=tasks.filter(t=>t.date&&t.date.startsWith(y));
     const yd=yt.filter(t=>t.done).length;
     const pct=yt.length?Math.round(yd/yt.length*100):0;
-    return `<div class="prog-row"><div class="prog-label-row"><span>${y}</span><span>${yd}/${yt.length} (${pct}%)</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
+    return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>${y}</span><span>${yd}/${yt.length}(${pct}%)</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
   }).join('');
 
   const cats=['questionnaire','data','admin','meeting','platform'];
   const catNames={questionnaire:'問卷',data:'資料',admin:'行政',meeting:'會議',platform:'平台'};
-  const catColors={questionnaire:'cat-q',data:'cat-d',admin:'cat-a',meeting:'cat-m',platform:'cat-q'};
   document.getElementById('catProg').innerHTML=cats.map(c=>{
     const ct=tasks.filter(t=>t.cat===c);
     const cd=ct.filter(t=>t.done).length;
     const pct=ct.length?Math.round(cd/ct.length*100):0;
-    return `<div class="prog-row"><div class="prog-label-row"><span>${catNames[c]}</span><span>${cd}/${ct.length} (${pct}%)</span></div><div class="prog-bar"><div class="prog-fill ${catColors[c]}" style="width:${pct}%"></div></div></div>`;
-  }).join('');
-
-  const qtypes=['student','sibling','parent','teacher','subject','school'];
-  const qtypeNames={student:'學生',sibling:'手足',parent:'照顧者',teacher:'導師',subject:'科任',school:'學校'};
-  document.getElementById('dtProg').innerHTML=qtypes.map(q=>{
-    const qt=dtData.filter(x=>x.qtype===q);
-    const qd=qt.filter(x=>x.done).length;
-    const pct=qt.length?Math.round(qd/qt.length*100):0;
-    const qi=QTAG_INFO[q];
-    return `<div class="prog-row"><div class="prog-label-row"><span><span class="qtag ${qi.cls}">${qtypeNames[q]}</span></span><span>${qd}/${qt.length} (${pct}%)</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
+    return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>${catNames[c]}</span><span>${cd}/${ct.length}(${pct}%)</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
   }).join('');
 }
 
-// --- Modal ---
+function switchTab(t,el){
+  currentTab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(t==='list'){
+    document.getElementById('taskListPanel').style.display='flex';
+    document.getElementById('progressPanel').style.display='none';
+  }else{
+    document.getElementById('taskListPanel').style.display='none';
+    document.getElementById('progressPanel').style.display='block';
+    renderProgress();
+  }
+}
+
 function openAdd(){
   editingId=null;
   selCreator='m1';selParts=[];selPriority=2;
@@ -941,7 +766,6 @@ function saveTask(){
   renderCalendar();renderTaskList();renderProgress();
 }
 
-// --- Detail panel ---
 function openDetail(id){
   const t=tasks.find(x=>x.id===id);
   if(!t)return;
@@ -950,7 +774,7 @@ function openDetail(id){
   const si=STATUS_INFO[t.status]||STATUS_INFO.notstarted;
   document.getElementById('detailPanel').innerHTML=`
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
-      <div style="font-size:17px;font-weight:600;flex:1;line-height:1.4">${t.title}</div>
+      <div style="font-size:17px;font-weight:600;flex:1;line-height:1.4;color:var(--text)">${t.title}</div>
       <button class="close-btn" onclick="closeDetail()" style="flex-shrink:0;margin-left:8px">✕</button>
     </div>
     ${t.desc?`<div style="font-size:13px;color:var(--text2);margin-bottom:16px">${t.desc}</div>`:''}
@@ -967,7 +791,7 @@ function openDetail(id){
       <div class="detail-field-val">${priorityHtml(t.priority)}</div>
     </div>
     ${t.date?`<div class="detail-field"><div class="detail-field-label">日期</div><div class="detail-field-val">${t.date}</div></div>`:''}
-    ${t.deadline?`<div class="detail-field"><div class="detail-field-label">Deadline</div><div class="detail-field-val" style="color:#b03030">${t.deadline}</div></div>`:''}
+    ${t.deadline?`<div class="detail-field"><div class="detail-field-label">Deadline</div><div class="detail-field-val" style="color:#8a6b66">${t.deadline}</div></div>`:''}
     ${t.qtags&&t.qtags.length?`<div class="detail-field"><div class="detail-field-label">相關問卷</div><div style="display:flex;gap:4px;flex-wrap:wrap">${t.qtags.map(qtagHtml).join('')}</div></div>`:''}
     <div class="detail-field">
       <div class="detail-field-label">新增者</div>
@@ -984,7 +808,7 @@ function openDetail(id){
     <div style="display:flex;gap:8px;margin-top:8px">
       <button class="btn btn-primary" onclick="saveDetailNotes(${t.id})">儲存備註</button>
       <button class="btn" onclick="editTask(${t.id})">編輯</button>
-      <button class="btn" style="margin-left:auto;color:#b03030;border-color:#f0a0a0" onclick="deleteTask(${t.id})">刪除</button>
+      <button class="btn" style="margin-left:auto;color:#8a6b66;border-color:#e0d0c5" onclick="deleteTask(${t.id})">刪除</button>
     </div>`;
   document.getElementById('detailOverlay').classList.add('open');
 }
@@ -1024,24 +848,18 @@ function deleteTask(id){
   renderCalendar();renderTaskList();renderProgress();
 }
 
-// --- View switch ---
 function switchView(v,el){
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
   if(el)el.classList.add('active');
-  const titles={dashboard:'總覽',calendar:'行事曆',tasklist:'工作清單',datatracker:'資料追蹤',progress:'進度追蹤'};
+  const titles={dashboard:'總覽',tasks:'代辦工作'};
   document.getElementById('topbarTitle').textContent=titles[v]||v;
-  if(v==='tasklist')renderTaskList();
-  if(v==='datatracker')renderTracker();
-  if(v==='progress')renderProgress();
-  if(v==='calendar')renderCalendar();
+  if(v==='tasks')renderTaskList();
 }
 
-// --- Init ---
 renderTeam();
 renderCalendar();
-renderTaskList();
 </script>
 </body>
 </html>
