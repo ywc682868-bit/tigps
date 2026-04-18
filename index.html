@@ -134,7 +134,7 @@ textarea{resize:vertical;min-height:60px}
     <div class="sb-logo-text">TIGPS</div>
   </div>
   <div class="sb-nav">
-    <div class="team-grid" id="sidebarTeam"></div>
+    <div class="team-grid" id="sidebarTeam" style="opacity:0;transition:opacity 0.2s"></div>
     <div class="sb-item active" onclick="switchView('tasks',this)">代辦工作</div>
   </div>
 </div>
@@ -357,6 +357,9 @@ db.ref('members').on('value',snapshot=>{
   memberData={};
   snapshot.forEach(child=>{memberData[child.key]={...child.val()};});
   renderTeam();
+  // Fade in after first load
+  const el=document.getElementById('sidebarTeam');
+  if(el)el.style.opacity='1';
 });
 
 const MEMBERS=[{id:'m1',name:'李研究員',initials:'李',bg:'#e5ddd8'},{id:'m2',name:'陳助理',initials:'陳',bg:'#dfe5df'},{id:'m3',name:'王助理',initials:'王',bg:'#e5dfd8'},{id:'m4',name:'林助理',initials:'林',bg:'#e5dfe5'}];
@@ -634,7 +637,7 @@ function deleteTask(id){if(!confirm('確定要刪除?'))return;db.ref('tasks/'+i
 
 function switchView(v,el){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');}
 
-renderTeam();
+// Don't call renderTeam() here - Firebase on('value') will call it once data loads
 loadTasks();
 </script>
 </body>
