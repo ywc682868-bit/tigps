@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TIGPS 研究計畫平台</title>
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -31,19 +33,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 
 /* Sidebar */
 .sb-logo{padding:0 0 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
-.sb-logo-icon{width:32px;height:32px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:13px;font-weight:700;flex-shrink:0}
-.sb-logo-text{font-size:16px;font-weight:600;color:var(--text)}
+.sb-logo-icon{width:32px;height:32px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--bg);font-size:13px;font-weight:700;flex-shrink:0;cursor:pointer}
+.sb-logo-text{font-size:16px;font-weight:600;color:var(--text);cursor:pointer}
 .sb-nav{flex:1;overflow-y:auto;padding:12px 0;margin-top:12px}
 .sb-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;margin-bottom:2px;user-select:none}
 .sb-item:hover{background:var(--bg3);color:var(--text)}
 .sb-item.active{background:var(--border);color:var(--text);font-weight:500}
 .sb-icon{width:18px;height:18px;flex-shrink:0;opacity:0.6}
-.sb-team{padding:12px 0;border-top:1px solid var(--border);margin-top:auto}
-.team-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
-.member-cell{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:default}
+.team-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.member-cell{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:default}
 .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
 .avatar-sm{width:18px;height:18px;font-size:8px;font-weight:600;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.member-name{font-size:9px;color:var(--text2);text-align:center;line-height:1.2}
 
 /* Topbar */
 .topbar{display:flex;align-items:center;gap:10px;padding:0;border-bottom:none;flex-shrink:0;min-height:0;height:0;overflow:hidden}
@@ -57,7 +57,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .view{display:none;flex:1;overflow:hidden}
 .view.active{display:flex;flex-direction:column}
 
-/* === CALENDAR VIEW === */
+/* Calendar View */
 .cal-wrap{display:flex;flex:1;overflow:hidden}
 .cal-left{width:200px;min-width:200px;border-right:1px solid var(--border);padding:14px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:12px}
 .cal-center{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-height:0}
@@ -88,7 +88,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .cal-body{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:1px;background:var(--border);flex:1}
 .cal-cell{min-height:100px;padding:6px;cursor:pointer;background:var(--bg);vertical-align:top;overflow:hidden;display:flex;flex-direction:column}
 .cal-cell:hover{background:var(--bg2)}
-.cal-cell.other-month{background:var(--bg3);opacity:0.6}
+.cal-cell.other-month{background:var(--bg);opacity:0.6}
 .cal-cell.weekend .cal-date-num{color:#c97070}
 .cal-cell.holiday{background:#f5ebe0}
 .cal-cell.holiday .cal-date-num{color:#c97070;font-weight:600}
@@ -96,7 +96,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .cal-date-num.today{background:var(--accent);color:var(--bg);font-weight:600}
 .cal-chip{font-size:9px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:2px;cursor:pointer;line-height:1.2}
 .cal-chip:hover{opacity:0.8}
-.cal-more{font-size:9px;color:var(--text3);padding:1px 3px}
 
 /* Task List View */
 .tab-header{display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0}
@@ -113,12 +112,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .data-table td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
 .data-table tr:hover td{background:var(--bg2)}
 .data-table tr.done-row td{opacity:0.4}
-.sort-btn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:11px;font-weight:600;display:flex;align-items:center;gap:3px;padding:0}
-.sort-btn:hover{color:var(--text)}
 .check-cell{width:32px;text-align:center}
 .check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;background:transparent}
 .check.done{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-.priority-cell{text-align:center}
 .avatars-stack{display:flex;align-items:center}
 .avatars-stack .avatar-sm{margin-left:-5px;border:1.5px solid var(--bg)}
 .avatars-stack .avatar-sm:first-child{margin-left:0}
@@ -133,7 +129,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .st-done{background:var(--green-bg);color:var(--green-text)}
 .st-blocked{background:var(--red-bg);color:var(--red-text)}
 .priority{display:inline-flex;gap:2px;font-size:11px}
-.p1{color:#8a6b66}.p2{color:#8a7460}.p3{color:#8a8570}
 
 /* Type tags */
 .tag{display:inline-flex;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:500}
@@ -170,27 +165,16 @@ textarea{resize:vertical;min-height:60px}
 .chip{padding:4px 10px;font-size:11px;border-radius:12px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.2s}
 .chip:hover{background:var(--bg2)}
 .chip.on{border-color:var(--accent);background:var(--blue-bg);color:var(--blue-text)}
-.chip.on-student{background:#dfe5e0;color:#5f7060;border-color:#afc5a0}
-.chip.on-sibling{background:#e8dfe0;color:#805f5f;border-color:#d0b0a0}
-.chip.on-parent{background:#dfe0e5;color:#5f6070;border-color:#b0a0d0}
-.chip.on-teacher{background:#e8dfe5;color:#80606f;border-color:#d0a0c0}
-.chip.on-subject{background:#e5dfe0;color:#80706f;border-color:#d0b0a0}
-.chip.on-school{background:#dfe5e0;color:#5f7060;border-color:#afc5a0}
 .mem-chip{display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:11px;border-radius:12px;border:1px solid var(--border2);cursor:pointer;color:var(--text2);transition:all 0.2s}
 .mem-chip:hover{background:var(--bg2)}
 .mem-chip.sel{border-color:var(--accent);background:var(--blue-bg);color:var(--blue-text)}
 .modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
-.priority-display{display:flex;gap:3px}
 .pstar{font-size:13px;cursor:pointer;color:var(--border2);transition:color 0.2s}
 .pstar.on{color:#8a6b66}
 .btn{padding:6px 14px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:5px;line-height:1.4;transition:all 0.2s}
 .btn:hover{background:var(--bg2)}
 .btn-primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 .btn-primary:hover{background:#5a6161}
-
-/* Progress bar */
-.prog-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
-.prog-fill{height:100%;border-radius:3px;background:var(--accent)}
 
 /* Detail panel */
 .detail-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:90;align-items:flex-start;justify-content:flex-end}
@@ -205,6 +189,7 @@ textarea{resize:vertical;min-height:60px}
 
 .empty{text-align:center;padding:40px;color:var(--text3);font-size:13px}
 .divider{height:1px;background:var(--border);margin:8px 0}
+.loading{text-align:center;padding:20px;color:var(--text2)}
 </style>
 </head>
 <body>
@@ -214,11 +199,11 @@ textarea{resize:vertical;min-height:60px}
 <!-- Sidebar -->
 <div class="sidebar">
   <div class="sb-logo">
-    <div class="sb-logo-icon" onclick="switchView('dashboard',null)" style="cursor:pointer">T</div>
-    <div class="sb-logo-text" onclick="switchView('dashboard',null)" style="cursor:pointer">TIGPS</div>
+    <div class="sb-logo-icon" onclick="switchView('dashboard',null)">T</div>
+    <div class="sb-logo-text" onclick="switchView('dashboard',null)">TIGPS</div>
   </div>
   <div class="sb-nav">
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)" id="sidebarTeam"></div>
+    <div class="team-grid" id="sidebarTeam"></div>
     <div class="sb-item active" onclick="switchView('tasks',this)">
       <svg class="sb-icon" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 5h14M2 9h10M2 13h7"/></svg>
       代辦工作
@@ -228,15 +213,14 @@ textarea{resize:vertical;min-height:60px}
 
 <!-- Main -->
 <div class="main">
-  <div class="topbar" id="topbar">
-    <div class="topbar-title" id="topbarTitle" style="display:none">總覽</div>
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">總覽</div>
   </div>
   <div class="content">
 
     <!-- DASHBOARD VIEW -->
     <div class="view active" id="view-dashboard">
       <div class="cal-wrap">
-        <!-- Left panel -->
         <div class="cal-left">
           <div class="cal-side-section">
             <div class="cal-side-title current">當月代辦</div>
@@ -247,7 +231,6 @@ textarea{resize:vertical;min-height:60px}
             <div id="dashNextMonth"></div>
           </div>
         </div>
-        <!-- Center calendar -->
         <div class="cal-center">
           <div class="cal-nav">
             <button class="arrow-btn" onclick="changeCalMonth(-1)">‹</button>
@@ -267,7 +250,6 @@ textarea{resize:vertical;min-height:60px}
             <div class="cal-body" id="calBody"></div>
           </div>
         </div>
-        <!-- Right panel -->
         <div class="cal-right">
           <div class="cal-side-section">
             <div class="cal-side-title deadline" style="display:block;margin-bottom:6px">重要事項</div>
@@ -321,10 +303,6 @@ textarea{resize:vertical;min-height:60px}
         <div style="margin-bottom:24px">
           <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">各年度完成率</div>
           <div id="yearProg"></div>
-        </div>
-        <div>
-          <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)">各分類完成率</div>
-          <div id="catProg"></div>
         </div>
       </div>
     </div>
@@ -419,6 +397,19 @@ textarea{resize:vertical;min-height:60px}
 </div>
 
 <script>
+// Firebase 初始化
+const firebaseConfig = {
+  apiKey: "AIzaSyDJz-9QQq4W_7wZZ8K7t5M4n3p2q1r0s9t",
+  authDomain: "tigps-platform.firebaseapp.com",
+  projectId: "tigps-7779e",
+  storageBucket: "tigps-7779e.appspot.com",
+  messagingSenderId: "933488060768",
+  databaseURL: "https://tigps-7779e-default-rtdb.asia-southeast1.firebasedatabase.app"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
 const MEMBERS=[
   {id:'m1',name:'李研究員',initials:'李',color:'#b9a79f',bg:'#e5ddd8'},
   {id:'m2',name:'陳助理',initials:'陳',color:'#8f9f8f',bg:'#dfe5df'},
@@ -476,24 +467,7 @@ let selCreator='m1';
 let selParts=[];
 let selPriority=2;
 let editingId=null;
-let nextId=100;
-let currentTab='list';
-
-let tasks=[
-  {id:1,title:'W2資料釋出',desc:'',date:'2026-03-31',deadline:'2026-03-31',cat:'data',status:'notstarted',priority:3,qtags:[],creator:'m1',parts:['m1'],notes:''},
-  {id:2,title:'W3資料釋出',desc:'',date:'2026-06-19',deadline:'2026-06-19',cat:'data',status:'notstarted',priority:3,qtags:[],creator:'m1',parts:['m1'],notes:''},
-  {id:3,title:'第三屆研討會',desc:'',date:'2026-06-11',deadline:'2026-06-13',cat:'meeting',status:'notstarted',priority:3,qtags:[],creator:'m1',parts:['m1','m2'],notes:''},
-  {id:4,title:'說明會邀請',desc:'',date:'2026-05-11',deadline:'',cat:'meeting',status:'notstarted',priority:3,qtags:[],creator:'m2',parts:['m2'],notes:''},
-  {id:5,title:'W4受訪測試',desc:'',date:'2026-05-11',deadline:'',cat:'data',status:'notstarted',priority:3,qtags:['student'],creator:'m3',parts:['m3'],notes:''},
-  {id:6,title:'預計W4調查開始',desc:'',date:'2026-05-18',deadline:'',cat:'questionnaire',status:'notstarted',priority:3,qtags:['student','sibling','parent','teacher','subject','school'],creator:'m1',parts:['m1','m2','m3','m4'],notes:''},
-  {id:7,title:'W4問卷上架',desc:'',date:'2026-05-04',deadline:'',cat:'data',status:'notstarted',priority:3,qtags:[],creator:'m4',parts:['m4'],notes:''},
-  {id:8,title:'新樣本加入追蹤數活動',desc:'',date:'2026-04-01',deadline:'',cat:'platform',status:'notstarted',priority:2,qtags:[],creator:'m2',parts:['m2'],notes:''},
-  {id:9,title:'W4問卷IRB',desc:'',date:'2026-04-01',deadline:'',cat:'admin',status:'notstarted',priority:3,qtags:[],creator:'m1',parts:['m1'],notes:''},
-  {id:10,title:'第三屆研討會稿截止',desc:'',date:'2026-03-27',deadline:'',cat:'meeting',status:'notstarted',priority:1,qtags:[],creator:'m1',parts:['m1'],notes:''},
-  {id:11,title:'紅包活動',desc:'',date:'2026-02-06',deadline:'2026-03-08',cat:'platform',status:'notstarted',priority:1,qtags:[],creator:'m2',parts:['m2'],notes:''},
-  {id:12,title:'W2學生資料釋出',desc:'',date:'2026-01-19',deadline:'',cat:'data',status:'notstarted',priority:3,qtags:['student'],creator:'m1',parts:['m1'],notes:''},
-  {id:13,title:'清理樣本問卷',desc:'',date:'2026-04-30',deadline:'',cat:'admin',status:'inprogress',priority:2,qtags:[],creator:'m3',parts:['m3'],notes:''},
-];
+let tasks=[];
 
 const gm=id=>MEMBERS.find(m=>m.id===id);
 const today=new Date();
@@ -525,9 +499,21 @@ function qtagHtml(q){
 
 function renderTeam(){
   document.getElementById('sidebarTeam').innerHTML=MEMBERS.map(m=>`
-    <div style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:default">
-      <div class="avatar" style="background:${m.bg};color:${m.color};width:32px;height:32px;font-size:12px">${m.initials}</div>
+    <div class="member-cell">
+      <div class="avatar" style="background:${m.bg};color:${m.color}">${m.initials}</div>
     </div>`).join('');
+}
+
+function loadTasks(){
+  db.ref('tasks').on('value',snapshot=>{
+    tasks=[];
+    snapshot.forEach(child=>{
+      tasks.push({id:child.key,...child.val()});
+    });
+    renderCalendar();
+    renderTaskList();
+    renderProgress();
+  });
 }
 
 function renderCalendar(){
@@ -544,7 +530,7 @@ function renderCalendar(){
   const monthTasks=tasks.filter(t=>t.date&&t.date.startsWith(monthStr));
 
   let cells='';
-  for(let i=0;i<startDow;i++)cells+=`<div class="cal-cell empty" style="background:transparent;border:none"></div>`;
+  for(let i=0;i<startDow;i++)cells+=`<div class="cal-cell other-month" style="border:none"></div>`;
   for(let d=1;d<=lastDay;d++){
     const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dt=monthTasks.filter(t=>t.date===ds);
@@ -555,14 +541,14 @@ function renderCalendar(){
     let chips=dt.slice(0,3).map(t=>{
       const cr=gm(t.creator);
       const st=CAL_CHIP_STYLE[t.cat]||'background:#e5e5e5;color:#777';
-      return `<div class="cal-chip" style="${st}" onclick="openDetail(${t.id});event.stopPropagation()">${cr?`<div style="width:10px;height:10px;border-radius:50%;background:${cr.bg};color:${cr.color};font-size:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${cr.initials}</div>`:''}${t.title}</div>`;
+      return `<div class="cal-chip" style="${st}" onclick="openDetail('${t.id}');event.stopPropagation()">${cr?`<div style="width:10px;height:10px;border-radius:50%;background:${cr.bg};color:${cr.color};font-size:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${cr.initials}</div>`:''}${t.title}</div>`;
     }).join('');
-    const more=dt.length>3?`<div class="cal-more">+${dt.length-3}</div>`:'';
+    const more=dt.length>3?`<div style="font-size:9px;color:var(--text3);padding:1px 3px">+${dt.length-3}</div>`:'';
     cells+=`<div class="cal-cell ${cellCls} ${holidayCls}" onclick="openAddOnDate('${ds}')">${'<div class="'+numCls+'">'+d+'</div>'}${chips}${more}</div>`;
   }
   const total=startDow+lastDay;
   const rem=(7-total%7)%7;
-  for(let i=0;i<rem;i++)cells+=`<div class="cal-cell empty" style="background:transparent;border:none"></div>`;
+  for(let i=0;i<rem;i++)cells+=`<div class="cal-cell other-month" style="border:none"></div>`;
   bEl.innerHTML=cells;
 
   renderDashSidebar();
@@ -592,12 +578,12 @@ function renderDashSidebar(){
   const dl=tasks.filter(t=>t.deadline&&t.priority===3&&t.status!=='done').sort((a,b)=>a.deadline.localeCompare(b.deadline)).slice(0,5);
   const mtg=tasks.filter(t=>t.cat==='meeting'&&t.date&&t.date>=curStr).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
 
-  const renderSideItem=(t,dotColor)=>`<div class="cal-side-item" onclick="openDetail(${t.id})"><div class="cal-side-dot" style="background:${dotColor}"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||t.deadline||''}</div></div></div>`;
+  const renderSideItem=(t,dotColor)=>`<div class="cal-side-item" onclick="openDetail('${t.id}')"><div class="cal-side-dot" style="background:${dotColor}"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||t.deadline||''}</div></div></div>`;
 
   document.getElementById('dashCurrentMonth').innerHTML=cur.length?cur.map(t=>renderSideItem(t,'#8a6b66')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;
   document.getElementById('dashNextMonth').innerHTML=nxt.length?nxt.map(t=>renderSideItem(t,'#8a7460')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;
   document.getElementById('dashDeadlines').innerHTML=dl.length?dl.map(t=>renderSideItem(t,'#c97070')).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;
-  document.getElementById('dashMeetings').innerHTML=mtg.length?mtg.map(t=>`<div class="cal-side-item" onclick="openDetail(${t.id})"><div class="cal-side-dot" style="background:#5f7070"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||''}</div></div></div>`).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;
+  document.getElementById('dashMeetings').innerHTML=mtg.length?mtg.map(t=>`<div class="cal-side-item" onclick="openDetail('${t.id}')"><div class="cal-side-dot" style="background:#5f7070"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||''}</div></div></div>`).join(''):`<div style="font-size:11px;color:var(--text3);padding:4px 6px">無</div>`;
 }
 
 function renderTaskList(){
@@ -613,8 +599,8 @@ function renderTaskList(){
     const pts=(t.parts||[]).map(gm).filter(Boolean);
     const si=STATUS_INFO[t.status]||STATUS_INFO.notstarted;
     return `<tr class="${t.done?'done-row':''}">
-      <td class="check-cell"><div class="check ${t.done?'done':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div></td>
-      <td><div class="task-title-cell ${t.done?'done':''}" onclick="openDetail(${t.id})">${t.title}</div>${t.qtags&&t.qtags.length?'<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">'+t.qtags.map(qtagHtml).join('')+'</div>':''}</td>
+      <td class="check-cell"><div class="check ${t.done?'done':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</div></td>
+      <td><div class="task-title-cell ${t.done?'done':''}" onclick="openDetail('${t.id}')">${t.title}</div>${t.qtags&&t.qtags.length?'<div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">'+t.qtags.map(qtagHtml).join('')+'</div>':''}</td>
       <td style="white-space:nowrap"><div style="font-size:12px;color:var(--text2)">${t.date||''}</div>${t.deadline&&t.deadline!==t.date?`<div style="font-size:11px;color:#8a6b66">→${t.deadline}</div>`:''}</td>
       <td><div style="display:flex;align-items:center;gap:4px">${cr?avatarHtml(cr):''}${pts.length?'<div class="avatars-stack">'+pts.map(m=>avatarHtml(m)).join('')+'</div>':''}</div></td>
       <td class="priority-cell">${priorityHtml(t.priority)}</td>
@@ -640,7 +626,7 @@ function toggleTask(id){
   if(!t)return;
   t.done=!t.done;
   t.status=t.done?'done':(t.status==='done'?'notstarted':t.status);
-  renderTaskList();renderCalendar();renderProgress();
+  db.ref('tasks/'+id).update(t);
 }
 
 function renderProgress(){
@@ -649,23 +635,15 @@ function renderProgress(){
     const yt=tasks.filter(t=>t.date&&t.date.startsWith(y));
     const yd=yt.filter(t=>t.done).length;
     const pct=yt.length?Math.round(yd/yt.length*100):0;
-    return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>${y}</span><span>${yd}/${yt.length}(${pct}%)</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
-  }).join('');
-
-  const cats=['questionnaire','data','admin','meeting','platform'];
-  const catNames={questionnaire:'問卷',data:'資料',admin:'行政',meeting:'會議',platform:'平台'};
-  document.getElementById('catProg').innerHTML=cats.map(c=>{
-    const ct=tasks.filter(t=>t.cat===c);
-    const cd=ct.filter(t=>t.done).length;
-    const pct=ct.length?Math.round(cd/ct.length*100):0;
-    return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>${catNames[c]}</span><span>${cd}/${ct.length}(${pct}%)</span></div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div></div>`;
+    return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>${y}</span><span>${yd}/${yt.length}(${pct}%)</span></div><div style="height:6px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="height:100%;border-radius:3px;background:var(--accent);width:${pct}%"></div></div></div>`;
   }).join('');
 }
 
 function switchTab(t,el){
-  currentTab=t;
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  if(el)el.classList.add('active');
+  if(el){
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+  }
   if(t==='list'){
     document.getElementById('taskListPanel').style.display='flex';
     document.getElementById('progressPanel').style.display='none';
@@ -690,7 +668,6 @@ function openAdd(){
   updatePriorityStars();
   document.getElementById('modalTitleText').textContent='新增工作';
   document.getElementById('modalOverlay').classList.add('open');
-  setTimeout(()=>document.getElementById('iTitle').focus(),50);
 }
 function openAddOnDate(ds){
   openAdd();
@@ -745,15 +722,14 @@ function saveTask(){
     priority:selPriority,qtags,
     creator:selCreator,parts:[...selParts],notes:'',
     done:document.getElementById('iStatus').value==='done',
+    timestamp:new Date().toISOString()
   };
   if(editingId){
-    const idx=tasks.findIndex(t=>t.id===editingId);
-    if(idx>=0)tasks[idx]={...tasks[idx],...data};
+    db.ref('tasks/'+editingId).update(data);
   }else{
-    tasks.push({id:nextId++,...data});
+    db.ref('tasks').push(data);
   }
   closeModal();
-  renderCalendar();renderTaskList();renderProgress();
 }
 
 function openDetail(id){
@@ -796,16 +772,19 @@ function openDetail(id){
       <textarea class="notes-input" id="detailNotes" placeholder="新增備註...">${t.notes||''}</textarea>
     </div>
     <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn btn-primary" onclick="saveDetailNotes(${t.id})">儲存備註</button>
-      <button class="btn" onclick="editTask(${t.id})">編輯</button>
-      <button class="btn" style="margin-left:auto;color:#8a6b66;border-color:#e0d0c5" onclick="deleteTask(${t.id})">刪除</button>
+      <button class="btn btn-primary" onclick="saveDetailNotes('${t.id}')">儲存備註</button>
+      <button class="btn" onclick="editTask('${t.id}')">編輯</button>
+      <button class="btn" style="margin-left:auto;color:#8a6b66;border-color:#e0d0c5" onclick="deleteTask('${t.id}')">刪除</button>
     </div>`;
   document.getElementById('detailOverlay').classList.add('open');
 }
 function closeDetail(){document.getElementById('detailOverlay').classList.remove('open')}
 function saveDetailNotes(id){
   const t=tasks.find(x=>x.id===id);
-  if(t){t.notes=document.getElementById('detailNotes').value;renderTaskList()}
+  if(t){
+    t.notes=document.getElementById('detailNotes').value;
+    db.ref('tasks/'+id).update({notes:t.notes});
+  }
   closeDetail();
 }
 function editTask(id){
@@ -833,9 +812,11 @@ function editTask(id){
 }
 function deleteTask(id){
   if(!confirm('確定要刪除這項工作嗎？'))return;
-  tasks=tasks.filter(t=>t.id!==id);
-  closeDetail();
-  renderCalendar();renderTaskList();renderProgress();
+  db.ref('tasks/'+id).remove().then(()=>{
+    closeDetail();
+    renderCalendar();
+    renderTaskList();
+  }).catch(err=>alert('刪除失敗: '+err));
 }
 
 function switchView(v,el){
@@ -843,19 +824,11 @@ function switchView(v,el){
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
   if(el)el.classList.add('active');
-  const titles={dashboard:'總覽',tasks:'代辦工作'};
-  const titleEl=document.getElementById('topbarTitle');
-  if(v==='dashboard'){
-    titleEl.style.display='none';
-  }else{
-    titleEl.style.display='block';
-    titleEl.textContent=titles[v]||v;
-  }
   if(v==='tasks')renderTaskList();
 }
 
 renderTeam();
-renderCalendar();
+loadTasks();
 </script>
 </body>
 </html>
