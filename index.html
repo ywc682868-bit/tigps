@@ -356,7 +356,7 @@ function setTaskFilter(f,el){taskFilter=f;document.querySelectorAll('.filter-chi
 function toggleTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;t.status=t.done?'done':'notstarted';db.ref('tasks/'+id).update({done:t.done,status:t.status});}
 
 function renderProgress(){
-  const years=Array.from(new Set(tasks.map(t=>t.date?t.date.split('-')[0]:'')))filter(Boolean).sort();
+  const years=Array.from(new Set(tasks.map(t=>t.date?t.date.split('-')[0]:''))).filter(Boolean).sort();
   document.getElementById('yearProg').innerHTML=years.map(y=>{const yt=tasks.filter(t=>t.date&&t.date.startsWith(y)),yd=yt.filter(t=>t.done).length,pct=yt.length?Math.round(yd/yt.length*100):0;return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${y}</span><span>${yd}/${yt.length}(${pct}%)</span></div><div style="height:6px;background:var(--bg3);border-radius:3px"><div style="height:100%;background:var(--accent);width:${pct}%"></div></div></div>`;}).join('');
 }
 
