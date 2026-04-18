@@ -339,7 +339,7 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-// Load member data
+// Load member data - members with 'deleted' flag are hidden
 db.ref('members').on('value',snapshot=>{
   memberData={};
   snapshot.forEach(child=>{memberData[child.key]={...child.val()};});
@@ -385,6 +385,8 @@ const TW_HOLIDAYS_2026={
   '2026-04-05':'清明節',
   '2026-04-06':'清明節補假',
   '2026-05-01':'勞動節',
+  '2026-05-02':'勞動節',
+  '2026-05-03':'勞動節',
   '2026-06-19':'端午節',
   '2026-06-20':'端午節',
   '2026-06-21':'端午節',
@@ -409,7 +411,9 @@ today.setHours(0,0,0,0);
 
 function renderTeam(){
   const teamEl=document.getElementById('sidebarTeam');
-  teamEl.innerHTML=MEMBERS.map(m=>{
+  // Only show members that are not marked as deleted
+  const visibleMembers=MEMBERS.filter(m=>!(memberData[m.id]&&memberData[m.id].deleted));
+  teamEl.innerHTML=visibleMembers.map(m=>{
     const saved=memberData[m.id]||{};
     const name=saved.name||m.name;
     const photo=saved.photo||null;
@@ -462,8 +466,9 @@ function confirmDeleteMember(){
   const m=MEMBERS.find(x=>x.id===id);
   const name=(memberData[id]&&memberData[id].name)||(m&&m.name)||'此成員';
   if(!confirm(`確定要刪除成員「${name}」嗎？`))return;
-  if(db){db.ref('members/'+id).remove();}
-  delete memberData[id];
+  // Mark as deleted in Firebase (don't remove, just flag)
+  if(db){db.ref('members/'+id).set({deleted:true});}
+  memberData[id]={deleted:true};
   closeMemberEdit();
   renderTeam();
 }
@@ -504,14 +509,15 @@ function onPhotoChange(e){
     const img=new Image();
     img.onload=()=>{
       const canvas=document.createElement('canvas');
-      const MAX=80; // 80px max, very small
+      // Very aggressive compression: max 60px, quality 0.4
+      const MAX=60;
       let w=img.width,h=img.height;
       if(w>h){if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}}
       else{if(h>MAX){w=Math.round(w*MAX/h);h=MAX;}}
       canvas.width=w;canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
-      const compressed=canvas.toDataURL('image/jpeg',0.5);
-      console.log('壓縮後大小:',Math.round(compressed.length/1024)+'KB');
+      const compressed=canvas.toDataURL('image/jpeg',0.4);
+      console.log('壓縮後:',Math.round(compressed.length/1024)+'KB');
       refreshPhotoUI(compressed);
     };
     img.src=ev.target.result;
