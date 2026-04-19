@@ -215,13 +215,13 @@ textarea{resize:vertical;min-height:60px}
     <!-- 工作進度 -->
     <div class="view" id="view-progress">
       <div class="task-toolbar" style="justify-content:space-between;align-items:center">
-        <div style="display:flex;gap:8px">
-          <button class="filter-chip active" id="progTab2023" onclick="switchProgYear(2023,this)">W1 2023</button>
-          <button class="filter-chip" id="progTab2024" onclick="switchProgYear(2024,this)">W1 2024</button>
-          <button class="filter-chip" id="progTab2025" onclick="switchProgYear(2025,this)">W1 2025</button>
-          <button class="filter-chip" id="progTab2026" onclick="switchProgYear(2026,this)">W1 2026</button>
+        <div style="display:flex;gap:8px" id="progYearTabs">
+          <button class="filter-chip active" onclick="switchProgYear(2023,this)">W1 2023</button>
+          <button class="filter-chip" onclick="switchProgYear(2024,this)">W2 2024</button>
+          <button class="filter-chip" onclick="switchProgYear(2025,this)">W1 2025</button>
+          <button class="filter-chip" onclick="switchProgYear(2026,this)">W2 2026</button>
         </div>
-        <button class="add-round" onclick="openAdd()">＋</button>
+        <button class="add-round" onclick="addNextProgYear()" title="新增下一個年度">＋</button>
       </div>
       <!-- 進度條 -->
       <div id="progBar" style="padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0"></div>
@@ -235,7 +235,7 @@ textarea{resize:vertical;min-height:60px}
               <th style="min-width:160px">名稱</th>
               <th style="min-width:100px">負責人員</th>
               <th style="min-width:90px">Deadline</th>
-              <th style="min-width:90px">完成日期</th>
+              <th style="min-width:90px">完成日期 <button onclick="openAdd()" style="border:none;background:var(--cat-admin);color:var(--cat-admin-text);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-weight:600;margin-left:4px">＋</button></th>
               <th style="width:36px"></th>
             </tr>
           </thead>
@@ -656,8 +656,9 @@ function goToday(){calYear=new Date().getFullYear();calMonth=new Date().getMonth
 
 function renderDashSidebar(){
   const now=new Date(),curY=now.getFullYear(),curM=now.getMonth(),nextY=curM===11?curY+1:curY,nextM=curM===11?0:curM+1,curStr=`${curY}-${String(curM+1).padStart(2,'0')}`,nextStr=`${nextY}-${String(nextM+1).padStart(2,'0')}`;
-  const cur=tasks.filter(t=>t.date&&t.date.startsWith(curStr)&&!t.done);
-  const nxt=tasks.filter(t=>t.date&&t.date.startsWith(nextStr)&&!t.done);
+  // 當月/次月代辦：排除會議
+  const cur=tasks.filter(t=>t.date&&t.date.startsWith(curStr)&&!t.done&&t.cat!=='meeting');
+  const nxt=tasks.filter(t=>t.date&&t.date.startsWith(nextStr)&&!t.done&&t.cat!=='meeting');
   // 重要事項：urgency === 'high'（三個驚嘆號）
   const urgent=tasks.filter(t=>t.urgency==='high'&&!t.done).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   // 會議
@@ -667,6 +668,23 @@ function renderDashSidebar(){
   document.getElementById('dashNextMonth').innerHTML=nxt.length?nxt.map(renderSideItem).join(''):'<div style="font-size:11px;color:var(--text3)">無</div>';
   document.getElementById('dashDeadlines').innerHTML=urgent.length?urgent.map(renderSideItem).join(''):'<div style="font-size:11px;color:var(--text3)">無</div>';
   document.getElementById('dashMeetings').innerHTML=mtg.length?mtg.map(t=>`<div class="cal-side-item" onclick="openEdit('${t.id}')"><div class="cal-side-dot" style="background:var(--cat-meeting-text)"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||''}</div></div></div>`).join(''):'<div style="font-size:11px;color:var(--text3)">無</div>';
+}
+
+// 動態新增下一年度 tab
+let progYears=[2023,2024,2025,2026];
+function addNextProgYear(){
+  const maxYear=Math.max(...progYears);
+  const nextYear=maxYear+1;
+  const wave=nextYear%2===1?'W1':'W2';
+  WAVE_LABELS[nextYear]=`${wave} ${nextYear}`;
+  progYears.push(nextYear);
+  const tabsEl=document.getElementById('progYearTabs');
+  const btn=document.createElement('button');
+  btn.className='filter-chip';
+  btn.textContent=WAVE_LABELS[nextYear];
+  btn.onclick=function(){switchProgYear(nextYear,this);};
+  tabsEl.appendChild(btn);
+  switchProgYear(nextYear,btn);
 }
 
 // ── 類型標籤名稱 ──
@@ -808,7 +826,7 @@ function renderProgContent(){
 let currentProgKey=null;
 let currentTaskId=null; // 直接存 Firebase task id
 
-const WAVE_LABELS={2023:'W1 2023',2024:'W1 2024',2025:'W1 2025',2026:'W1 2026'};
+const WAVE_LABELS={2023:'W1 2023',2024:'W2 2024',2025:'W1 2025',2026:'W2 2026'};
 
 function openProgTaskDetail(atKey){
   currentProgKey=atKey;
