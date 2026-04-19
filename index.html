@@ -216,9 +216,10 @@ textarea{resize:vertical;min-height:60px}
     <div class="view" id="view-progress">
       <div class="task-toolbar" style="justify-content:space-between;align-items:center">
         <div style="display:flex;gap:8px">
-          <button class="filter-chip active" id="progTab2024" onclick="switchProgYear(2024,this)">2024</button>
-          <button class="filter-chip" id="progTab2025" onclick="switchProgYear(2025,this)">2025</button>
-          <button class="filter-chip" id="progTab2026" onclick="switchProgYear(2026,this)">2026</button>
+          <button class="filter-chip active" id="progTab2023" onclick="switchProgYear(2023,this)">W1 2023</button>
+          <button class="filter-chip" id="progTab2024" onclick="switchProgYear(2024,this)">W1 2024</button>
+          <button class="filter-chip" id="progTab2025" onclick="switchProgYear(2025,this)">W1 2025</button>
+          <button class="filter-chip" id="progTab2026" onclick="switchProgYear(2026,this)">W1 2026</button>
         </div>
         <button class="add-round" onclick="openAdd()">＋</button>
       </div>
@@ -717,7 +718,7 @@ function renderMeetingList(){
 function toggleTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;t.status=t.done?'done':'notstarted';db.ref('tasks/'+id).update({done:t.done,status:t.status});}
 
 // ── 工作進度 ──
-let progYear=2024;
+let progYear=2023;
 const ANNUAL_TASKS=[
   {key:'questionnaire_discussion',label:'問卷討論'},
   {key:'irb_submission',label:'IRB 送審'},
@@ -746,7 +747,6 @@ function switchProgYear(y,el){
   if(el)el.classList.add('active');
   renderProgContent();
 }
-
 function getMemberAvatar(m,size=24){
   const saved=memberData[m.id]||{};
   const name=saved.name||m.name;
@@ -772,7 +772,7 @@ function renderProgContent(){
 
   barEl.innerHTML=`
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:5px">
-      <span>${progYear} 年度完成進度</span>
+      <span>${WAVE_LABELS[progYear]||progYear} 年度完成進度</span>
       <span>${done} / ${ANNUAL_TASKS.length}（${pct}%）</span>
     </div>
     <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
@@ -806,39 +806,46 @@ function renderProgContent(){
 }
 
 let currentProgKey=null;
+let currentTaskId=null; // 直接存 Firebase task id
+
+const WAVE_LABELS={2023:'W1 2023',2024:'W1 2024',2025:'W1 2025',2026:'W1 2026'};
 
 function openProgTaskDetail(atKey){
   currentProgKey=atKey;
   const at=ANNUAL_TASKS.find(x=>x.key===atKey);
-  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
+  // 用寬鬆比對找到 task，並記錄其 id
+  const task=tasks.find(t=>t.annualKey===atKey&&(
+    String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')
+  ));
+  currentTaskId=task?task.id:null;
 
   document.getElementById('tdTitle').textContent=at?at.label:'';
-  document.getElementById('tdCatBadge').style.cssText=`font-size:11px;padding:2px 8px;border-radius:4px;background:var(--cat-data);color:var(--cat-data-text)`;
-  document.getElementById('tdCatBadge').textContent=progYear+'年';
-  document.getElementById('tdDate').value=task&&task.date?task.date:'';
-  document.getElementById('tdDeadline').value=task&&task.deadline?task.deadline:'';
-  document.getElementById('tdDoneDate').value=task&&task.doneDate?task.doneDate:'';
-  document.getElementById('tdStatus').value=task&&task.status?task.status:'notstarted';
-  document.getElementById('tdDesc').value=task&&task.desc?task.desc:'';
+  document.getElementById('tdCatBadge').style.cssText='font-size:11px;padding:2px 8px;border-radius:4px;background:var(--cat-data);color:var(--cat-data-text)';
+  document.getElementById('tdCatBadge').textContent=WAVE_LABELS[progYear]||progYear+'年';
+  document.getElementById('tdDate').value=task?.date||'';
+  document.getElementById('tdDeadline').value=task?.deadline||'';
+  document.getElementById('tdDoneDate').value=task?.doneDate||'';
+  document.getElementById('tdStatus').value=task?.status||'notstarted';
+  document.getElementById('tdDesc').value=task?.desc||'';
 
   // 負責人
   const visible=MEMBERS.filter(m=>!(memberData[m.id]&&memberData[m.id].deleted));
-  const selParts=task&&task.parts?task.parts:[];
+  const selParts=task?.parts||[];
   document.getElementById('tdAssignees').innerHTML=visible.map(m=>{
     const saved=memberData[m.id]||{};
     const name=saved.name||m.name;
     const isSel=selParts.includes(m.id);
     const photo=saved.photo;
     const ring=isSel?'box-shadow:0 0 0 2px var(--accent);':'';
-    const av=photo?`<img src="${photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;${ring}">`:`<div style="width:36px;height:36px;border-radius:50%;background:${m.bg};color:#555;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
+    const av=photo
+      ?`<img src="${photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;${ring}">`
+      :`<div style="width:36px;height:36px;border-radius:50%;background:${m.bg};color:#555;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
     return `<div onclick="toggleTdAssignee('${m.id}')" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:${isSel?1:0.4}" id="tda_${m.id}">
       ${av}<span style="font-size:9px;color:var(--text2)">${name}</span>
     </div>`;
   }).join('');
 
-  // 子任務
   renderTdSubtasks(task);
-
   document.getElementById('taskDetailOverlay').classList.add('open');
 }
 
@@ -944,7 +951,6 @@ function toggleProgDirect(atKey){
 
 function saveTaskDetail(){
   const atKey=currentProgKey;
-  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
   const at=ANNUAL_TASKS.find(x=>x.key===atKey);
   const date=document.getElementById('tdDate').value;
   const deadline=document.getElementById('tdDeadline').value;
@@ -952,26 +958,37 @@ function saveTaskDetail(){
   const status=document.getElementById('tdStatus').value;
   const desc=document.getElementById('tdDesc').value;
   const done=status==='done';
-  const data={annualKey:atKey,progYear:String(progYear),title:at?.label||'',date,deadline,doneDate,status,desc,done,parts:task&&task.parts?task.parts:[],subtasks:task&&task.subtasks?task.subtasks:{}};
-  if(task){
-    db.ref('tasks/'+task.id).update(data).then(()=>{Object.assign(task,data);renderProgContent();closeTaskDetail();});
+  // 用 currentTaskId 找 task（比 annualKey 查找更可靠）
+  const task=currentTaskId?tasks.find(x=>x.id===currentTaskId):null;
+  const data={annualKey:atKey,progYear:String(progYear),title:at?.label||'',date,deadline,doneDate,status,desc,done,
+    parts:task?.parts||[],subtasks:task?.subtasks||{}};
+  if(currentTaskId){
+    db.ref('tasks/'+currentTaskId).update(data).then(()=>{
+      if(task)Object.assign(task,data);
+      renderProgContent();closeTaskDetail();
+    });
   } else {
-    db.ref('tasks').push(data).then(ref=>{tasks.push({id:ref.key,...data});renderProgContent();closeTaskDetail();});
+    db.ref('tasks').push(data).then(ref=>{
+      currentTaskId=ref.key;
+      tasks.push({id:ref.key,...data});
+      renderProgContent();closeTaskDetail();
+    });
   }
 }
 
 function deleteCurrentTask(){
-  if(!confirm('確定要重置此工作的所有資料（勾選、日期、人員）？'))return;
-  // 比對 annualKey，年份寬鬆比對（number 或 string 都接受）
-  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
-  if(task){
-    db.ref('tasks/'+task.id).remove().then(()=>{
-      tasks=tasks.filter(x=>x.id!==task.id);
-      renderProgContent();
-      closeTaskDetail();
-    }).catch(err=>{alert('刪除失敗：'+err.message);});
+  if(!confirm('確定要重置此工作的所有資料？'))return;
+  if(currentTaskId){
+    db.ref('tasks/'+currentTaskId).remove()
+      .then(()=>{
+        tasks=tasks.filter(x=>x.id!==currentTaskId);
+        currentTaskId=null;
+        renderProgContent();
+        closeTaskDetail();
+      })
+      .catch(err=>alert('刪除失敗：'+err.message));
   } else {
-    // 找不到 task，表示這筆根本沒存過，直接關閉
+    // 此工作從未儲存，直接關閉
     closeTaskDetail();
   }
 }
