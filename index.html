@@ -245,16 +245,12 @@ textarea{resize:vertical;min-height:60px}
 
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
 <div class="modal">
-  <!-- Row 1: 新增者（圓形，不顯示文字） + 關閉按鈕 -->
-  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-    <div id="creatorChips" style="display:flex;gap:8px;flex:1"></div>
-    <button class="close-btn" onclick="closeModal()">✕</button>
-  </div>
-  <!-- Row 2: 類型 + 名稱 + 重要程度 同一列 -->
-  <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:14px">
+  <!-- Row 1: 新增者 + 類型 + 名稱 + 重要程度 + 關閉 -->
+  <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:14px">
+    <div id="creatorChips" style="display:flex;gap:6px;align-items:center;flex-shrink:0"></div>
     <div class="fg" style="flex:0 0 auto;margin-bottom:0">
       <label class="flabel">類型</label>
-      <select id="iCat" style="padding:7px 6px;width:90px" onchange="updateCatColor(this)">
+      <select id="iCat" style="padding:7px 6px;width:88px" onchange="updateCatColor(this)">
         <option value="data">📋 資料</option>
         <option value="meeting">🗓 會議</option>
         <option value="admin">📁 行政</option>
@@ -264,44 +260,46 @@ textarea{resize:vertical;min-height:60px}
     </div>
     <div class="fg" style="flex:1;margin-bottom:0">
       <label class="flabel">名稱</label>
-      <input type="text" id="iTitle" placeholder="輸入名稱..." style="font-size:14px">
+      <input type="text" id="iTitle" placeholder="輸入名稱..." style="font-size:13px">
     </div>
     <div class="fg" style="flex:0 0 auto;margin-bottom:0">
       <label class="flabel" style="visibility:hidden">!</label>
-      <select id="iUrgency" style="padding:7px 6px;width:58px;text-align:center">
+      <select id="iUrgency" style="padding:7px 4px;width:52px;text-align:center">
         <option value="low">！</option>
         <option value="mid">！！</option>
         <option value="high">！！！</option>
       </select>
     </div>
+    <button class="close-btn" onclick="closeModal()" style="flex-shrink:0;margin-bottom:1px">✕</button>
   </div>
-  <!-- Row 3: 日期 + 時間 同一列 -->
-  <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end">
-    <div class="fg" style="flex:1;margin-bottom:0">
-      <label class="flabel">日期</label>
-      <input type="date" id="iDate">
-    </div>
-    <div class="fg" style="flex:0 0 auto;margin-bottom:0">
-      <label class="flabel">時間</label>
-      <div style="display:flex;gap:3px">
-        <select id="iTimeH" style="padding:7px 4px;width:52px;text-align:center">${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select>
-        <span style="display:flex;align-items:center;color:var(--text2)">:</span>
-        <select id="iTimeM" style="padding:7px 4px;width:52px;text-align:center"><option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
+  <!-- Row 2: 左邊日期+時間 / 右邊Deadline日期+時間 -->
+  <div style="display:flex;gap:12px;margin-bottom:14px">
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+      <div class="fg" style="margin-bottom:0">
+        <label class="flabel">日期</label>
+        <input type="date" id="iDate">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="flabel">時間</label>
+        <div style="display:flex;gap:3px">
+          <select id="iTimeH" style="flex:1;padding:7px 4px;text-align:center">${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select>
+          <span style="display:flex;align-items:center;color:var(--text2)">:</span>
+          <select id="iTimeM" style="flex:1;padding:7px 4px;text-align:center"><option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
+        </div>
       </div>
     </div>
-  </div>
-  <!-- Row 4: Deadline 日期 + Deadline 時間 同一列 -->
-  <div style="display:flex;gap:8px;margin-bottom:14px;align-items:flex-end">
-    <div class="fg" style="flex:1;margin-bottom:0">
-      <label class="flabel">Deadline 日期</label>
-      <input type="date" id="iDeadline">
-    </div>
-    <div class="fg" style="flex:0 0 auto;margin-bottom:0">
-      <label class="flabel">Deadline 時間</label>
-      <div style="display:flex;gap:3px">
-        <select id="iDeadlineH" style="padding:7px 4px;width:52px;text-align:center">${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select>
-        <span style="display:flex;align-items:center;color:var(--text2)">:</span>
-        <select id="iDeadlineM" style="padding:7px 4px;width:52px;text-align:center"><option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
+    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+      <div class="fg" style="margin-bottom:0">
+        <label class="flabel">Deadline 日期</label>
+        <input type="date" id="iDeadline">
+      </div>
+      <div class="fg" style="margin-bottom:0">
+        <label class="flabel">Deadline 時間</label>
+        <div style="display:flex;gap:3px">
+          <select id="iDeadlineH" style="flex:1;padding:7px 4px;text-align:center">${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select>
+          <span style="display:flex;align-items:center;color:var(--text2)">:</span>
+          <select id="iDeadlineM" style="flex:1;padding:7px 4px;text-align:center"><option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
+        </div>
       </div>
     </div>
   </div>
