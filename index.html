@@ -761,8 +761,9 @@ function renderProgContent(){
   if(!barEl||!tbody)return;
 
   // 從 tasks 過濾出該年度的 ANNUAL_TASKS（用 annualKey 欄位匹配）
+  // 年份比對：有 progYear 就比對，沒有 progYear 的舊資料視為 2024
   const yearTasks=ANNUAL_TASKS.map(at=>{
-    const found=tasks.find(t=>t.annualKey===at.key&&t.progYear===String(progYear));
+    const found=tasks.find(t=>t.annualKey===at.key&&((String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024'))||(t.progYear==null&&String(progYear)==='2024')));
     return {at,task:found||null};
   });
 
@@ -809,7 +810,7 @@ let currentProgKey=null;
 function openProgTaskDetail(atKey){
   currentProgKey=atKey;
   const at=ANNUAL_TASKS.find(x=>x.key===atKey);
-  const task=tasks.find(t=>t.annualKey===atKey&&t.progYear===String(progYear));
+  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
 
   document.getElementById('tdTitle').textContent=at?at.label:'';
   document.getElementById('tdCatBadge').style.cssText=`font-size:11px;padding:2px 8px;border-radius:4px;background:var(--cat-data);color:var(--cat-data-text)`;
@@ -843,7 +844,7 @@ function openProgTaskDetail(atKey){
 
 function toggleTdAssignee(mid){
   const el=document.getElementById('tda_'+mid);
-  const task=tasks.find(t=>t.annualKey===currentProgKey&&t.progYear===String(progYear));
+  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
   let parts=task&&task.parts?[...task.parts]:[];
   const idx=parts.indexOf(mid);
   if(idx>=0)parts.splice(idx,1); else parts.push(mid);
@@ -872,7 +873,7 @@ function renderTdSubtasks(task){
 function addSubtask(){
   const title=prompt('子任務名稱：');
   if(!title)return;
-  const task=tasks.find(t=>t.annualKey===currentProgKey&&t.progYear===String(progYear));
+  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
   const newSub={title,done:false,createdAt:new Date().toISOString()};
   if(task){
     const ref=db.ref('tasks/'+task.id+'/subtasks').push(newSub);
@@ -902,7 +903,7 @@ function addSubtask(){
 }
 
 function toggleSubtask(atKey,idx){
-  const task=tasks.find(t=>t.annualKey===atKey&&t.progYear===String(progYear));
+  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
   if(!task||!task.subtasks)return;
   const keys=Object.keys(task.subtasks);
   if(!keys[idx])return;
@@ -917,7 +918,7 @@ function toggleSubtask(atKey,idx){
 
 function deleteSubtask(atKey,idx){
   if(!confirm('確定刪除子任務？'))return;
-  const task=tasks.find(t=>t.annualKey===atKey&&t.progYear===String(progYear));
+  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
   if(!task||!task.subtasks)return;
   const keys=Object.keys(task.subtasks);
   if(!keys[idx])return;
@@ -929,7 +930,7 @@ function deleteSubtask(atKey,idx){
 }
 
 function toggleProgDirect(atKey){
-  const task=tasks.find(t=>t.annualKey===atKey&&t.progYear===String(progYear));
+  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
   if(task){
     const newDone=!task.done;
     const update={done:newDone,status:newDone?'done':'notstarted',doneDate:newDone?new Date().toISOString().split('T')[0]:''};
@@ -943,7 +944,7 @@ function toggleProgDirect(atKey){
 
 function saveTaskDetail(){
   const atKey=currentProgKey;
-  const task=tasks.find(t=>t.annualKey===atKey&&t.progYear===String(progYear));
+  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
   const at=ANNUAL_TASKS.find(x=>x.key===atKey);
   const date=document.getElementById('tdDate').value;
   const deadline=document.getElementById('tdDeadline').value;
@@ -960,10 +961,19 @@ function saveTaskDetail(){
 }
 
 function deleteCurrentTask(){
-  if(!confirm('確定刪除此工作記錄？'))return;
-  const task=tasks.find(t=>t.annualKey===currentProgKey&&t.progYear===String(progYear));
-  if(task){db.ref('tasks/'+task.id).remove().then(()=>{tasks=tasks.filter(x=>x.id!==task.id);renderProgContent();closeTaskDetail();});}
-  else closeTaskDetail();
+  if(!confirm('確定要重置此工作的所有資料（勾選、日期、人員）？'))return;
+  // 比對 annualKey，年份寬鬆比對（number 或 string 都接受）
+  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
+  if(task){
+    db.ref('tasks/'+task.id).remove().then(()=>{
+      tasks=tasks.filter(x=>x.id!==task.id);
+      renderProgContent();
+      closeTaskDetail();
+    }).catch(err=>{alert('刪除失敗：'+err.message);});
+  } else {
+    // 找不到 task，表示這筆根本沒存過，直接關閉
+    closeTaskDetail();
+  }
 }
 
 function closeTaskDetail(){document.getElementById('taskDetailOverlay').classList.remove('open');}
