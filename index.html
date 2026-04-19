@@ -7,7 +7,11 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#faf9f7;--bg2:#f1ede8;--bg3:#e8e3db;--text:#5a5651;--text2:#8b8580;--text3:#b4ada5;--border:#e3dcd4;--border2:#d4ccc2;--accent:#6b7171;--radius:8px}
+:root{--bg:#faf9f7;--bg2:#f1ede8;--bg3:#e8e3db;--text:#5a5651;--text2:#8b8580;--text3:#b4ada5;--border:#e3dcd4;--border2:#d4ccc2;--accent:#6b7171;--radius:8px;
+  --cat-data:#d4dce8;--cat-meeting:#e8d4d4;--cat-admin:#d4e8d8;--cat-questionnaire:#e8e2d0;--cat-platform:#ddd4e8;
+  --cat-data-text:#4a5a70;--cat-meeting-text:#704a4a;--cat-admin-text:#4a7055;--cat-questionnaire-text:#706040;--cat-platform-text:#604870;
+}
+html,body{height:100%;overflow:hidden}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
 .app{display:flex;height:100vh;overflow:hidden}
 .sidebar{width:240px;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;padding:16px 12px;overflow:hidden}
@@ -61,8 +65,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .cal-date-num{font-size:11px;color:var(--text2);margin-bottom:3px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:500}
 .cal-date-num.today{font-weight:700;color:var(--text)}
 .cal-cell.is-today{background:#ede8e0}
-.cal-chip{font-size:9px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;background:#e5e7e6;color:#6b7171;line-height:1.2}
+.cal-chip{font-size:9px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.2}
 .cal-chip:hover{opacity:0.8}
+.cal-chip.chip-data{background:var(--cat-data);color:var(--cat-data-text)}
+.cal-chip.chip-meeting{background:var(--cat-meeting);color:var(--cat-meeting-text)}
+.cal-chip.chip-admin{background:var(--cat-admin);color:var(--cat-admin-text)}
+.cal-chip.chip-questionnaire{background:var(--cat-questionnaire);color:var(--cat-questionnaire-text)}
+.cal-chip.chip-platform{background:var(--cat-platform);color:var(--cat-platform-text)}
 .tab-header{display:flex;gap:2px;background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;flex-shrink:0}
 .tab{padding:8px 16px;font-size:12px;border:none;background:transparent;cursor:pointer;color:var(--text2);border-radius:var(--radius);font-weight:500;transition:all 0.2s}
 .tab:hover{background:var(--bg3);color:var(--text)}
@@ -85,8 +94,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .st-notstarted{background:var(--bg3);color:var(--text2)}
 .st-blocked{background:#e8e0dd;color:#8a6b66}
 .tag{display:inline-flex;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:500}
-.tag-data{background:#e5e7e6;color:#6b7171}
-.tag-meeting{background:#dfe5e3;color:#5f7070}
+.tag-data{background:var(--cat-data);color:var(--cat-data-text)}
+.tag-meeting{background:var(--cat-meeting);color:var(--cat-meeting-text)}
+.tag-admin{background:var(--cat-admin);color:var(--cat-admin-text)}
+.tag-questionnaire{background:var(--cat-questionnaire);color:var(--cat-questionnaire-text)}
+.tag-platform{background:var(--cat-platform);color:var(--cat-platform-text)}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:100;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--bg);border-radius:8px;border:1px solid var(--border);width:520px;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.08)}
@@ -135,7 +147,10 @@ textarea{resize:vertical;min-height:60px}
   </div>
   <div class="sb-nav">
     <div class="team-grid" id="sidebarTeam" style="opacity:0;transition:opacity 0.2s"></div>
-    <div class="sb-item active" onclick="switchView('tasks',this)">代辦工作</div>
+    <div class="sb-item active" onclick="switchView('dashboard',this)">📅 行事曆</div>
+    <div class="sb-item" onclick="switchView('todos',this)">📋 代辦事項</div>
+    <div class="sb-item" onclick="switchView('meetings',this)">🗓 會議</div>
+    <div class="sb-item" onclick="switchView('progress',this)">📊 工作進度</div>
   </div>
 </div>
 
@@ -186,39 +201,43 @@ textarea{resize:vertical;min-height:60px}
       </div>
     </div>
 
-    <div class="view" id="view-tasks">
-      <div class="tab-header">
-        <button class="tab active" onclick="switchTab('list',this)">列表</button>
-        <button class="tab" onclick="switchTab('progress',this)">進度</button>
+    <!-- 代辦事項 (資料/行政/問卷) -->
+    <div class="view" id="view-todos">
+      <div class="task-toolbar">
+        <span style="font-size:11px;color:var(--text2)">代辦事項</span>
+        <div style="margin-left:auto"><button class="add-round" onclick="openAdd()">＋</button></div>
       </div>
-      <div id="taskListPanel" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
-        <div class="task-toolbar">
-          <span style="font-size:11px;color:var(--text2)">分類：</span>
-          <button class="filter-chip active" onclick="setTaskFilter('all',this)">全部</button>
-          <button class="filter-chip" onclick="setTaskFilter('data',this)">資料</button>
-          <button class="filter-chip" onclick="setTaskFilter('meeting',this)">會議</button>
-          <div style="margin-left:auto"><button class="add-round" onclick="openAdd()">＋</button></div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th style="width:32px"></th><th>討論主題</th><th>日期</th><th>人員</th><th>狀態</th><th>類型</th><th>備註</th></tr></thead>
+          <tbody id="todoTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 會議 -->
+    <div class="view" id="view-meetings">
+      <div class="task-toolbar">
+        <span style="font-size:11px;color:var(--text2)">會議記錄</span>
+        <div style="margin-left:auto"><button class="add-round" onclick="openAdd()">＋</button></div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th style="width:32px"></th><th>討論主題</th><th>日期</th><th>人員</th><th>狀態</th><th>備註</th></tr></thead>
+          <tbody id="meetingTbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 工作進度 -->
+    <div class="view" id="view-progress">
+      <div class="task-toolbar" style="justify-content:space-between">
+        <div style="display:flex;gap:8px">
+          <button class="filter-chip active" id="progTab2024" onclick="switchProgYear(2024,this)">2024</button>
+          <button class="filter-chip" id="progTab2025" onclick="switchProgYear(2025,this)">2025</button>
+          <button class="filter-chip" id="progTab2026" onclick="switchProgYear(2026,this)">2026</button>
         </div>
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th style="width:32px"></th>
-                <th>討論主題</th>
-                <th>日期</th>
-                <th>人員</th>
-                <th>狀態</th>
-                <th>類型</th>
-                <th>備註</th>
-              </tr>
-            </thead>
-            <tbody id="taskTbody"></tbody>
-          </table>
-        </div>
+        <button class="add-round" onclick="openAddProg()">＋</button>
       </div>
-      <div id="progressPanel" style="flex:1;overflow-y:auto;padding:20px;display:none">
-        <div id="yearProg"></div>
-      </div>
+      <div style="flex:1;overflow-y:auto;padding:16px" id="progContent"></div>
     </div>
   </div>
 </div>
@@ -267,15 +286,23 @@ textarea{resize:vertical;min-height:60px}
       <input type="date" id="iDeadline">
     </div>
   </div>
-  <!-- Row 5: 時間 + Deadline 時間 -->
+  <!-- Row 5: 時間 + Deadline 時間 (24h, 10min steps) -->
   <div style="display:flex;gap:10px;margin-bottom:14px">
     <div class="fg" style="flex:1;margin-bottom:0">
       <label class="flabel">時間</label>
-      <input type="time" id="iTime">
+      <div style="display:flex;gap:4px">
+        <select id="iTimeH" style="flex:1;padding:7px 4px;text-align:center">${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select>
+        <span style="display:flex;align-items:center;color:var(--text2);font-size:14px">:</span>
+        <select id="iTimeM" style="flex:1;padding:7px 4px;text-align:center"><option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
+      </div>
     </div>
     <div class="fg" style="flex:1;margin-bottom:0">
       <label class="flabel">Deadline 時間</label>
-      <input type="time" id="iDeadlineTime">
+      <div style="display:flex;gap:4px">
+        <select id="iDeadlineH" style="flex:1;padding:7px 4px;text-align:center">${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select>
+        <span style="display:flex;align-items:center;color:var(--text2);font-size:14px">:</span>
+        <select id="iDeadlineM" style="flex:1;padding:7px 4px;text-align:center"><option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
+      </div>
     </div>
   </div>
   <!-- Row 6: 說明 -->
@@ -541,7 +568,8 @@ function loadTasks(){
     tasks=[];
     snapshot.forEach(child=>{tasks.push({id:child.key,...child.val()});});
     renderCalendar();
-    renderTaskList();
+    renderTodoList();
+    renderMeetingList();
   });
 }
 
@@ -553,7 +581,7 @@ function renderCalendar(){
   const prevMonth=calMonth===0?11:calMonth-1,prevYear=calMonth===0?calYear-1:calYear,prevLastDay=new Date(prevYear,prevMonth+1,0).getDate();
   for(let i=0;i<startDow;i++){const prevD=prevLastDay-startDow+i+1;cells+=`<div class="cal-cell other-month"><div class="cal-date-num">${prevD}</div></div>`;}
   for(let d=1;d<=lastDay;d++){
-    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,dt=monthTasks.filter(t=>t.date===ds),isT=new Date(calYear,calMonth,d).getTime()===today.getTime(),numCls=isT?'cal-date-num today':'cal-date-num',cellCls=(new Date(ds).getDay()===0||new Date(ds).getDay()===6)?'weekend':'',holidayName=TW_HOLIDAYS[ds]||'',holidayCls=holidayName?'holiday':'',todayCls=isT?'is-today':'',holidayLabel=holidayName?`<div style="font-size:8px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`:'',chips=dt.slice(0,3).map(t=>`<div class="cal-chip" onclick="openDetail('${t.id}');event.stopPropagation()">${t.title}</div>`).join(''),more=dt.length>3?`<div style="font-size:9px;color:var(--text3);padding:1px">+${dt.length-3}</div>`:'';
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,dt=monthTasks.filter(t=>t.date===ds),isT=new Date(calYear,calMonth,d).getTime()===today.getTime(),numCls=isT?'cal-date-num today':'cal-date-num',cellCls=(new Date(ds).getDay()===0||new Date(ds).getDay()===6)?'weekend':'',holidayName=TW_HOLIDAYS[ds]||'',holidayCls=holidayName?'holiday':'',todayCls=isT?'is-today':'',holidayLabel=holidayName?`<div style="font-size:8px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`:'',chips=dt.slice(0,3).map(t=>`<div class="cal-chip chip-${t.cat||'data'}" onclick="openEdit('${t.id}');event.stopPropagation()">${t.title}</div>`).join(''),more=dt.length>3?`<div style="font-size:9px;color:var(--text3);padding:1px">+${dt.length-3}</div>`:'';
     cells+=`<div class="cal-cell ${cellCls} ${holidayCls} ${todayCls}"><div class="${numCls}">${d}</div>${holidayLabel}${chips}${more}</div>`;
   }
   const total=startDow+lastDay,rem=(7-total%7)%7;
@@ -574,68 +602,243 @@ function renderDashSidebar(){
   document.getElementById('dashMeetings').innerHTML=mtg.length?mtg.map(t=>`<div class="cal-side-item" onclick="openDetail('${t.id}')"><div class="cal-side-dot" style="background:#5f7070"></div><div><div style="font-size:11px">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||''}</div></div></div>`).join(''):'<div style="font-size:11px;color:var(--text3)">無</div>';
 }
 
-function renderTaskList(){
-  let filtered=taskFilter==='all'?[...tasks]:tasks.filter(t=>t.cat===taskFilter);
-  document.getElementById('taskTbody').innerHTML=filtered.map(t=>{
-    const st=t.status==='done'?'st-done':t.status==='inprogress'?'st-inprogress':'st-notstarted';
-    const pts=MEMBERS.filter(m=>t.parts&&t.parts.includes(m.id)).map(m=>m.name).join(',');
-    return `<tr class="${t.done?'done-row':''}"><td><div class="check ${t.done?'done':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</div></td><td onclick="openDetail('${t.id}')" style="cursor:pointer;color:var(--accent);font-weight:500">${t.title}</td><td style="white-space:nowrap">${t.date||''}</td><td>${pts}</td><td><span class="status ${st}">${t.status}</span></td><td><span class="tag tag-${t.cat}">${t.cat}</span></td><td>${t.notes||''}</td></tr>`;
+// ── 類型標籤名稱 ──
+const CAT_NAMES={data:'資料',meeting:'會議',admin:'行政',questionnaire:'問卷',platform:'平台'};
+const CAT_COLORS={data:'var(--cat-data)',meeting:'var(--cat-meeting)',admin:'var(--cat-admin)',questionnaire:'var(--cat-questionnaire)',platform:'var(--cat-platform)'};
+const CAT_TEXTS={data:'var(--cat-data-text)',meeting:'var(--cat-meeting-text)',admin:'var(--cat-admin-text)',questionnaire:'var(--cat-questionnaire-text)',platform:'var(--cat-platform-text)'};
+
+// ── 渲染代辦（資料/行政/問卷）──
+function renderTodoList(){
+  const el=document.getElementById('todoTbody');
+  if(!el)return;
+  const list=tasks.filter(t=>['data','admin','questionnaire'].includes(t.cat));
+  el.innerHTML=list.map(t=>{
+    const pts=MEMBERS.filter(m=>t.parts&&t.parts.includes(m.id)).map(m=>{const s=memberData[m.id]||{};return s.name||m.name;}).join('、');
+    const st=t.done?'st-done':t.status==='inprogress'?'st-inprogress':'st-notstarted';
+    const stLabel=t.done?'完成':t.status==='inprogress'?'進行中':'未開始';
+    return `<tr class="${t.done?'done-row':''}">
+      <td><div class="check ${t.done?'done':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</div></td>
+      <td onclick="openEdit('${t.id}')" style="cursor:pointer;color:var(--accent);font-weight:500">${t.title}</td>
+      <td style="white-space:nowrap">${t.date||''}</td>
+      <td>${pts}</td>
+      <td><span class="status ${st}">${stLabel}</span></td>
+      <td><span class="tag tag-${t.cat}">${CAT_NAMES[t.cat]||t.cat}</span></td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes||''}</td>
+    </tr>`;
   }).join('');
 }
 
-function setTaskFilter(f,el){taskFilter=f;document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderTaskList();}
+// ── 渲染會議 ──
+function renderMeetingList(){
+  const el=document.getElementById('meetingTbody');
+  if(!el)return;
+  const list=tasks.filter(t=>t.cat==='meeting');
+  el.innerHTML=list.map(t=>{
+    const pts=MEMBERS.filter(m=>t.parts&&t.parts.includes(m.id)).map(m=>{const s=memberData[m.id]||{};return s.name||m.name;}).join('、');
+    const st=t.done?'st-done':t.status==='inprogress'?'st-inprogress':'st-notstarted';
+    const stLabel=t.done?'完成':t.status==='inprogress'?'進行中':'未開始';
+    return `<tr class="${t.done?'done-row':''}">
+      <td><div class="check ${t.done?'done':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</div></td>
+      <td onclick="openEdit('${t.id}')" style="cursor:pointer;color:var(--accent);font-weight:500">${t.title}</td>
+      <td style="white-space:nowrap">${t.date||''}</td>
+      <td>${pts}</td>
+      <td><span class="status ${st}">${stLabel}</span></td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.notes||''}</td>
+    </tr>`;
+  }).join('');
+}
+
 function toggleTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;t.done=!t.done;t.status=t.done?'done':'notstarted';db.ref('tasks/'+id).update({done:t.done,status:t.status});}
 
-function renderProgress(){
-  const years=Array.from(new Set(tasks.map(t=>t.date?t.date.split('-')[0]:''))).filter(Boolean).sort();
-  document.getElementById('yearProg').innerHTML=years.map(y=>{const yt=tasks.filter(t=>t.date&&t.date.startsWith(y)),yd=yt.filter(t=>t.done).length,pct=yt.length?Math.round(yd/yt.length*100):0;return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${y}</span><span>${yd}/${yt.length}(${pct}%)</span></div><div style="height:6px;background:var(--bg3);border-radius:3px"><div style="height:100%;background:var(--accent);width:${pct}%"></div></div></div>`;}).join('');
+// ── 工作進度 ──
+let progYear=2024;
+const ANNUAL_TASKS=[
+  {key:'questionnaire_discussion',label:'問卷討論'},
+  {key:'irb_submission',label:'IRB 送審'},
+  {key:'questionnaire_launch',label:'問卷上架'},
+  {key:'questionnaire_test',label:'問卷一條龍測試'},
+  {key:'conference',label:'研討會'},
+  {key:'school_briefing',label:'學校說明會'},
+  {key:'send_materials',label:'寄送資料與摺頁'},
+  {key:'new_group_survey',label:'新增組調查'},
+  {key:'tracking_survey',label:'追蹤組調查'},
+  {key:'data_validation',label:'資料檢誤'},
+  {key:'interim_report',label:'期中報告'},
+  {key:'release_data_cn_q',label:'釋出－問卷中文版'},
+  {key:'release_data_en_q',label:'釋出－問卷英文版'},
+  {key:'release_codebook_cn',label:'釋出－Codebook 中文版'},
+  {key:'release_codebook_en',label:'釋出－Codebook 英文版'},
+  {key:'release_manual_cn',label:'釋出－資料使用手冊中文版'},
+  {key:'release_manual_en',label:'釋出－資料使用手冊英文版'},
+  {key:'data_review1',label:'資料一校'},
+  {key:'data_review2',label:'資料二校'},
+];
+
+function switchProgYear(y,el){
+  progYear=y;
+  document.querySelectorAll('#view-progress .filter-chip').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderProgContent();
 }
 
-function switchTab(t,el){document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');if(t==='list'){document.getElementById('taskListPanel').style.display='flex';document.getElementById('progressPanel').style.display='none';}else{document.getElementById('taskListPanel').style.display='none';document.getElementById('progressPanel').style.display='block';renderProgress();}}
+function renderProgContent(){
+  const el=document.getElementById('progContent');
+  if(!el)return;
+  const yearKey='prog_'+progYear;
+  db.ref(yearKey).once('value',snap=>{
+    const data=snap.val()||{};
+    const done=ANNUAL_TASKS.filter(t=>data[t.key]).length;
+    const pct=Math.round(done/ANNUAL_TASKS.length*100);
+    el.innerHTML=`
+      <div style="margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:14px;font-weight:600;color:var(--text)">${progYear} 年度進度</span>
+          <span style="font-size:12px;color:var(--text2)">${done} / ${ANNUAL_TASKS.length} 項完成（${pct}%）</span>
+        </div>
+        <div style="height:10px;background:var(--bg3);border-radius:5px;overflow:hidden">
+          <div style="height:100%;background:var(--accent);width:${pct}%;transition:width 0.4s;border-radius:5px"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${ANNUAL_TASKS.map(t=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);background:${data[t.key]?'var(--bg2)':'var(--bg)'};border:1px solid var(--border)">
+            <div class="check ${data[t.key]?'done':''}" onclick="toggleProgTask('${t.key}','${yearKey}')" style="flex-shrink:0">${data[t.key]?'✓':''}</div>
+            <span style="flex:1;font-size:12px;${data[t.key]?'text-decoration:line-through;color:var(--text3)':''}">${t.label}</span>
+            <span style="font-size:10px;color:var(--text3)">${data[t.key+'_date']||''}</span>
+          </div>`).join('')}
+      </div>`;
+  });
+}
 
-function openAdd(){editingId=null;selCreator='m1';selParts=[];document.getElementById('iTitle').value='';document.getElementById('iDesc').value='';document.getElementById('iDate').value='';document.getElementById('iTime').value='';document.getElementById('iDeadline').value='';document.getElementById('iDeadlineTime').value='';const cat=document.getElementById('iCat');cat.value='data';updateCatColor(cat);renderModalMembers();document.getElementById('modalOverlay').classList.add('open');}
+function toggleProgTask(key,yearKey){
+  db.ref(yearKey+'/'+key).once('value',snap=>{
+    const cur=snap.val();
+    const update={};
+    update[key]=!cur;
+    if(!cur)update[key+'_date']=new Date().toISOString().split('T')[0];
+    else update[key+'_date']=null;
+    db.ref(yearKey).update(update).then(()=>renderProgContent());
+  });
+}
+
+function openAddProg(){alert('請使用行事曆的「＋」新增工作，再到進度頁勾選完成狀態。');}
+
+// ── 新增/編輯彈窗 ──
+function openAdd(){
+  editingId=null;
+  selCreator=MEMBERS.filter(m=>!(memberData[m.id]&&memberData[m.id].deleted))[0]?.id||'m1';
+  selParts=[];
+  document.getElementById('iTitle').value='';
+  document.getElementById('iDesc').value='';
+  document.getElementById('iDate').value='';
+  document.getElementById('iDeadline').value='';
+  document.getElementById('iTimeH').value='09';
+  document.getElementById('iTimeM').value='00';
+  document.getElementById('iDeadlineH').value='18';
+  document.getElementById('iDeadlineM').value='00';
+  document.getElementById('iUrgency').value='low';
+  const cat=document.getElementById('iCat');cat.value='data';updateCatColor(cat);
+  document.querySelector('.modal-footer button').textContent='新增';
+  renderModalMembers();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEdit(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  editingId=id;
+  selCreator=t.creator||'m1';
+  selParts=[...(t.parts||[])];
+  document.getElementById('iTitle').value=t.title||'';
+  document.getElementById('iDesc').value=t.desc||'';
+  document.getElementById('iDate').value=t.date||'';
+  document.getElementById('iDeadline').value=t.deadline||'';
+  // parse time
+  const tp=(t.time||'09:00').split(':');
+  document.getElementById('iTimeH').value=tp[0]||'09';
+  const tm=parseInt(tp[1]||'0');
+  document.getElementById('iTimeM').value=String(Math.round(tm/10)*10).padStart(2,'0').replace('60','00');
+  const dp=(t.deadlineTime||'18:00').split(':');
+  document.getElementById('iDeadlineH').value=dp[0]||'18';
+  const dm=parseInt(dp[1]||'0');
+  document.getElementById('iDeadlineM').value=String(Math.round(dm/10)*10).padStart(2,'0').replace('60','00');
+  document.getElementById('iUrgency').value=t.urgency||'low';
+  const cat=document.getElementById('iCat');cat.value=t.cat||'data';updateCatColor(cat);
+  document.querySelector('.modal-footer button').textContent='儲存';
+  renderModalMembers();
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
 function closeModal(){document.getElementById('modalOverlay').classList.remove('open');}
+
 function updateCatColor(sel){
-  const colors={data:'#e8f0fe',meeting:'#fce8e6',admin:'#e6f4ea',questionnaire:'#fef7e0',platform:'#f3e8fd'};
+  const colors={data:'#dce4ef',meeting:'#efdcdc',admin:'#dceee0',questionnaire:'#eee8d8',platform:'#e5dced'};
   sel.style.background=colors[sel.value]||'';
 }
+
 function renderModalMembers(){
   const visible=MEMBERS.filter(m=>!(memberData[m.id]&&memberData[m.id].deleted));
-  // Row 1: creator - avatar only, no name
   document.getElementById('creatorChips').innerHTML=visible.map(m=>{
     const saved=memberData[m.id]||{};
     const photo=saved.photo;
     const isSel=m.id===selCreator;
     const ring=isSel?'box-shadow:0 0 0 2.5px var(--accent);':'';
-    const av=photo
-      ?`<img src="${photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;${ring}">`
-      :`<div style="width:32px;height:32px;border-radius:50%;background:${m.bg};color:#555;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
+    const av=photo?`<img src="${photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;${ring}">`:`<div style="width:32px;height:32px;border-radius:50%;background:${m.bg};color:#555;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
     return `<div onclick="selCreator='${m.id}';renderModalMembers()" style="cursor:pointer;opacity:${isSel?1:0.4}">${av}</div>`;
   }).join('');
-  // Row 7: participants - avatar + name below
   document.getElementById('partChips').innerHTML=visible.map(m=>{
     const saved=memberData[m.id]||{};
     const name=saved.name||m.name;
     const photo=saved.photo;
     const sel=selParts.includes(m.id);
     const ring=sel?'box-shadow:0 0 0 2.5px var(--accent);':'';
-    const av=photo
-      ?`<img src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`
-      :`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
+    const av=photo?`<img src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`:`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
     return `<div onclick="const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${sel?1:0.4}">
-      ${av}
-      <span style="font-size:9px;color:var(--text2);white-space:nowrap">${name}</span>
+      ${av}<span style="font-size:9px;color:var(--text2);white-space:nowrap">${name}</span>
     </div>`;
   }).join('');
 }
-function saveTask(){const title=document.getElementById('iTitle').value.trim();if(!title){alert('請輸入工作名稱');return;}const data={title,desc:document.getElementById('iDesc').value,date:document.getElementById('iDate').value,time:document.getElementById('iTime').value||'',deadline:document.getElementById('iDeadline').value,deadlineTime:document.getElementById('iDeadlineTime').value||'',cat:document.getElementById('iCat').value,urgency:document.getElementById('iUrgency').value,status:'notstarted',creator:selCreator,parts:[...selParts],notes:'',done:false,timestamp:new Date().toISOString()};if(editingId){db.ref('tasks/'+editingId).update(data);}else{db.ref('tasks').push(data);}closeModal();}
 
-function openDetail(id){const t=tasks.find(x=>x.id===id);if(!t)return;document.getElementById('detailPanel').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:17px;font-weight:600">${t.title}</div><button class="close-btn" onclick="closeDetail()">✕</button></div><div class="detail-field"><div class="detail-field-label">狀態</div><div><span class="status st-${t.status}">${t.status}</span></div></div><div class="detail-field"><div class="detail-field-label">日期</div><div>${t.date||'-'}</div></div><div class="detail-field"><div class="detail-field-label">Deadline</div><div>${t.deadline||'-'}</div></div><div class="detail-field"><div class="detail-field-label">備註</div><textarea class="notes-input" id="detailNotes">${t.notes||''}</textarea></div><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-primary" onclick="saveDetailNotes('${t.id}')">儲存</button><button class="btn" onclick="deleteTask('${t.id}');closeDetail()">刪除</button></div>`;document.getElementById('detailOverlay').classList.add('open');}
+function saveTask(){
+  const title=document.getElementById('iTitle').value.trim();
+  if(!title){alert('請輸入工作名稱');return;}
+  const h=document.getElementById('iTimeH').value;
+  const m=document.getElementById('iTimeM').value;
+  const dh=document.getElementById('iDeadlineH').value;
+  const dm=document.getElementById('iDeadlineM').value;
+  const data={
+    title,
+    desc:document.getElementById('iDesc').value,
+    date:document.getElementById('iDate').value,
+    time:`${h}:${m}`,
+    deadline:document.getElementById('iDeadline').value,
+    deadlineTime:`${dh}:${dm}`,
+    cat:document.getElementById('iCat').value,
+    urgency:document.getElementById('iUrgency').value,
+    status:editingId?(tasks.find(x=>x.id===editingId)?.status||'notstarted'):'notstarted',
+    creator:selCreator,
+    parts:[...selParts],
+    notes:editingId?(tasks.find(x=>x.id===editingId)?.notes||''):'',
+    done:editingId?(tasks.find(x=>x.id===editingId)?.done||false):false,
+    timestamp:new Date().toISOString()
+  };
+  if(editingId){db.ref('tasks/'+editingId).update(data);}
+  else{db.ref('tasks').push(data);}
+  closeModal();
+}
+
 function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');}
-function saveDetailNotes(id){const t=tasks.find(x=>x.id===id);if(t){t.notes=document.getElementById('detailNotes').value;db.ref('tasks/'+id).update({notes:t.notes});}closeDetail();}
 function deleteTask(id){if(!confirm('確定要刪除?'))return;db.ref('tasks/'+id).remove();}
 
-function switchView(v,el){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));if(el)el.classList.add('active');}
+function switchView(v,el){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  const target=document.getElementById('view-'+v);
+  if(target)target.classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(v==='progress')renderProgContent();
+}
+
 
 // Don't call renderTeam() here - Firebase on('value') will call it once data loads
 loadTasks();
