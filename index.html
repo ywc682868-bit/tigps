@@ -141,9 +141,10 @@ tr[draggable]:active{cursor:grabbing}
 
 <div class="page-container">
   
-  <div class="topbar">
+  <div class="topbar" style="position: relative;">
     <button id="sidebarToggleBtn" onclick="toggleSidebar()" style="border:none;background:transparent;width:36px;height:36px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;color:var(--text);margin-right:12px;">☰</button>
-    <img src="您的圖片路徑.png" alt="TIGPS LOGO" style="height: 40px; width: auto; object-fit: contain;">
+    
+    <img src="不含TIGPS含中英文名去背.png" alt="TIGPS LOGO" style="position: absolute; left: 50%; transform: translateX(-50%); height: 45px; width: auto; object-fit: contain;">
   </div>
 
   <div class="app">
@@ -269,7 +270,7 @@ tr[draggable]:active{cursor:grabbing}
 
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="color: #8b8580; font-size: 12px; font-weight: 700; margin-bottom: 0;">子計畫</div>
+          <div style="color: #8b8580; font-size: 13px; font-weight: 700; margin-bottom: 0;">子計畫</div>
           <button onclick="addSubtask()" style="font-size: 13px; padding: 6px 16px; border: 1px solid #d4ccc2; border-radius: 6px; background: #fff; cursor: pointer; color: #8b8580;">＋ 新增</button>
         </div>
         <div id="tdSubtasks"></div>
@@ -1027,32 +1028,36 @@ function renderDetailSubs(task) {
     return;
   }
   const vis = getActiveMembers();
+  
+  // 渲染為可編輯的卡片式輸入介面
   el.innerHTML = subs.map(([subKey, s], i) => `
-    <div style="padding:12px;border-radius:8px;background:var(--bg);border:1px solid var(--border2);margin-bottom:10px">
-      <div style="display:flex;align-items:center;gap:8px">
+    <div style="padding:16px;border-radius:8px;background:var(--bg);border:1px solid var(--border2);margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div class="check ${s.done?'done':''}" onclick="progSubToggle('${_detailKey}','${subKey}');renderDetailSubs(getProgTask('${_detailKey}'))">${s.done?'✓':''}</div>
-        <span style="flex:1;font-size:13px;font-weight:600;${s.done?'text-decoration:line-through;color:var(--text3)':''}">${s.title||''}</span>
-        <button onclick="deleteDetailSub('${subKey}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:14px">✕</button>
+        
+        <input type="text" value="${s.title||''}" placeholder="請輸入子計畫名稱" onchange="updateSubField('${subKey}','title',this.value)" style="flex:1;font-size:14px;font-weight:600;color:var(--text);border:none;background:transparent;outline:none;${s.done?'text-decoration:line-through;color:var(--text3)':''}">
+        
+        <button onclick="deleteDetailSub('${subKey}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px">✕</button>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;padding-left:22px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div>
-          <div style="font-size:10px;font-weight:700;color:#8b8580;margin-bottom:6px">日期</div>
-          <input type="date" value="${s.date||''}" onchange="updateSubField('${subKey}','date',this.value)" style="height:32px;font-size:12px;border-radius:6px;border:1px solid #d4ccc2;padding:0 8px">
+          <div style="font-size:11px;font-weight:700;color:#8b8580;margin-bottom:6px">日期</div>
+          <input type="date" value="${s.date||''}" onchange="updateSubField('${subKey}','date',this.value)" style="height:36px;font-size:13px;border-radius:6px;border:1px solid #d4ccc2;padding:0 10px">
         </div>
         <div>
-          <div style="font-size:10px;font-weight:700;color:#8b8580;margin-bottom:6px">DEADLINE</div>
-          <input type="date" value="${s.deadline||''}" onchange="updateSubField('${subKey}','deadline',this.value)" style="height:32px;font-size:12px;border-radius:6px;border:1px solid #d4ccc2;padding:0 8px">
+          <div style="font-size:11px;font-weight:700;color:#8b8580;margin-bottom:6px">DEADLINE</div>
+          <input type="date" value="${s.deadline||''}" onchange="updateSubField('${subKey}','deadline',this.value)" style="height:36px;font-size:13px;border-radius:6px;border:1px solid #d4ccc2;padding:0 10px">
         </div>
         <div>
-          <div style="font-size:10px;font-weight:700;color:#8b8580;margin-bottom:6px">完成日期</div>
-          <input type="date" value="${s.doneDate||''}" onchange="updateSubField('${subKey}','doneDate',this.value)" style="height:32px;font-size:12px;border-radius:6px;border:1px solid #d4ccc2;padding:0 8px">
+          <div style="font-size:11px;font-weight:700;color:#8b8580;margin-bottom:6px">完成日期</div>
+          <input type="date" value="${s.doneDate||''}" onchange="updateSubField('${subKey}','doneDate',this.value)" style="height:36px;font-size:13px;border-radius:6px;border:1px solid #d4ccc2;padding:0 10px">
         </div>
         <div>
-          <div style="font-size:10px;font-weight:700;color:#8b8580;margin-bottom:6px">負責人</div>
+          <div style="font-size:11px;font-weight:700;color:#8b8580;margin-bottom:6px">負責人</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
             ${vis.map(m => {
               const sel = s.parts && s.parts.includes(m.id);
-              return `<span onclick="toggleSubMember('${subKey}','${m.id}')" style="cursor:pointer;opacity:${sel?1:0.35}">${getMemberAvatar(m, 24)}</span>`;
+              return `<span onclick="toggleSubMember('${subKey}','${m.id}')" style="cursor:pointer;opacity:${sel?1:0.35}">${getMemberAvatar(m, 28)}</span>`;
             }).join('')}
           </div>
         </div>
@@ -1080,9 +1085,8 @@ function toggleSubMember(subKey, mid) {
 }
 
 function addSubtask() {
-  const title = prompt('子計畫名稱：');
-  if (!title) return;
-  const newSub = { title, done: false, date: '', deadline: '', doneDate: '', parts: [], createdAt: new Date().toISOString() };
+  // 直接建立空的子計畫，不使用 prompt() 詢問
+  const newSub = { title: '', done: false, date: '', deadline: '', doneDate: '', parts: [], createdAt: new Date().toISOString() };
   ensureProgTask(_detailKey, t => {
     db.ref(`tasks/${t.id}/subtasks`).push(newSub).then(() => {
       db.ref(`tasks/${t.id}`).once('value', snap => {
