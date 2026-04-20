@@ -633,8 +633,9 @@ function loadTasks(){
     tasks=[];
     snapshot.forEach(child=>{tasks.push({id:child.key,...child.val()});});
     renderCalendar();
-    // refresh progress if visible
-    if(document.getElementById('view-progress')?.classList.contains('active'))renderProgContent();
+    renderDashSidebar();
+    // 不管哪個 view 是 active 都重新渲染進度
+    renderProgContent();
   });
 }
 
@@ -820,41 +821,49 @@ function renderProgContent(){
   </div>`;
 
   let html='';
-  yearTasks.forEach(({at,t})=>{
-    const isDone=!!(t&&t.done);
-    const assignees=t&&t.parts?MEMBERS.filter(m=>t.parts.includes(m.id))
-      .map(m=>`<span style="display:flex;flex-direction:column;align-items:center;gap:2px">${getMemberAvatar(m,22)}<span style="font-size:8px;color:var(--text3)">${(memberData[m.id]&&memberData[m.id].name)||m.name}</span></span>`).join(''):'';
-    const subs=t&&t.subtasks?Object.values(t.subtasks):[];
-    const hasSub=subs.length>0;
-    const subDone=subs.filter(s=>s.done).length;
-    const badge=hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:4px">${subDone}/${subs.length}</span>`:'';
-    const tid=t?t.id:'';
-    const safeid=tid.replace(/[^a-zA-Z0-9]/g,'');
-    const toggleBtn=hasSub?`<button onclick="event.stopPropagation();progToggleSub('${safeid}')" id="stbtn_${safeid}" style="border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:11px;line-height:1;padding:0 2px">▾</button>`:'';
-    html+=`<tr onclick="openProgDetail('${at.key}')" style="cursor:pointer${isDone?';opacity:0.5':''}">
-      <td onclick="event.stopPropagation();quickDone('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
-      <td style="font-size:11px;white-space:nowrap">${t&&t.date?t.date:''}</td>
-      <td style="font-weight:${isDone?'400':'500'}">${at.label}${badge}${toggleBtn}</td>
-      <td>${assignees}</td>
-      <td style="font-size:11px;white-space:nowrap">${t&&t.deadline?t.deadline:''}</td>
-      <td style="font-size:11px;white-space:nowrap">${t&&t.doneDate?t.doneDate:''}</td>
-      <td><button onclick="event.stopPropagation();openProgDetail('${at.key}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:14px">›</button></td>
-    </tr>`;
-    if(hasSub){
-      subs.forEach((s,si)=>{
-        const sAssignees=s.parts?MEMBERS.filter(m=>s.parts.includes(m.id)).map(m=>getMemberAvatar(m,18)).join(''):'';
-        html+=`<tr class="subrow_${safeid}" style="background:var(--bg2)">
-          <td style="padding-left:16px"><div class="check ${s.done?'done':''}" onclick="progSubToggle('${at.key}',${si})">${s.done?'✓':''}</div></td>
-          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.date||''}</td>
-          <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}">↳ ${s.title}</td>
-          <td><div style="display:flex;gap:2px">${sAssignees}</div></td>
-          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.deadline||''}</td>
-          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.doneDate||''}</td>
-          <td><button onclick="openSubDetail('${at.key}',${si})" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:12px">›</button></td>
-        </tr>`;
-      });
+  for(const {at,t} of yearTasks){
+    try{
+      const isDone=!!(t&&t.done);
+      const parts=t&&Array.isArray(t.parts)?t.parts:[];
+      const assignees=MEMBERS.filter(m=>parts.includes(m.id))
+        .map(m=>{try{return `<span style="display:flex;flex-direction:column;align-items:center;gap:2px">${getMemberAvatar(m,22)}<span style="font-size:8px;color:var(--text3)">${(memberData[m.id]&&memberData[m.id].name)||m.name||''}</span></span>`;}catch(e){return '';}}).join('');
+      const subs=t&&t.subtasks?Object.values(t.subtasks):[];
+      const hasSub=subs.length>0;
+      const subDone=subs.filter(s=>s&&s.done).length;
+      const badge=hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:4px">${subDone}/${subs.length}</span>`:'';
+      const tid=t&&t.id?t.id:'';
+      const safeid=tid.replace(/[^a-zA-Z0-9]/g,'')||('at'+at.key.replace(/[^a-zA-Z0-9]/g,''));
+      const toggleBtn=hasSub?`<button onclick="event.stopPropagation();progToggleSub('${safeid}')" id="stbtn_${safeid}" style="border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:11px;line-height:1;padding:0 2px">▾</button>`:'';
+      html+=`<tr onclick="openProgDetail('${at.key}')" style="cursor:pointer${isDone?';opacity:0.55':''}">
+        <td onclick="event.stopPropagation();quickDone('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
+        <td style="font-size:11px;white-space:nowrap">${t&&t.date?t.date:''}</td>
+        <td style="font-weight:${isDone?'400':'500'}">${at.label}${badge}${toggleBtn}</td>
+        <td>${assignees}</td>
+        <td style="font-size:11px;white-space:nowrap">${t&&t.deadline?t.deadline:''}</td>
+        <td style="font-size:11px;white-space:nowrap">${t&&t.doneDate?t.doneDate:''}</td>
+        <td><button onclick="event.stopPropagation();openProgDetail('${at.key}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:14px">›</button></td>
+      </tr>`;
+      if(hasSub){
+        for(let si=0;si<subs.length;si++){
+          const s=subs[si];
+          if(!s)continue;
+          const sAssignees=Array.isArray(s.parts)?MEMBERS.filter(m=>s.parts.includes(m.id)).map(m=>{try{return getMemberAvatar(m,18);}catch(e){return '';}}).join(''):'';
+          html+=`<tr class="subrow_${safeid}" style="background:var(--bg2)">
+            <td style="padding-left:16px"><div class="check ${s.done?'done':''}" onclick="progSubToggle('${at.key}',${si})">${s.done?'✓':''}</div></td>
+            <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.date||''}</td>
+            <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}">↳ ${s.title||''}</td>
+            <td><div style="display:flex;gap:2px">${sAssignees}</div></td>
+            <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.deadline||''}</td>
+            <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.doneDate||''}</td>
+            <td><button onclick="openSubDetail('${at.key}',${si})" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:12px">›</button></td>
+          </tr>`;
+        }
+      }
+    }catch(err){
+      console.error('renderProgContent row error:',at.key,err);
+      html+=`<tr><td colspan="7" style="font-size:11px;color:#c97070;padding:8px">${at.label} (載入錯誤)</td></tr>`;
     }
-  });
+  }
   tbody.innerHTML=html;
 }
 
@@ -1211,7 +1220,8 @@ function switchView(v,el){
   if(target)target.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
   if(el)el.classList.add('active');
-  if(v==='progress')renderProgContent();
+  if(v==='progress'){renderProgContent();}
+  else if(v==='dashboard'){renderCalendar();renderDashSidebar();}
 }
 
 // Don't call renderTeam() here - Firebase on('value') will call it once data loads
