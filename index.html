@@ -16,19 +16,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 
 /* Page Structure */
 .page-container{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
-.topbar{height:48px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;flex-shrink:0;z-index:200;}
+.topbar{height:60px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;flex-shrink:0;z-index:200;}
 .app{display:flex;flex:1;overflow:hidden;}
 
 .sidebar{width:240px;min-width:240px;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;padding:16px 12px;overflow:hidden;transition:width 0.25s,min-width 0.25s,padding 0.25s,border 0.25s}
 .sidebar.collapsed{width:0;min-width:0;padding:0;border-right:none}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 
-.sb-logo{display:flex;align-items:center;gap:10px;padding:0 0 16px;border-bottom:1px solid var(--border);cursor:pointer}
-/* LOGO class updated to handle image */
-.sb-logo-icon{width:32px;height:32px;border-radius:6px;object-fit:contain;background:transparent;}
-.sb-logo-text{font-size:16px;font-weight:600;color:var(--text)}
-
-.sb-nav{flex:1;overflow-y:auto;padding:12px 0;margin-top:12px}
+.sb-nav{flex:1;overflow-y:auto;padding:12px 0;margin-top:0px}
 .team-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
 .member-cell{display:flex;flex-direction:column;align-items:center;gap:3px}
 .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
@@ -147,15 +142,12 @@ tr[draggable]:active{cursor:grabbing}
 <div class="page-container">
   
   <div class="topbar">
-    <button id="sidebarToggleBtn" onclick="toggleSidebar()" style="border:1px solid var(--border2);background:var(--bg2);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text2)">☰</button>
+    <button id="sidebarToggleBtn" onclick="toggleSidebar()" style="border:none;background:transparent;width:36px;height:36px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;color:var(--text);margin-right:12px;">☰</button>
+    <img src="您的圖片路徑.png" alt="TIGPS LOGO" style="height: 40px; width: auto; object-fit: contain;">
   </div>
 
   <div class="app">
     <div class="sidebar collapsed" id="mainSidebar">
-      <div class="sb-logo" onclick="switchView('dashboard',null)">
-        <img class="sb-logo-icon" src="https://via.placeholder.com/32?text=L" alt="LOGO">
-        <div class="sb-logo-text">TIGPS</div>
-      </div>
       <div class="sb-nav">
         <div class="team-grid" id="sidebarTeam"></div>
         <div class="sb-item" onclick="switchView('progress',this)">📊 工作進度</div>
@@ -893,7 +885,7 @@ function quickDone(atKey) {
     const data = {
       annualKey: atKey,
       progYear: String(progYear),
-      title: at ? at.label : '',
+      title: at ? at.label : '未命名工作',
       done: true,
       status: 'done',
       doneDate: new Date().toISOString().split('T')[0],
@@ -914,8 +906,11 @@ function openProgNew() {
   const badge = document.getElementById('tdCatBadge');
   badge.textContent = waveLabel(progYear);
 
-  document.getElementById('tdTitle').value = '';
-  document.getElementById('tdTitle').placeholder = '新增工作';
+  const titleInput = document.getElementById('tdTitle');
+  titleInput.value = '';
+  titleInput.placeholder = '新增工作';
+  titleInput.readOnly = false; // 開放修改標題
+  
   document.getElementById('tdDate').value = '';
   document.getElementById('tdDeadline').value = '';
   document.getElementById('tdDoneDate').value = '';
@@ -951,8 +946,14 @@ function openProgDetail(atKey) {
   const badge = document.getElementById('tdCatBadge');
   badge.textContent = waveLabel(progYear);
 
-  document.getElementById('tdTitle').value = at ? at.label : (t ? t.title : '');
-  document.getElementById('tdTitle').placeholder = '新增工作';
+  const titleInput = document.getElementById('tdTitle');
+  titleInput.value = at ? at.label : (t ? t.title : '');
+  titleInput.placeholder = '新增工作';
+  
+  // 檢查是否為自訂工作，若不是則鎖定標題不讓使用者修改
+  const isCustom = _detailKey && _detailKey.startsWith('custom_');
+  titleInput.readOnly = !isCustom;
+  
   document.getElementById('tdDate').value = t ? (t.date || '') : '';
   document.getElementById('tdDeadline').value = t ? (t.deadline || '') : '';
   document.getElementById('tdDoneDate').value = t ? (t.doneDate || '') : '';
