@@ -86,7 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .table-wrap{flex:1;overflow:auto}
 .data-table{width:100%;border-collapse:collapse;font-size:12px}
 .data-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:2;white-space:nowrap}
-.data-table td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle;transition:background 0.2s;}
 .data-table tr:hover td{background:var(--bg2)}
 .data-table tr.done-row td{opacity:0.4}
 .check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;background:transparent}
@@ -128,7 +128,6 @@ textarea{resize:vertical;min-height:60px}
 
 /* Progress */
 .prog-bar-wrap{padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
-.dnd-over{background:var(--bg3)!important;outline:2px dashed var(--accent)!important;}
 tr[draggable]{cursor:grab}
 tr[draggable]:active{cursor:grabbing}
 
@@ -144,7 +143,7 @@ tr[draggable]:active{cursor:grabbing}
   <div class="topbar" style="position: relative;">
     <button id="sidebarToggleBtn" onclick="toggleSidebar()" style="border:none;background:transparent;width:36px;height:36px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;color:var(--text);margin-right:12px;">☰</button>
     
-    <img src="logo.png" alt="TIGPS LOGO" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 160px; width: auto; object-fit: contain; pointer-events: none;">
+    <img src="logo.png" alt="TIGPS LOGO" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 280px; width: auto; object-fit: contain; pointer-events: none;">
   </div>
 
   <div class="app">
@@ -428,6 +427,7 @@ let selCreator = '';
 let selParts = [];
 let progYear = 2023;
 let progYears = [2023, 2024, 2025, 2026];
+let progOrders = {}; // 存放自訂排序的陣列
 let _detailKey = null;
 let _detailTaskId = null;
 let _dndSrc = null;
@@ -564,6 +564,11 @@ db.ref('members').on('value', snapshot => {
   snapshot.forEach(child => { memberData[child.key] = { ...child.val() }; });
   MEMBERS = getActiveMembers();
   renderTeam();
+});
+
+db.ref('progOrders').on('value', snapshot => {
+  progOrders = snapshot.val() || {};
+  renderProgContent();
 });
 
 db.ref('tasks').on('value', snapshot => {
@@ -819,7 +824,6 @@ function addNextProgYear() {
   progYears.push(nextYear);
   const tabsEl = document.getElementById('progYearTabs');
   
-  // Create an HTML string logic to be consistent with initProgTabs
   const btnHTML = `<button class="filter-chip" 
       onclick="switchProgYear(${nextYear},this)"
       ondragover="yearTabDragOver(event)"
@@ -886,6 +890,32 @@ function renderProgContent() {
   );
   customTasks.forEach(t => {
     yearTasks.push({ at: { key: t.annualKey, label: t.title }, t });
+  });
+
+  // 排序邏輯：1. 未完成優先  2. Firebase 儲存的拖曳順序  3. 預設順序
+  let yearOrder = progOrders[progYear] || [];
+  
+  yearTasks.sort((a, b) => {
+    // 條件一：完成狀態 (未完成放前面，已完成沉到底部)
+    const aDone = a.t && a.t.done ? 1 : 0;
+    const bDone = b.t && b.t.done ? 1 : 0;
+    if (aDone !== bDone) return aDone - bDone;
+
+    // 條件二：自訂的拖曳順序
+    const aIdx = yearOrder.indexOf(a.at.key);
+    const bIdx = yearOrder.indexOf(b.at.key);
+    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+    if (aIdx !== -1) return -1;
+    if (bIdx !== -1) return 1;
+
+    // 條件三：原先的預設順序
+    const aAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === a.at.key);
+    const bAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === b.at.key);
+    if (aAnnIdx !== -1 && bAnnIdx !== -1) return aAnnIdx - bAnnIdx;
+    if (aAnnIdx !== -1) return -1;
+    if (bAnnIdx !== -1) return 1;
+
+    return 0;
   });
 
   const totalCount = yearTasks.length;
@@ -1344,7 +1374,7 @@ function ensureProgTask(atKey, cb) {
   });
 }
 
-// ── Drag and Drop (A→B makes A a subtask of B) ────────────────────────────────
+// ── Drag and Drop Reordering ──────────────────────────────────────────────────
 function dndStart(ev, atKey) {
   _dndSrc = atKey;
   ev.dataTransfer.effectAllowed = 'move';
@@ -1355,54 +1385,75 @@ function dndOver(ev, atKey) {
   if (atKey === _dndSrc) return;
   ev.preventDefault();
   ev.dataTransfer.dropEffect = 'move';
+  // 加入上方邊框的視覺提示，讓使用者知道會插入在此列之上
   const row = document.getElementById('dndrow_' + atKey);
-  if (row) row.classList.add('dnd-over');
+  if (row) row.style.borderTop = '2px solid var(--accent)';
 }
 
 function dndLeave(ev, atKey) {
   const row = document.getElementById('dndrow_' + atKey);
-  if (row) row.classList.remove('dnd-over');
+  if (row) row.style.borderTop = '';
 }
 
 function dndDrop(ev, targetKey) {
   ev.preventDefault();
-  document.querySelectorAll('.dnd-over').forEach(r => r.classList.remove('dnd-over'));
+  
+  // 清除視覺提示
+  const row = document.getElementById('dndrow_' + targetKey);
+  if (row) row.style.borderTop = '';
+
   const srcKey = _dndSrc;
   _dndSrc = null;
   if (!srcKey || srcKey === targetKey) return;
 
-  const srcAt = ANNUAL_TASKS.find(x => x.key === srcKey);
-  const srcTask = getProgTask(srcKey);
-  
-  let srcLabel = srcKey;
-  if (srcAt) srcLabel = srcAt.label;
-  else if (srcTask) srcLabel = srcTask.title;
-
-  if (!confirm(`確定將「${srcLabel}」變成目標工作的子計畫？此操作無法還原。`)) return;
-
-  const sub = {
-    title: srcLabel,
-    done: srcTask ? (srcTask.done || false) : false,
-    date: srcTask ? (srcTask.date || '') : '',
-    deadline: srcTask ? (srcTask.deadline || '') : '',
-    doneDate: srcTask ? (srcTask.doneDate || '') : '',
-    parts: srcTask ? (srcTask.parts || []) : [],
-    createdAt: new Date().toISOString()
-  };
-
-  ensureProgTask(targetKey, targetTask => {
-    db.ref('tasks/' + targetTask.id + '/subtasks').push(sub).then(() => {
-      if (srcTask) {
-        db.ref('tasks/' + srcTask.id).update({deleted: true}).then(() => {
-          const idx = tasks.findIndex(x => x.id === srcTask.id);
-          if (idx >= 0) tasks[idx].deleted = true;
-          renderProgContent();
-        });
-      } else {
-        renderProgContent();
-      }
-    });
+  // 取得目前在畫面上渲染的全部鍵值順序
+  let yearTasks = [];
+  ANNUAL_TASKS.forEach(at => {
+    const t = getProgTask(at.key);
+    if (!(t && t.deleted)) yearTasks.push({ at, t });
   });
+  const customTasks = tasks.filter(t => 
+    (String(t.progYear) === String(progYear) || (t.progYear == null && String(progYear) === '2023')) &&
+    t.annualKey && t.annualKey.startsWith('custom_') &&
+    !t.deleted
+  );
+  customTasks.forEach(t => yearTasks.push({ at: { key: t.annualKey, label: t.title }, t }));
+
+  let yearOrder = progOrders[progYear] || [];
+  
+  // 套用與渲染時完全相同的排序以獲得當前正確陣列
+  yearTasks.sort((a, b) => {
+    const aDone = a.t && a.t.done ? 1 : 0;
+    const bDone = b.t && b.t.done ? 1 : 0;
+    if (aDone !== bDone) return aDone - bDone;
+
+    const aIdx = yearOrder.indexOf(a.at.key);
+    const bIdx = yearOrder.indexOf(b.at.key);
+    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+    if (aIdx !== -1) return -1;
+    if (bIdx !== -1) return 1;
+
+    const aAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === a.at.key);
+    const bAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === b.at.key);
+    if (aAnnIdx !== -1 && bAnnIdx !== -1) return aAnnIdx - bAnnIdx;
+    if (aAnnIdx !== -1) return -1;
+    if (bAnnIdx !== -1) return 1;
+    return 0;
+  });
+
+  let currentKeys = yearTasks.map(x => x.at.key);
+
+  const srcIdx = currentKeys.indexOf(srcKey);
+  const tgtIdx = currentKeys.indexOf(targetKey);
+
+  // 重新安插位置並存入 Firebase
+  if (srcIdx > -1 && tgtIdx > -1) {
+    currentKeys.splice(srcIdx, 1);
+    const newTgtIdx = currentKeys.indexOf(targetKey);
+    currentKeys.splice(newTgtIdx, 0, srcKey);
+    
+    db.ref('progOrders/' + progYear).set(currentKeys);
+  }
 }
 
 // ── Add / Edit Modal ──────────────────────────────────────────────────────────
