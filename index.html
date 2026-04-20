@@ -380,7 +380,7 @@ textarea{resize:vertical;min-height:60px}
     <div id="partChips" style="display:flex;gap:10px;flex-wrap:wrap"></div>
   </div>
   <div class="modal-footer" style="margin-top:14px;display:flex;justify-content:space-between">
-    <button id="modalDeleteBtn" class="btn" style="color:#c97070;border-color:#e0d0c5;display:none" onclick="if(editingId&&confirm('確定要刪除？')){{deleteTask(editingId);closeModal();}}">刪除</button>
+    <button id="modalDeleteBtn" class="btn" style="color:#c97070;border-color:#e0d0c5;display:none" onclick="if(editingId&&confirm('確定要刪除？')){deleteTask(editingId);closeModal();}">刪除</button>
     <button class="btn btn-primary" onclick="saveTask()">新增</button>
   </div>
 </div>
@@ -796,210 +796,235 @@ function getMemberAvatar(m,size=24){
   return `<div title="${name}" style="width:${size}px;height:${size}px;border-radius:50%;background:${m.bg};color:#555;font-size:${Math.round(size*0.4)}px;font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bg)">${m.initials}</div>`;
 }
 
+// ── 工作進度渲染 ──
+function getProgTask(key){
+  const ys=String(progYear);
+  return tasks.find(t=>t.annualKey===key&&(String(t.progYear)===ys||(t.progYear==null&&ys==='2023')))||null;
+}
+
 function renderProgContent(){
   const barEl=document.getElementById('progBar');
   const tbody=document.getElementById('progTbody');
   if(!barEl||!tbody)return;
 
-  // 用統一的年份比對找 task
-  const yearStr=String(progYear);
-  const findTask=key=>tasks.find(t=>t.annualKey===key&&(
-    String(t.progYear)===yearStr||(t.progYear==null&&yearStr==='2023')
-  ));
-  const yearTasks=ANNUAL_TASKS.map(at=>({at,task:findTask(at.key)||null}));
+  const yearTasks=ANNUAL_TASKS.map(at=>({at,t:getProgTask(at.key)}));
+  const doneCount=yearTasks.filter(x=>x.t&&x.t.done).length;
+  const pct=Math.round(doneCount/ANNUAL_TASKS.length*100);
 
-  const done=yearTasks.filter(x=>x.task&&x.task.done).length;
-  const pct=Math.round(done/ANNUAL_TASKS.length*100);
+  barEl.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:5px">
+    <span>${WAVE_LABELS[progYear]||progYear} 年度完成進度</span>
+    <span>${doneCount} / ${ANNUAL_TASKS.length}（${pct}%）</span>
+  </div>
+  <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
+    <div style="height:100%;background:var(--accent);width:${pct}%;transition:width 0.4s;border-radius:4px"></div>
+  </div>`;
 
-  barEl.innerHTML=`
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:5px">
-      <span>${WAVE_LABELS[progYear]||progYear} 年度完成進度</span>
-      <span>${done} / ${ANNUAL_TASKS.length}（${pct}%）</span>
-    </div>
-    <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
-      <div style="height:100%;background:var(--accent);width:${pct}%;transition:width 0.4s;border-radius:4px"></div>
-    </div>`;
-
-  tbody.innerHTML=yearTasks.map(({at,task})=>{
-    const t=task;
-    const isDone=t&&t.done;
+  let html='';
+  yearTasks.forEach(({at,t})=>{
+    const isDone=!!(t&&t.done);
     const assignees=t&&t.parts?MEMBERS.filter(m=>t.parts.includes(m.id))
-      .map(m=>`<span style="display:flex;flex-direction:column;align-items:center;gap:2px">${getMemberAvatar(m,24)}<span style="font-size:8px;color:var(--text3)">${(memberData[m.id]&&memberData[m.id].name)||m.name}</span></span>`).join(''):'';
-    const subtasks=t&&t.subtasks?Object.values(t.subtasks):[];
-    const subDone=subtasks.filter(s=>s.done).length;
-    const hasSub=subtasks.length>0;
-    const subBadge=hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:5px">${subDone}/${subtasks.length}</span>`:'';
-    // 用 task.id 做收合 id 避免特殊字符
-    const cid=t?`c${t.id.replace(/[^a-z0-9]/gi,'')}`:null;
-    const toggleBtn=hasSub&&cid?`<button onclick="event.stopPropagation();toggleSubRows('${cid}')" id="tbtn_${cid}" style="border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:11px;padding:0 3px">▾</button>`:'';
-    const subRows=hasSub&&cid?subtasks.map((s,si)=>`<tr data-cid="${cid}" style="background:var(--bg2)">
-      <td style="padding-left:18px"><div class="check ${s.done?'done':''}" onclick="toggleSubtask('${at.key}',${si})">${s.done?'✓':''}</div></td>
-      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.date||''}</td>
-      <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}">↳ ${s.title}</td>
-      <td><div style="display:flex;gap:3px">${s.parts?MEMBERS.filter(m=>s.parts.includes(m.id)).map(m=>getMemberAvatar(m,18)).join(''):''}</div></td>
-      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.deadline||''}</td>
-      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.doneDate||''}</td>
-      <td></td>
-    </tr>`).join(''):'';
-    return `<tr id="progrow_${at.key}" style="cursor:pointer;${isDone?'opacity:0.55':''}" onclick="openProgTaskDetail('${at.key}')">
-      <td onclick="event.stopPropagation();toggleProgDirect('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
-      <td style="white-space:nowrap;font-size:11px">${t&&t.date?t.date:''}</td>
-      <td style="font-weight:${isDone?'400':'500'};color:var(--accent)">${at.label}${subBadge}${toggleBtn}</td>
-      <td><div style="display:flex;gap:4px;flex-wrap:wrap">${assignees}</div></td>
+      .map(m=>`<span style="display:flex;flex-direction:column;align-items:center;gap:2px">${getMemberAvatar(m,22)}<span style="font-size:8px;color:var(--text3)">${(memberData[m.id]&&memberData[m.id].name)||m.name}</span></span>`).join(''):'';
+    const subs=t&&t.subtasks?Object.values(t.subtasks):[];
+    const hasSub=subs.length>0;
+    const subDone=subs.filter(s=>s.done).length;
+    const badge=hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:4px">${subDone}/${subs.length}</span>`:'';
+    const tid=t?t.id:'';
+    const safeid=tid.replace(/[^a-zA-Z0-9]/g,'');
+    const toggleBtn=hasSub?`<button onclick="event.stopPropagation();progToggleSub('${safeid}')" id="stbtn_${safeid}" style="border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:11px;line-height:1;padding:0 2px">▾</button>`:'';
+    html+=`<tr onclick="openProgDetail('${at.key}')" style="cursor:pointer${isDone?';opacity:0.5':''}">
+      <td onclick="event.stopPropagation();quickDone('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
+      <td style="font-size:11px;white-space:nowrap">${t&&t.date?t.date:''}</td>
+      <td style="font-weight:${isDone?'400':'500'}">${at.label}${badge}${toggleBtn}</td>
+      <td>${assignees}</td>
       <td style="font-size:11px;white-space:nowrap">${t&&t.deadline?t.deadline:''}</td>
       <td style="font-size:11px;white-space:nowrap">${t&&t.doneDate?t.doneDate:''}</td>
-      <td><button onclick="event.stopPropagation();openProgTaskDetail('${at.key}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:14px">›</button></td>
-    </tr>${subRows}`;
-  }).join('');
+      <td><button onclick="event.stopPropagation();openProgDetail('${at.key}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:14px">›</button></td>
+    </tr>`;
+    if(hasSub){
+      subs.forEach((s,si)=>{
+        const sAssignees=s.parts?MEMBERS.filter(m=>s.parts.includes(m.id)).map(m=>getMemberAvatar(m,18)).join(''):'';
+        html+=`<tr class="subrow_${safeid}" style="background:var(--bg2)">
+          <td style="padding-left:16px"><div class="check ${s.done?'done':''}" onclick="progSubToggle('${at.key}',${si})">${s.done?'✓':''}</div></td>
+          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.date||''}</td>
+          <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}">↳ ${s.title}</td>
+          <td><div style="display:flex;gap:2px">${sAssignees}</div></td>
+          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.deadline||''}</td>
+          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.doneDate||''}</td>
+          <td><button onclick="openSubDetail('${at.key}',${si})" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:12px">›</button></td>
+        </tr>`;
+      });
+    }
+  });
+  tbody.innerHTML=html;
 }
 
-function toggleSubRows(cid){
-  const rows=document.querySelectorAll(`tr[data-cid="${cid}"]`);
-  const btn=document.getElementById('tbtn_'+cid);
+function progToggleSub(safeid){
+  const rows=document.querySelectorAll('.subrow_'+safeid);
+  const btn=document.getElementById('stbtn_'+safeid);
   if(!rows.length)return;
-  const isHidden=rows[0].style.display==='none';
-  rows.forEach(r=>r.style.display=isHidden?'':'none');
-  if(btn)btn.textContent=isHidden?'▾':'▸';
+  const hide=rows[0].style.display!=='none';
+  rows.forEach(r=>{r.style.display=hide?'none':'';});
+  if(btn)btn.textContent=hide?'▸':'▾';
 }
 
-let currentProgKey=null;
-let currentTaskId=null; // 直接存 Firebase task id
+// ── 工作進度詳細面板 ──
+let _detailKey=null;
+let _detailTaskId=null;
 
-const WAVE_LABELS={2023:'W1 2023',2024:'W2 2024',2025:'W3 2025',2026:'W4 2026'};
-
-function openProgTaskDetail(atKey){
-  currentProgKey=atKey;
+function openProgDetail(atKey){
+  _detailKey=atKey;
+  const t=getProgTask(atKey);
+  _detailTaskId=t?t.id:null;
   const at=ANNUAL_TASKS.find(x=>x.key===atKey);
-  // 統一用 yearStr 比對
-  const yearStr=String(progYear);
-  const task=tasks.find(t=>t.annualKey===atKey&&(
-    String(t.progYear)===yearStr||(t.progYear==null&&yearStr==='2023')
-  ));
-  currentTaskId=task?task.id:null;
 
   document.getElementById('tdTitle').textContent=at?at.label:'';
-  document.getElementById('tdCatBadge').style.cssText='font-size:11px;padding:2px 8px;border-radius:4px;background:var(--cat-data);color:var(--cat-data-text)';
-  document.getElementById('tdCatBadge').textContent=WAVE_LABELS[progYear]||progYear+'年';
-  document.getElementById('tdDate').value=task?.date||'';
-  document.getElementById('tdDeadline').value=task?.deadline||'';
-  document.getElementById('tdDoneDate').value=task?.doneDate||'';
-  document.getElementById('tdStatus').value=task?.status||'notstarted';
-  document.getElementById('tdDesc').value=task?.desc||'';
+  document.getElementById('tdCatBadge').textContent=WAVE_LABELS[progYear]||progYear;
+  document.getElementById('tdDate').value=t?.date||'';
+  document.getElementById('tdDeadline').value=t?.deadline||'';
+  document.getElementById('tdDoneDate').value=t?.doneDate||'';
+  document.getElementById('tdStatus').value=t?.status||'notstarted';
+  document.getElementById('tdDesc').value=t?.desc||'';
 
   // 負責人
-  const visible=MEMBERS.filter(m=>!(memberData[m.id]&&memberData[m.id].deleted));
-  const selParts=task?.parts||[];
-  document.getElementById('tdAssignees').innerHTML=visible.map(m=>{
+  const vis=MEMBERS.filter(m=>!(memberData[m.id]&&memberData[m.id].deleted));
+  const selP=t?.parts||[];
+  document.getElementById('tdAssignees').innerHTML=vis.map(m=>{
     const saved=memberData[m.id]||{};
-    const name=saved.name||m.name;
-    const isSel=selParts.includes(m.id);
-    const photo=saved.photo;
-    const ring=isSel?'box-shadow:0 0 0 2px var(--accent);':'';
-    const av=photo
-      ?`<img src="${photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;${ring}">`
+    const nm=saved.name||m.name;
+    const ph=saved.photo;
+    const sel=selP.includes(m.id);
+    const ring=sel?'box-shadow:0 0 0 2px var(--accent);':'';
+    const av=ph?`<img src="${ph}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;${ring}">`
       :`<div style="width:36px;height:36px;border-radius:50%;background:${m.bg};color:#555;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
-    return `<div onclick="toggleTdAssignee('${m.id}')" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:${isSel?1:0.4}" id="tda_${m.id}">
-      ${av}<span style="font-size:9px;color:var(--text2)">${name}</span>
-    </div>`;
+    return `<div id="tda_${m.id}" onclick="detailToggleAssignee('${m.id}')" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:${sel?1:0.4}">${av}<span style="font-size:9px">${nm}</span></div>`;
   }).join('');
 
-  renderTdSubtasks(task);
+  renderDetailSubs(t);
   document.getElementById('taskDetailOverlay').classList.add('open');
 }
 
-function toggleTdAssignee(mid){
-  const el=document.getElementById('tda_'+mid);
-  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
-  let parts=task&&task.parts?[...task.parts]:[];
+function detailToggleAssignee(mid){
+  const t=_detailTaskId?tasks.find(x=>x.id===_detailTaskId):null;
+  if(!t)return;
+  let parts=[...(t.parts||[])];
   const idx=parts.indexOf(mid);
-  if(idx>=0)parts.splice(idx,1); else parts.push(mid);
-  // update all assignee opacities
+  if(idx>=0)parts.splice(idx,1);else parts.push(mid);
+  t.parts=parts;
+  db.ref('tasks/'+t.id+'/parts').set(parts);
   MEMBERS.forEach(m=>{
-    const e=document.getElementById('tda_'+m.id);
-    if(e)e.style.opacity=parts.includes(m.id)?'1':'0.4';
-    const ring=parts.includes(m.id)?'box-shadow:0 0 0 2px var(--accent);':'';
-    const img=e&&e.querySelector('img,div');
-    if(img)img.style.cssText=img.style.cssText.replace(/box-shadow:[^;]+;?/,'')+ring;
+    const el=document.getElementById('tda_'+m.id);
+    if(!el)return;
+    el.style.opacity=parts.includes(m.id)?'1':'0.4';
+    const img=el.querySelector('img,div');
+    if(img)img.style.cssText=img.style.cssText.replace(/box-shadow:[^;]*;?/,'')+(parts.includes(m.id)?'box-shadow:0 0 0 2px var(--accent);':'');
   });
-  // store temporarily (saved on 儲存)
-  if(task){task.parts=parts;db.ref('tasks/'+task.id).update({parts});}
 }
 
-function renderTdSubtasks(task){
-  const subtasks=task&&task.subtasks?Object.values(task.subtasks):[];
-  document.getElementById('tdSubtasks').innerHTML=subtasks.map((s,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;background:var(--bg2);border:1px solid var(--border)">
-      <div class="check ${s.done?'done':''}" onclick="toggleSubtask('${currentProgKey}',${i})">${s.done?'✓':''}</div>
-      <span style="flex:1;font-size:12px;${s.done?'text-decoration:line-through;color:var(--text3)':''}">${s.title}</span>
-      <button onclick="deleteSubtask('${currentProgKey}',${i})" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:12px">✕</button>
-    </div>`).join('')||'<div style="font-size:11px;color:var(--text3)">尚無子任務</div>';
+function renderDetailSubs(task){
+  const subs=task&&task.subtasks?Object.values(task.subtasks):[];
+  const el=document.getElementById('tdSubtasks');
+  if(!el)return;
+  if(!subs.length){el.innerHTML='<div style="font-size:11px;color:var(--text3)">尚無子計畫</div>';return;}
+  el.innerHTML=subs.map((s,i)=>`
+    <div style="padding:6px 8px;border-radius:5px;background:var(--bg2);border:1px solid var(--border);margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="check ${s.done?'done':''}" onclick="progSubToggle('${_detailKey}',${i})">${s.done?'✓':''}</div>
+        <span style="flex:1;font-size:12px;font-weight:500;${s.done?'text-decoration:line-through;color:var(--text3)':''}">${s.title}</span>
+        <button onclick="deleteDetailSub(${i})" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:12px">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px;padding-left:26px">
+        <div><div class="flabel" style="font-size:9px">日期</div><input type="date" value="${s.date||''}" onchange="updateSubField(${i},'date',this.value)" style="font-size:11px;padding:3px;width:100%"></div>
+        <div><div class="flabel" style="font-size:9px">Deadline</div><input type="date" value="${s.deadline||''}" onchange="updateSubField(${i},'deadline',this.value)" style="font-size:11px;padding:3px;width:100%"></div>
+        <div><div class="flabel" style="font-size:9px">完成日期</div><input type="date" value="${s.doneDate||''}" onchange="updateSubField(${i},'doneDate',this.value)" style="font-size:11px;padding:3px;width:100%"></div>
+        <div><div class="flabel" style="font-size:9px">負責人</div><div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:4px">${MEMBERS.map(m=>{const sel=s.parts&&s.parts.includes(m.id);return `<span onclick="toggleSubMember(${i},'${m.id}')" style="cursor:pointer;opacity:${sel?1:0.35}">${getMemberAvatar(m,22)}</span>`;}).join('')}</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function updateSubField(si,field,val){
+  const t=_detailTaskId?tasks.find(x=>x.id===_detailTaskId):null;
+  if(!t||!t.subtasks)return;
+  const keys=Object.keys(t.subtasks);
+  if(!keys[si])return;
+  t.subtasks[keys[si]][field]=val;
+  db.ref(`tasks/${t.id}/subtasks/${keys[si]}/${field}`).set(val);
+}
+
+function toggleSubMember(si,mid){
+  const t=_detailTaskId?tasks.find(x=>x.id===_detailTaskId):null;
+  if(!t||!t.subtasks)return;
+  const keys=Object.keys(t.subtasks);
+  if(!keys[si])return;
+  const sub=t.subtasks[keys[si]];
+  let parts=[...(sub.parts||[])];
+  const idx=parts.indexOf(mid);
+  if(idx>=0)parts.splice(idx,1);else parts.push(mid);
+  sub.parts=parts;
+  db.ref(`tasks/${t.id}/subtasks/${keys[si]}/parts`).set(parts).then(()=>renderDetailSubs(t));
 }
 
 function addSubtask(){
-  const title=prompt('子任務名稱：');
+  const title=prompt('子計畫名稱：');
   if(!title)return;
-  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
-  const newSub={title,done:false,createdAt:new Date().toISOString()};
-  if(task){
-    const ref=db.ref('tasks/'+task.id+'/subtasks').push(newSub);
-    ref.then(()=>{
-      db.ref('tasks/'+task.id).once('value',snap=>{
-        const updated={id:task.id,...snap.val()};
-        const idx=tasks.findIndex(x=>x.id===task.id);
-        if(idx>=0)tasks[idx]=updated;
-        renderTdSubtasks(updated);
+  const newSub={title,done:false,date:'',deadline:'',doneDate:'',parts:[],createdAt:new Date().toISOString()};
+  // 確保 task 存在
+  const ensureTask=(cb)=>{
+    let t=_detailTaskId?tasks.find(x=>x.id===_detailTaskId):null;
+    if(t){cb(t);return;}
+    const at=ANNUAL_TASKS.find(x=>x.key===_detailKey);
+    const data={annualKey:_detailKey,progYear:String(progYear),title:at?.label||'',done:false,status:'notstarted',parts:[],subtasks:{}};
+    db.ref('tasks').push(data).then(ref=>{
+      const newT={id:ref.key,...data};
+      tasks.push(newT);
+      _detailTaskId=ref.key;
+      cb(newT);
+    });
+  };
+  ensureTask(t=>{
+    db.ref(`tasks/${t.id}/subtasks`).push(newSub).then(()=>{
+      db.ref(`tasks/${t.id}`).once('value',snap=>{
+        const updated={id:t.id,...snap.val()};
+        const idx=tasks.findIndex(x=>x.id===t.id);
+        if(idx>=0)tasks[idx]=updated;else tasks.push(updated);
+        renderDetailSubs(updated);
         renderProgContent();
       });
     });
-  } else {
-    // create task first
-    const data={annualKey:currentProgKey,progYear:String(progYear),title:ANNUAL_TASKS.find(x=>x.key===currentProgKey)?.label||'',subtasks:{},status:'notstarted',done:false,parts:[]};
-    db.ref('tasks').push(data).then(ref=>{
-      db.ref('tasks/'+ref.key+'/subtasks').push(newSub).then(()=>{
-        db.ref('tasks/'+ref.key).once('value',snap=>{
-          const updated={id:ref.key,...snap.val()};
-          tasks.push(updated);
-          renderTdSubtasks(updated);
-          renderProgContent();
-        });
-      });
-    });
-  }
+  });
 }
 
-function toggleSubtask(atKey,idx){
-  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
-  if(!task||!task.subtasks)return;
-  const keys=Object.keys(task.subtasks);
-  if(!keys[idx])return;
-  const subKey=keys[idx];
-  const cur=task.subtasks[subKey].done;
-  db.ref('tasks/'+task.id+'/subtasks/'+subKey+'/done').set(!cur).then(()=>{
-    task.subtasks[subKey].done=!cur;
-    renderTdSubtasks(task);
+function progSubToggle(atKey,si){
+  const t=getProgTask(atKey);
+  if(!t||!t.subtasks)return;
+  const keys=Object.keys(t.subtasks);
+  if(!keys[si])return;
+  const cur=t.subtasks[keys[si]].done;
+  db.ref(`tasks/${t.id}/subtasks/${keys[si]}/done`).set(!cur).then(()=>{
+    t.subtasks[keys[si]].done=!cur;
+    renderDetailSubs(t);
     renderProgContent();
   });
 }
 
-function deleteSubtask(atKey,idx){
-  if(!confirm('確定刪除子任務？'))return;
-  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
-  if(!task||!task.subtasks)return;
-  const keys=Object.keys(task.subtasks);
-  if(!keys[idx])return;
-  db.ref('tasks/'+task.id+'/subtasks/'+keys[idx]).remove().then(()=>{
-    delete task.subtasks[keys[idx]];
-    renderTdSubtasks(task);
+function deleteDetailSub(si){
+  if(!confirm('確定刪除子計畫？'))return;
+  const t=_detailTaskId?tasks.find(x=>x.id===_detailTaskId):null;
+  if(!t||!t.subtasks)return;
+  const keys=Object.keys(t.subtasks);
+  if(!keys[si])return;
+  db.ref(`tasks/${t.id}/subtasks/${keys[si]}`).remove().then(()=>{
+    delete t.subtasks[keys[si]];
+    renderDetailSubs(t);
     renderProgContent();
   });
 }
 
-function toggleProgDirect(atKey){
-  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
-  if(task){
-    const newDone=!task.done;
-    const update={done:newDone,status:newDone?'done':'notstarted',doneDate:newDone?new Date().toISOString().split('T')[0]:''};
-    db.ref('tasks/'+task.id).update(update).then(()=>{Object.assign(task,update);renderProgContent();});
+function quickDone(atKey){
+  let t=getProgTask(atKey);
+  if(t){
+    const newDone=!t.done;
+    db.ref('tasks/'+t.id).update({done:newDone,status:newDone?'done':'notstarted',doneDate:newDone?new Date().toISOString().split('T')[0]:''})
+      .then(()=>{t.done=newDone;t.status=newDone?'done':'notstarted';t.doneDate=newDone?new Date().toISOString().split('T')[0]:'';renderProgContent();});
   } else {
     const at=ANNUAL_TASKS.find(x=>x.key===atKey);
     const data={annualKey:atKey,progYear:String(progYear),title:at?.label||'',done:true,status:'done',doneDate:new Date().toISOString().split('T')[0],parts:[],subtasks:{}};
@@ -1008,7 +1033,7 @@ function toggleProgDirect(atKey){
 }
 
 function saveTaskDetail(){
-  const atKey=currentProgKey;
+  const atKey=_detailKey;
   const at=ANNUAL_TASKS.find(x=>x.key===atKey);
   const date=document.getElementById('tdDate').value;
   const deadline=document.getElementById('tdDeadline').value;
@@ -1016,18 +1041,16 @@ function saveTaskDetail(){
   const status=document.getElementById('tdStatus').value;
   const desc=document.getElementById('tdDesc').value;
   const done=status==='done';
-  // 用 currentTaskId 找 task（比 annualKey 查找更可靠）
-  const task=currentTaskId?tasks.find(x=>x.id===currentTaskId):null;
-  const data={annualKey:atKey,progYear:String(progYear),title:at?.label||'',date,deadline,doneDate,status,desc,done,
-    parts:task?.parts||[],subtasks:task?.subtasks||{}};
-  if(currentTaskId){
-    db.ref('tasks/'+currentTaskId).update(data).then(()=>{
-      if(task)Object.assign(task,data);
+  const t=_detailTaskId?tasks.find(x=>x.id===_detailTaskId):null;
+  const data={annualKey:atKey,progYear:String(progYear),title:at?.label||'',date,deadline,doneDate,status,desc,done,parts:t?.parts||[],subtasks:t?.subtasks||{}};
+  if(_detailTaskId){
+    db.ref('tasks/'+_detailTaskId).update(data).then(()=>{
+      if(t)Object.assign(t,data);
       renderProgContent();closeTaskDetail();
     });
   } else {
     db.ref('tasks').push(data).then(ref=>{
-      currentTaskId=ref.key;
+      _detailTaskId=ref.key;
       tasks.push({id:ref.key,...data});
       renderProgContent();closeTaskDetail();
     });
@@ -1035,23 +1058,26 @@ function saveTaskDetail(){
 }
 
 function deleteCurrentTask(){
-  if(!confirm('確定要重置此工作的所有資料？'))return;
-  if(currentTaskId){
-    db.ref('tasks/'+currentTaskId).remove()
-      .then(()=>{
-        tasks=tasks.filter(x=>x.id!==currentTaskId);
-        currentTaskId=null;
-        renderProgContent();
-        closeTaskDetail();
-      })
-      .catch(err=>alert('刪除失敗：'+err.message));
-  } else {
-    // 此工作從未儲存，直接關閉
-    closeTaskDetail();
-  }
+  if(!confirm('確定要刪除此工作的所有記錄？'))return;
+  if(!_detailTaskId){closeTaskDetail();return;}
+  db.ref('tasks/'+_detailTaskId).remove()
+    .then(()=>{
+      tasks=tasks.filter(x=>x.id!==_detailTaskId);
+      _detailTaskId=null;
+      _detailKey=null;
+      renderProgContent();
+      closeTaskDetail();
+    })
+    .catch(err=>alert('刪除失敗：'+err.message));
+}
+
+function openSubDetail(atKey,si){
+  // 開右側面板查看子計畫（目前用 openProgDetail 帶到父工作）
+  openProgDetail(atKey);
 }
 
 function closeTaskDetail(){document.getElementById('taskDetailOverlay').classList.remove('open');}
+
 
 
 // ── 新增/編輯彈窗 ──
