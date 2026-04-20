@@ -155,7 +155,7 @@ tr[draggable]:active{cursor:grabbing}
   </div>
 </div>
 
-<button id="sidebarToggleBtn" onclick="toggleSidebar()" style="position:fixed;top:12px;left:12px;z-index:200;border:1px solid var(--border);background:var(--bg2);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--text2)">☰</button>
+<button id="sidebarToggleBtn" onclick="toggleSidebar()" style="position:fixed;top:12px;left:8px;z-index:201;border:1px solid var(--border);background:var(--bg2);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text2)">☰</button>
 
 <!-- MAIN -->
 <div class="main">
@@ -215,11 +215,9 @@ tr[draggable]:active{cursor:grabbing}
 
     <!-- PROGRESS VIEW -->
     <div class="view" id="view-progress">
-      <div class="task-toolbar">
+      <div class="task-toolbar" style="justify-content:space-between;align-items:center">
         <div style="display:flex;gap:6px;flex-wrap:wrap" id="progYearTabs"></div>
-        <div style="margin-left:auto;display:flex;gap:6px">
-          <button class="add-round" onclick="addNextProgYear()" title="新增下一波次">＋</button>
-        </div>
+        <button class="add-round" onclick="openProgNew()" title="新增工作">＋</button>
       </div>
       <div class="prog-bar-wrap" id="progBar"></div>
       <div class="table-wrap">
@@ -228,10 +226,7 @@ tr[draggable]:active{cursor:grabbing}
             <tr>
               <th style="width:28px"></th>
               <th style="min-width:90px">日期</th>
-              <th style="min-width:160px">
-                名稱
-                <button onclick="openProgNew()" style="border:none;background:var(--bg3);color:var(--text2);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-weight:600;margin-left:6px">＋</button>
-              </th>
+              <th style="min-width:160px">名稱</th>
               <th style="min-width:110px">負責人員</th>
               <th style="min-width:90px">Deadline</th>
               <th style="min-width:90px">完成日期</th>
@@ -1137,15 +1132,21 @@ function deleteCurrentTask() {
   if (!confirm('確定要刪除此工作的所有資料（包含子計畫）？')) return;
 
   const idToDelete = _detailTaskId;
-  db.ref('tasks/' + idToDelete).remove()
+  const taskRef = db.ref('tasks/' + idToDelete);
+  
+  // Use set(null) to ensure complete removal including nested objects
+  taskRef.set(null)
     .then(() => {
+      console.log('Task deleted successfully:', idToDelete);
       tasks = tasks.filter(x => x.id !== idToDelete);
       _detailTaskId = null;
+      _detailKey = null;
       closeTaskDetail();
       renderProgContent();
     })
     .catch(err => {
-      alert('刪除失敗：' + err.message);
+      console.error('Delete error:', err);
+      alert('刪除失敗：' + err.message + '\n請檢查 Firebase 規則設定');
     });
 }
 
@@ -1221,7 +1222,7 @@ function dndDrop(ev, targetKey) {
     db.ref('tasks/' + targetTask.id + '/subtasks').push(sub).then(() => {
       // Delete source task from Firebase if it existed
       if (srcTask) {
-        db.ref('tasks/' + srcTask.id).remove().then(() => {
+        db.ref('tasks/' + srcTask.id).set(null).then(() => {
           tasks = tasks.filter(x => x.id !== srcTask.id);
           renderProgContent();
         });
@@ -1364,8 +1365,14 @@ function saveTask() {
 function deleteEditingTask() {
   if (!editingId) return;
   if (!confirm('確定要刪除？')) return;
-  db.ref('tasks/' + editingId).remove();
-  closeModal();
+  db.ref('tasks/' + editingId).set(null)
+    .then(() => {
+      tasks = tasks.filter(x => x.id !== editingId);
+      closeModal();
+    })
+    .catch(err => {
+      alert('刪除失敗：' + err.message);
+    });
 }
 
 // ── Sidebar / Navigation ──────────────────────────────────────────────────────
