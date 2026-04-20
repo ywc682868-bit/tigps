@@ -99,7 +99,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 /* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg);border-radius:12px;border:1px solid var(--border);width:540px;max-height:90vh;overflow-y:auto;padding:24px 28px;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
+.modal{position:relative;background:var(--bg);border-radius:12px;border:1px solid var(--border);width:540px;max-height:90vh;overflow-y:auto;padding:24px 28px;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .modal-title{font-size:16px;font-weight:600}
 .close-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
@@ -291,7 +291,9 @@ tr[draggable]:active{cursor:grabbing}
 
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:12px; flex-wrap: wrap;">
+    <button class="close-btn" onclick="closeModal()" style="position: absolute; top: 24px; right: 28px; z-index: 10;">✕</button>
+
+    <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:12px; flex-wrap: wrap; padding-right: 36px;">
       <div id="creatorChips" style="display:flex;gap:6px;align-items:center;flex-shrink:0"></div>
       
       <div class="fg" style="flex:0 0 auto;margin-bottom:0">
@@ -327,9 +329,6 @@ tr[draggable]:active{cursor:grabbing}
           <input type="checkbox" id="iAlarmCheckbox" style="width:14px; height:14px;"> ⏰
         </label>
       </div>
-
-      <div style="flex:1"></div>
-      <button class="close-btn" onclick="closeModal()" style="margin-bottom:4px">✕</button>
     </div>
 
     <div style="margin-bottom:18px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
@@ -463,7 +462,7 @@ let progOrders = {};
 let _detailKey = null;
 let _detailTaskId = null;
 let _dndSrc = null;
-let _dndAction = null; 
+let _dndAction = null; // 用於判斷拖曳行為是「排序」或「子計畫」
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -738,7 +737,6 @@ function onPhotoChange(e) {
 function sendAlarmEmail(taskTitle, partIds) {
   if (!partIds || partIds.length === 0) return;
   
-  // 收集有填寫信箱的成員
   const emails = partIds
     .map(id => memberData[id] && memberData[id].email)
     .filter(email => email && email.includes('@'));
@@ -796,7 +794,6 @@ function renderCalendar() {
       const isDL = e.deadline === ds && e.date !== ds;
       const border = isDL ? 'border-left:2px solid #c97070;' : '';
       
-      // 在行事曆上點擊，一律開啟 Calendar Center Modal
       const clickAction = `openEdit('${e.id}')`;
       
       return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="${clickAction};event.stopPropagation()">${e.title}</div>`;
@@ -1529,7 +1526,7 @@ function dndDrop(ev, targetKey) {
   }
 }
 
-// ── Add / Edit Modal (Center Modal - for Calendar) ────────────────────────────
+// ── Add / Edit Modal (Center Modal - for Calendar View) ───────────────────────
 function openProgNew() {
   editingId = null;
   selCreator = getActiveMembers()[0] ? getActiveMembers()[0].id : '';
@@ -1669,7 +1666,6 @@ function saveTask() {
     timestamp: new Date().toISOString()
   };
 
-  // 若為新建任務，則自動產生 custom_ 標籤使其能與進度表相容
   if (!editingId && !data.annualKey) {
     data.annualKey = 'custom_' + Date.now();
   }
@@ -1682,7 +1678,6 @@ function saveTask() {
   
   closeModal();
   
-  // 若勾選鬧鐘，且有設定參與成員，則啟動信件通知
   if (isAlarm) {
     sendAlarmEmail(title, selParts);
   }
