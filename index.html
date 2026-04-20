@@ -416,7 +416,6 @@ tr[draggable]:active{cursor:grabbing}
       <label class="flabel">姓名</label>
       <input type="text" id="memberEditName" placeholder="輸入姓名">
     </div>
-    
     <div class="fg">
       <label class="flabel">信箱</label>
       <input type="email" id="memberEditEmail" placeholder="輸入信箱">
@@ -741,8 +740,8 @@ function sendAlarmEmail(taskTitle, partIds) {
     return;
   }
   
-  if (!confirm('要使用官方帳號 (tigpsteam@gmail.com) 寄信通知參與成員嗎？\n\n按「確定」：開啟官方帳號撰寫視窗\n按「取消」：取消寄信')) {
-    return;
+  if (!confirm('要使用官方帳號 (tigpsteam@gmail.com) 寄信通知參與成員嗎？\n\n按「確定」：開啟官方帳號撰寫視窗\n按「取消」：不寄送提醒')) {
+    return; // 選擇取消就不寄信
   }
   
   const subject = encodeURIComponent(`【TIGPS 任務提醒】${taskTitle}`);
@@ -819,21 +818,37 @@ function renderDashSidebar() {
   const now = new Date();
   const curY = now.getFullYear(), curM = now.getMonth();
   const curStr = `${curY}-${String(curM+1).padStart(2,'0')}`;
+  
+  const nextY = curM === 11 ? curY + 1 : curY;
+  const nextM = curM === 11 ? 0 : curM + 1;
+  const nextStr = `${nextY}-${String(nextM+1).padStart(2,'0')}`;
+
   const allEvts = getAllCalendarEvents();
   const cur = allEvts.filter(e => e.date && e.date.startsWith(curStr) && !e.done && e.cat !== 'meeting');
+  const nxt = allEvts.filter(e => e.date && e.date.startsWith(nextStr) && !e.done && e.cat !== 'meeting');
   const urgent = allEvts.filter(e => e.urgency === 'high' && !e.done).sort((a,b) => (a.date||'').localeCompare(b.date||''));
   const mtg = allEvts.filter(e => e.cat === 'meeting' && e.date && !e.done).sort((a,b) => a.date.localeCompare(b.date));
-  const renderItem = e => `<div class="cal-side-item" onclick="openEdit('${e.id}')">
+
+  const renderItem = e => {
+    const clickAction = `openEdit('${e.id}')`;
+    return `<div class="cal-side-item" onclick="${clickAction}">
       <div class="cal-side-dot" style="background:#8a6b66;margin-top:4px"></div>
       <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
     </div>`;
+  };
+
   const empty = '<div style="font-size:11px;color:var(--text3)">無</div>';
   document.getElementById('dashCurrentMonth').innerHTML = cur.length ? cur.map(renderItem).join('') : empty;
+  document.getElementById('dashNextMonth').innerHTML = nxt.length ? nxt.map(renderItem).join('') : empty;
   document.getElementById('dashDeadlines').innerHTML = urgent.length ? urgent.map(renderItem).join('') : empty;
-  document.getElementById('dashMeetings').innerHTML = mtg.length ? mtg.map(e => `<div class="cal-side-item" onclick="openEdit('${e.id}')">
+  
+  document.getElementById('dashMeetings').innerHTML = mtg.length ? mtg.map(e => {
+    const clickAction = `openEdit('${e.id}')`;
+    return `<div class="cal-side-item" onclick="${clickAction}">
       <div class="cal-side-dot" style="background:var(--cat-meeting-text);margin-top:4px"></div>
       <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
-    </div>`).join('') : empty;
+    </div>`;
+  }).join('') : empty;
 }
 
 // ── Progress View ─────────────────────────────────────────────────────────────
@@ -924,6 +939,26 @@ function renderProgContent() {
       <td style="font-size:11px;">${t&&t.doneDate?t.doneDate:''}</td>
       <td><button onclick="event.stopPropagation();openProgDetail('${at.key}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px;">›</button></td>
     </tr>`;
+
+    if (hasSub) {
+      subs.forEach(([subKey, s], si) => {
+        if (!s) return;
+        const sAssignees = Array.isArray(s.parts)
+          ? vis.filter(m => s.parts.includes(m.id)).map(m => getMemberAvatar(m, 18)).join('')
+          : '';
+        html += `<tr class="sub-row subrow_${at.key}" style="display:none">
+          <td style="padding-left:16px">
+            <div class="check ${s.done?'done':''}" onclick="progSubToggle('${at.key}','${subKey}')">${s.done?'✓':''}</div>
+          </td>
+          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.date||''}</td>
+          <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}">↳ ${s.title||''}</td>
+          <td><div style="display:flex;gap:2px">${sAssignees}</div></td>
+          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.deadline||''}</td>
+          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.doneDate||''}</td>
+          <td></td>
+        </tr>`;
+      });
+    }
   }
   tbody.innerHTML = html;
 }
@@ -994,6 +1029,8 @@ function renderDetailSubs(task) {
   if (!el) return;
   const subs = task && task.subtasks ? Object.entries(task.subtasks) : [];
   if (!subs.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text3);margin-top:8px;">尚無子計畫</div>'; return; }
+  const vis = getActiveMembers();
+  
   el.innerHTML = subs.map(([subKey, s]) => `
     <div style="padding:16px;border-radius:8px;background:var(--bg);border:1px solid var(--border2);margin-bottom:12px">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
