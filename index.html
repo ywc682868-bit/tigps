@@ -144,7 +144,7 @@ tr[draggable]:active{cursor:grabbing}
   <div class="topbar" style="position: relative;">
     <button id="sidebarToggleBtn" onclick="toggleSidebar()" style="border:none;background:transparent;width:36px;height:36px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;color:var(--text);margin-right:12px;">☰</button>
     
-    <img src="data:image/png;base64,請在此處貼上您的Base64編碼" alt="TIGPS LOGO" style="position: absolute; left: 50%; transform: translateX(-50%); height: 45px; width: auto; object-fit: contain;">
+    <img src="logo.png" alt="TIGPS LOGO" style="position: absolute; left: 50%; transform: translateX(-50%); height: 45px; width: auto; object-fit: contain;">
   </div>
 
   <div class="app">
@@ -279,7 +279,10 @@ tr[draggable]:active{cursor:grabbing}
     </div>
     
     <div style="padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: space-between; flex-shrink: 0; background: var(--bg2);">
-      <button class="btn btn-danger" onclick="deleteCurrentTask()" style="background: #fff;">刪除</button>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-danger" onclick="deleteCurrentTask()" style="background: #fff;">刪除</button>
+        <button class="btn" onclick="copyCurrentTask()" style="background: #fff; color: var(--text);">複製</button>
+      </div>
       <button class="btn btn-primary" onclick="saveTaskDetail()">儲存</button>
     </div>
   </div>
@@ -515,6 +518,46 @@ function waveLabel(y) {
   return idx >= 0 ? `W${idx+1} ${y}` : `W? ${y}`;
 }
 
+// 產生含母任務與子任務的完整行事曆陣列
+function getAllCalendarEvents() {
+  let events = [];
+  tasks.filter(t => !t.deleted).forEach(t => {
+    // 匯入母任務
+    if (t.date || t.deadline) {
+      events.push({
+        id: t.id,
+        annualKey: t.annualKey,
+        title: t.title,
+        date: t.date,
+        deadline: t.deadline,
+        cat: t.cat || 'data',
+        done: t.done,
+        urgency: t.urgency,
+        isSub: false
+      });
+    }
+    // 匯入所有子計畫
+    if (t.subtasks) {
+      Object.entries(t.subtasks).forEach(([sKey, s]) => {
+        if (s.date || s.deadline) {
+          events.push({
+            id: t.id,
+            annualKey: t.annualKey, 
+            title: `↳ ${s.title || '子計畫'}`,
+            date: s.date,
+            deadline: s.deadline,
+            cat: t.cat || 'data',
+            done: s.done,
+            urgency: t.urgency,
+            isSub: true
+          });
+        }
+      });
+    }
+  });
+  return events;
+}
+
 // ── Firebase listeners ────────────────────────────────────────────────────────
 db.ref('members').on('value', snapshot => {
   memberData = {};
@@ -663,7 +706,7 @@ function renderCalendar() {
   const prevYear = calMonth === 0 ? calYear - 1 : calYear;
   const prevLastDay = new Date(prevYear, prevMonth + 1, 0).getDate();
   
-  const activeTasks = tasks.filter(t => !t.deleted);
+  const allEvts = getAllCalendarEvents();
 
   for (let i = 0; i < startDow; i++) {
     const d = prevLastDay - startDow + i + 1;
@@ -672,8 +715,8 @@ function renderCalendar() {
 
   for (let d = 1; d <= lastDay; d++) {
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dt = activeTasks.filter(t => t.date === ds);
-    const dlTasks = activeTasks.filter(t => t.deadline === ds && t.date !== ds);
+    const dt = allEvts.filter(e => e.date === ds);
+    const dlTasks = allEvts.filter(e => e.deadline === ds && e.date !== ds);
     const allChips = [...dt, ...dlTasks];
     const isT = new Date(calYear, calMonth, d).getTime() === today.getTime();
     const numCls = isT ? 'cal-date-num today' : 'cal-date-num';
@@ -685,10 +728,11 @@ function renderCalendar() {
     const holidayLabel = holidayName
       ? `<div style="font-size:8px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`
       : '';
-    const chips = allChips.slice(0, 3).map(t => {
-      const isDL = t.deadline === ds && t.date !== ds;
+    const chips = allChips.slice(0, 3).map(e => {
+      const isDL = e.deadline === ds && e.date !== ds;
       const border = isDL ? 'border-left:2px solid #c97070;' : '';
-      return `<div class="cal-chip chip-${t.cat||'data'}" style="${border}" onclick="openEdit('${t.id}');event.stopPropagation()">${t.title}</div>`;
+      const clickAction = e.annualKey ? `openProgDetail('${e.annualKey}')` : `openEdit('${e.id}')`;
+      return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="${clickAction};event.stopPropagation()">${e.title}</div>`;
     }).join('');
     const more = allChips.length > 3 ? `<div style="font-size:9px;color:var(--text3);padding:1px">+${allChips.length-3}</div>` : '';
     cells += `<div class="cal-cell ${weekendCls} ${holidayCls} ${todayCls}" onclick="openAddOnDate('${ds}')">
@@ -719,25 +763,32 @@ function renderDashSidebar() {
   const curStr = `${curY}-${String(curM+1).padStart(2,'0')}`;
   const nextStr = `${nextY}-${String(nextM+1).padStart(2,'0')}`;
 
-  const activeTasks = tasks.filter(t => !t.deleted);
-  const cur = activeTasks.filter(t => t.date && t.date.startsWith(curStr) && !t.done && t.cat !== 'meeting');
-  const nxt = activeTasks.filter(t => t.date && t.date.startsWith(nextStr) && !t.done && t.cat !== 'meeting');
-  const urgent = activeTasks.filter(t => t.urgency === 'high' && !t.done).sort((a,b) => (a.date||'').localeCompare(b.date||''));
-  const mtg = activeTasks.filter(t => t.cat === 'meeting' && t.date && !t.done).sort((a,b) => a.date.localeCompare(b.date));
+  const allEvts = getAllCalendarEvents();
+  const cur = allEvts.filter(e => e.date && e.date.startsWith(curStr) && !e.done && e.cat !== 'meeting');
+  const nxt = allEvts.filter(e => e.date && e.date.startsWith(nextStr) && !e.done && e.cat !== 'meeting');
+  const urgent = allEvts.filter(e => e.urgency === 'high' && !e.done).sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  const mtg = allEvts.filter(e => e.cat === 'meeting' && e.date && !e.done).sort((a,b) => a.date.localeCompare(b.date));
 
-  const renderItem = t => `<div class="cal-side-item" onclick="openEdit('${t.id}')">
-    <div class="cal-side-dot" style="background:#8a6b66;margin-top:4px"></div>
-    <div><div style="font-size:11px;line-height:1.3">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||''}</div></div>
-  </div>`;
+  const renderItem = e => {
+    const clickAction = e.annualKey ? `openProgDetail('${e.annualKey}')` : `openEdit('${e.id}')`;
+    return `<div class="cal-side-item" onclick="${clickAction}">
+      <div class="cal-side-dot" style="background:#8a6b66;margin-top:4px"></div>
+      <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
+    </div>`;
+  };
 
   const empty = '<div style="font-size:11px;color:var(--text3)">無</div>';
   document.getElementById('dashCurrentMonth').innerHTML = cur.length ? cur.map(renderItem).join('') : empty;
   document.getElementById('dashNextMonth').innerHTML = nxt.length ? nxt.map(renderItem).join('') : empty;
   document.getElementById('dashDeadlines').innerHTML = urgent.length ? urgent.map(renderItem).join('') : empty;
-  document.getElementById('dashMeetings').innerHTML = mtg.length ? mtg.map(t => `<div class="cal-side-item" onclick="openEdit('${t.id}')">
-    <div class="cal-side-dot" style="background:var(--cat-meeting-text);margin-top:4px"></div>
-    <div><div style="font-size:11px;line-height:1.3">${t.title}</div><div style="font-size:10px;color:var(--text3)">${t.date||''}</div></div>
-  </div>`).join('') : empty;
+  
+  document.getElementById('dashMeetings').innerHTML = mtg.length ? mtg.map(e => {
+    const clickAction = e.annualKey ? `openProgDetail('${e.annualKey}')` : `openEdit('${e.id}')`;
+    return `<div class="cal-side-item" onclick="${clickAction}">
+      <div class="cal-side-dot" style="background:var(--cat-meeting-text);margin-top:4px"></div>
+      <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
+    </div>`;
+  }).join('') : empty;
 }
 
 // ── Progress View ─────────────────────────────────────────────────────────────
@@ -745,7 +796,13 @@ function initProgTabs() {
   const tabsEl = document.getElementById('progYearTabs');
   tabsEl.innerHTML = progYears.map(y => {
     const active = y === progYear ? 'active' : '';
-    return `<button class="filter-chip ${active}" onclick="switchProgYear(${y},this)">${waveLabel(y)}</button>`;
+    return `<button class="filter-chip ${active}" 
+      onclick="switchProgYear(${y},this)"
+      ondragover="yearTabDragOver(event)"
+      ondragleave="yearTabDragLeave(event)"
+      ondrop="yearTabDrop(event, ${y})"
+      style="transition: all 0.2s;"
+      >${waveLabel(y)}</button>`;
   }).join('');
 }
 
@@ -761,12 +818,50 @@ function addNextProgYear() {
   const nextYear = maxYear + 1;
   progYears.push(nextYear);
   const tabsEl = document.getElementById('progYearTabs');
-  const btn = document.createElement('button');
-  btn.className = 'filter-chip';
-  btn.textContent = waveLabel(nextYear);
-  btn.onclick = function() { switchProgYear(nextYear, this); };
-  tabsEl.appendChild(btn);
-  switchProgYear(nextYear, btn);
+  
+  // Create an HTML string logic to be consistent with initProgTabs
+  const btnHTML = `<button class="filter-chip" 
+      onclick="switchProgYear(${nextYear},this)"
+      ondragover="yearTabDragOver(event)"
+      ondragleave="yearTabDragLeave(event)"
+      ondrop="yearTabDrop(event, ${nextYear})"
+      style="transition: all 0.2s;"
+      >${waveLabel(nextYear)}</button>`;
+      
+  tabsEl.insertAdjacentHTML('beforeend', btnHTML);
+  switchProgYear(nextYear, tabsEl.lastElementChild);
+}
+
+// ── Year Tab Drag & Drop handlers ──
+function yearTabDragOver(ev) {
+  ev.preventDefault();
+  ev.dataTransfer.dropEffect = 'move';
+  ev.currentTarget.style.transform = 'scale(1.1)';
+  ev.currentTarget.style.boxShadow = '0 0 0 2px var(--accent)';
+}
+function yearTabDragLeave(ev) {
+  ev.currentTarget.style.transform = 'none';
+  ev.currentTarget.style.boxShadow = 'none';
+}
+function yearTabDrop(ev, targetYear) {
+  ev.preventDefault();
+  ev.currentTarget.style.transform = 'none';
+  ev.currentTarget.style.boxShadow = 'none';
+  
+  const srcKey = _dndSrc;
+  _dndSrc = null;
+  if (!srcKey) return;
+  
+  const t = getProgTask(srcKey);
+  if (!t) return;
+  
+  if (String(t.progYear) === String(targetYear)) return; // 已經在該年份
+  
+  if (confirm(`確定將整筆工作移至 ${targetYear} 年度嗎？`)) {
+    db.ref('tasks/' + t.id).update({ progYear: String(targetYear) }).then(() => {
+      renderProgContent();
+    });
+  }
 }
 
 function renderProgContent() {
@@ -1085,7 +1180,6 @@ function toggleSubMember(subKey, mid) {
 }
 
 function addSubtask() {
-  // 直接建立空的子計畫，不使用 prompt() 詢問
   const newSub = { title: '', done: false, date: '', deadline: '', doneDate: '', parts: [], createdAt: new Date().toISOString() };
   ensureProgTask(_detailKey, t => {
     db.ref(`tasks/${t.id}/subtasks`).push(newSub).then(() => {
@@ -1157,6 +1251,36 @@ function saveTaskDetail() {
       closeTaskDetail();
     });
   }
+}
+
+function copyCurrentTask() {
+  const fresh = _detailKey ? getProgTask(_detailKey) : null;
+  if (fresh) _detailTaskId = fresh.id;
+
+  if (!_detailTaskId) {
+    alert('這是一筆尚未儲存的空白任務，請先點擊「儲存」後再進行複製！');
+    return;
+  }
+
+  const t = tasks.find(x => x.id === _detailTaskId);
+  if (!t) return;
+
+  if (!confirm('確定要完整複製此工作（包含所有子計畫與負責人）嗎？')) return;
+
+  const newKey = 'custom_' + Date.now();
+  const newData = {
+    ...t,
+    annualKey: newKey,
+    title: t.title + ' (複製)',
+    createdAt: new Date().toISOString()
+  };
+  delete newData.id;
+
+  db.ref('tasks').push(newData).then((ref) => {
+    // 複製成功後，直接開啟剛複製的任務
+    openProgDetail(newKey);
+    renderProgContent();
+  });
 }
 
 function deleteCurrentTask() {
