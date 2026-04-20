@@ -31,9 +31,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .view{display:none;flex:1;overflow:hidden}
 .view.active{display:flex;flex-direction:column}
 .cal-wrap{display:flex;flex:1;overflow:hidden}
-.cal-left{width:200px;border-right:1px solid var(--border);padding:14px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:12px}
+.cal-left{width:200px;border-right:1px solid var(--border);padding:14px 14px 14px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:12px}
 .cal-center{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-height:0}
-.cal-right{width:200px;border-left:1px solid var(--border);padding:14px;overflow-y:auto;background:var(--bg2)}
+.cal-right{width:200px;border-left:1px solid var(--border);padding:14px 14px 14px;overflow-y:auto;background:var(--bg2)}
 .cal-side-title{font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;display:inline-block;text-transform:uppercase;letter-spacing:0.05em}
 .cal-side-title.current{background:#e5e7e6;color:#6b7171}
 .cal-side-title.next{background:#e8e0d8;color:#8a7460}
@@ -136,6 +136,11 @@ textarea{resize:vertical;min-height:60px}
 .notes-input{width:100%;padding:8px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);resize:vertical;min-height:80px;font-family:inherit}
 .notes-input:focus{outline:none;border-color:var(--accent);background:var(--bg2)}
 .divider{height:1px;background:var(--border);margin:8px 0}
+
+/* Drag & Drop */
+.dnd-over{background:var(--bg3)!important;outline:2px dashed var(--accent);}
+tr[draggable]{cursor:grab;}
+tr[draggable]:active{cursor:grabbing;}
 </style>
 </head>
 <body>
@@ -236,7 +241,7 @@ textarea{resize:vertical;min-height:60px}
               <th style="min-width:160px">名稱</th>
               <th style="min-width:100px">負責人員</th>
               <th style="min-width:90px">Deadline</th>
-              <th style="min-width:90px">完成日期 <button onclick="openAdd()" style="border:none;background:var(--bg3);color:var(--text2);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-weight:600;margin-left:4px">＋</button></th>
+              <th style="min-width:90px">完成日期 <button onclick="openProgNew()" style="border:none;background:var(--bg3);color:var(--text2);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-weight:600;margin-left:4px">＋</button></th>
               <th style="width:36px"></th>
             </tr>
           </thead>
@@ -855,7 +860,13 @@ function renderProgContent(){
       const tid=t&&t.id?t.id:'';
       const safeid=tid.replace(/[^a-zA-Z0-9]/g,'')||('at'+at.key.replace(/[^a-zA-Z0-9]/g,''));
       const toggleBtn=hasSub?`<button onclick="event.stopPropagation();progToggleSub('${safeid}')" id="stbtn_${safeid}" style="border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:11px;line-height:1;padding:0 2px">▾</button>`:'';
-      html+=`<tr onclick="openProgDetail('${at.key}')" style="cursor:pointer${isDone?';opacity:0.55':''}">
+      html+=`<tr id="dndrow_${at.key}" onclick="openProgDetail('${at.key}')" 
+      draggable="true"
+      ondragstart="dndStart(event,'${at.key}')"
+      ondragover="dndOver(event,'${at.key}')"
+      ondragleave="dndLeave(event,'${at.key}')"
+      ondrop="dndDrop(event,'${at.key}')"
+      style="cursor:grab${isDone?';opacity:0.55':''}">
         <td onclick="event.stopPropagation();quickDone('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
         <td style="font-size:11px;white-space:nowrap">${t&&t.date?t.date:''}</td>
         <td style="font-weight:${isDone?'400':'500'}">${at.label}${badge}${toggleBtn}</td>
@@ -930,9 +941,7 @@ function openProgDetail(atKey){
   }).join('');
 
   renderDetailSubs(t);
-  // Show/hide delete button based on whether a Firebase record exists
-  const delBtn=document.querySelector('#taskDetailOverlay .btn[onclick="deleteCurrentTask()"]');
-  if(delBtn)delBtn.style.display=_detailTaskId?'':'none';
+  // Always show delete button
   document.getElementById('taskDetailOverlay').classList.add('open');
 }
 
@@ -1078,39 +1087,67 @@ function saveTaskDetail(){
   const data={annualKey:atKey,progYear:String(progYear),title:at?.label||'',date,deadline,doneDate,status,desc,done,parts:t?.parts||[],subtasks:t?.subtasks||{}};
   if(_detailTaskId){
     db.ref('tasks/'+_detailTaskId).update(data).then(()=>{
-      if(t)Object.assign(t,data);
-      renderProgContent();closeTaskDetail();
+      const idx=tasks.findIndex(x=>x.id===_detailTaskId);
+      if(idx>=0)Object.assign(tasks[idx],data);
+      renderProgContent();
+      closeTaskDetail();
     });
   } else {
     db.ref('tasks').push(data).then(ref=>{
+      const newTask={id:ref.key,...data};
+      tasks.push(newTask);
       _detailTaskId=ref.key;
-      tasks.push({id:ref.key,...data});
-      renderProgContent();closeTaskDetail();
+      renderProgContent();
+      closeTaskDetail();
     });
   }
 }
 
 function deleteCurrentTask(){
+  // 再找一次，確保 id 是最新的
+  if(_detailKey){
+    const fresh=getProgTask(_detailKey);
+    if(fresh)_detailTaskId=fresh.id;
+  }
   if(!_detailTaskId){
-    alert('此工作尚未有任何記錄可刪除');
+    alert('此工作尚未有儲存記錄，無需刪除');
     closeTaskDetail();
     return;
   }
-  if(!confirm('確定要刪除此工作的所有資料？此動作無法復原。'))return;
-  db.ref('tasks/'+_detailTaskId).remove()
+  if(!confirm('確定要刪除此工作的所有資料？'))return;
+  const idToDelete=_detailTaskId;
+  // 直接用 Firebase set(null) 刪除（比 remove() 更可靠）
+  db.ref('tasks/'+idToDelete).set(null)
     .then(()=>{
-      tasks=tasks.filter(x=>x.id!==_detailTaskId);
+      tasks=tasks.filter(x=>x.id!==idToDelete);
       _detailTaskId=null;
       _detailKey=null;
       renderProgContent();
       closeTaskDetail();
     })
-    .catch(err=>alert('刪除失敗：'+err.message));
+    .catch(err=>{
+      console.error('Delete error:',err);
+      alert('刪除失敗：'+err.message+'\n請確認 Firebase 規則允許寫入');
+    });
 }
 
 function openSubDetail(atKey,si){
-  // 開右側面板查看子計畫（目前用 openProgDetail 帶到父工作）
   openProgDetail(atKey);
+}
+
+// 工作進度頁右上角＋按鈕 → 彈出選擇要建立哪個工作的面板
+function openProgNew(){
+  // 開一個選擇器，讓使用者選擇要新增哪個工作項目
+  const unset=ANNUAL_TASKS.filter(at=>!getProgTask(at.key));
+  if(unset.length===0){alert('本年度所有工作均已建立記錄');return;}
+  // 顯示選擇 dialog
+  const sel=window.prompt('請輸入要新增的項目編號：
+'+unset.map((at,i)=>`${i+1}. ${at.label}`).join('
+'));
+  if(!sel)return;
+  const idx=parseInt(sel)-1;
+  if(isNaN(idx)||idx<0||idx>=unset.length){alert('無效編號');return;}
+  openProgDetail(unset[idx].key);
 }
 
 function closeTaskDetail(){document.getElementById('taskDetailOverlay').classList.remove('open');}
@@ -1241,6 +1278,90 @@ function saveTask(){
 
 function closeDetail(){document.getElementById('detailOverlay').classList.remove('open');}
 function deleteTask(id){if(!confirm('確定要刪除?'))return;db.ref('tasks/'+id).remove();}
+
+
+// ── 拖曳變子計畫 ──
+let _dndSrc=null;
+
+function dndStart(ev,atKey){
+  _dndSrc=atKey;
+  ev.dataTransfer.effectAllowed='move';
+  ev.dataTransfer.setData('text/plain',atKey);
+}
+
+function dndOver(ev,atKey){
+  if(atKey===_dndSrc)return;
+  ev.preventDefault();
+  ev.dataTransfer.dropEffect='move';
+  const row=document.getElementById('dndrow_'+atKey.replace(/[^a-zA-Z0-9_-]/g,''));
+  if(row)row.classList.add('dnd-over');
+}
+
+function dndLeave(ev,atKey){
+  // Use the id format consistent with renderProgContent
+  document.querySelectorAll('.dnd-over').forEach(r=>r.classList.remove('dnd-over'));
+}
+
+function dndDrop(ev,targetKey){
+  ev.preventDefault();
+  document.querySelectorAll('.dnd-over').forEach(r=>r.classList.remove('dnd-over'));
+  const srcKey=_dndSrc;
+  _dndSrc=null;
+  if(!srcKey||srcKey===targetKey)return;
+  
+  const srcTask=getProgTask(srcKey);
+  const targetTask=getProgTask(targetKey);
+  const srcAt=ANNUAL_TASKS.find(x=>x.key===srcKey);
+  
+  if(!confirm(`確定要將「${srcAt?.label||srcKey}」變成上方工作的子計畫？`))return;
+  
+  // Ensure target task exists
+  const ensureTarget=(cb)=>{
+    if(targetTask){cb(targetTask);return;}
+    const at=ANNUAL_TASKS.find(x=>x.key===targetKey);
+    const data={annualKey:targetKey,progYear:String(progYear),title:at?.label||'',done:false,status:'notstarted',parts:[],subtasks:{}};
+    db.ref('tasks').push(data).then(ref=>{
+      const newT={id:ref.key,...data};
+      tasks.push(newT);
+      cb(newT);
+    });
+  };
+  
+  ensureTarget(target=>{
+    // Build subtask from srcTask or just the label
+    const sub={
+      title:srcAt?.label||srcKey,
+      done:srcTask?.done||false,
+      date:srcTask?.date||'',
+      deadline:srcTask?.deadline||'',
+      doneDate:srcTask?.doneDate||'',
+      parts:srcTask?.parts||[],
+      createdAt:new Date().toISOString()
+    };
+    
+    db.ref('tasks/'+target.id+'/subtasks').push(sub).then(()=>{
+      // If srcTask existed, delete it from Firebase
+      if(srcTask){
+        db.ref('tasks/'+srcTask.id).remove().then(()=>{
+          tasks=tasks.filter(x=>x.id!==srcTask.id);
+          db.ref('tasks/'+target.id).once('value',snap=>{
+            const updated={id:target.id,...snap.val()};
+            const idx=tasks.findIndex(x=>x.id===target.id);
+            if(idx>=0)tasks[idx]=updated;else tasks.push(updated);
+            renderProgContent();
+          });
+        });
+      } else {
+        db.ref('tasks/'+target.id).once('value',snap=>{
+          const updated={id:target.id,...snap.val()};
+          const idx=tasks.findIndex(x=>x.id===target.id);
+          if(idx>=0)tasks[idx]=updated;else tasks.push(updated);
+          renderProgContent();
+        });
+      }
+    });
+  });
+}
 
 function toggleSidebar(){
   const sb=document.getElementById('mainSidebar');
