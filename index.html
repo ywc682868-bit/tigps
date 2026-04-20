@@ -746,7 +746,8 @@ function sendAlarmEmail(taskTitle, partIds) {
   if (confirm('即將開啟 Gmail 網頁版來寄送提醒通知給參與成員。\n\n(註：純網頁無法在背景自動寄信，系統會幫您寫好草稿，請您確認後手動點擊送出)')) {
     const subject = encodeURIComponent(`【TIGPS 任務提醒】${taskTitle}`);
     const body = encodeURIComponent(`您好，\n\n這是一封來自 TIGPS 系統的任務提醒。\n\n工作名稱：${taskTitle}\n\n請記得至系統確認詳細進度與期限！\n\n祝 順心`);
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&bcc=${emails.join(',')}&su=${subject}&body=${body}`;
+    // 將 bcc 改為 to 參數，即可將人員設定為收件者
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${emails.join(',')}&su=${subject}&body=${body}`;
     window.open(gmailUrl, '_blank');
   }
 }
