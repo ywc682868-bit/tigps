@@ -654,7 +654,7 @@ function renderCalendar(){
     const chips=allChipTasks.slice(0,3).map(t=>{
       const isDL=!t.date||t.date!==ds;
       const border=isDL?'border-left:2px solid #c97070;':'';
-      return `<div class="cal-chip chip-${t.cat||'data'}" style="${border}" onclick="openEdit('${t.id}');event.stopPropagation()">${isDL?'⏰ ':''}${t.title}</div>`;
+      return `<div class="cal-chip chip-${t.cat||'data'}" style="${border}" onclick="openEdit('${t.id}');event.stopPropagation()">${t.title}</div>`;
     }).join('');
     const more=allChipTasks.length>3?`<div style="font-size:9px;color:var(--text3);padding:1px">+${allChipTasks.length-3}</div>`:'';
     cells+=`<div class="cal-cell ${cellCls} ${holidayCls} ${todayCls}" onclick="openAddOnDate('${ds}')"><div class="${numCls}">${d}</div>${holidayLabel}${chips}${more}</div>`;
@@ -801,12 +801,12 @@ function renderProgContent(){
   const tbody=document.getElementById('progTbody');
   if(!barEl||!tbody)return;
 
-  // 從 tasks 過濾出該年度的 ANNUAL_TASKS（用 annualKey 欄位匹配）
-  // 年份比對：有 progYear 就比對，沒有 progYear 的舊資料視為 2024
-  const yearTasks=ANNUAL_TASKS.map(at=>{
-    const found=tasks.find(t=>t.annualKey===at.key&&((String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024'))||(t.progYear==null&&String(progYear)==='2024')));
-    return {at,task:found||null};
-  });
+  // 用統一的年份比對找 task
+  const yearStr=String(progYear);
+  const findTask=key=>tasks.find(t=>t.annualKey===key&&(
+    String(t.progYear)===yearStr||(t.progYear==null&&yearStr==='2023')
+  ));
+  const yearTasks=ANNUAL_TASKS.map(at=>({at,task:findTask(at.key)||null}));
 
   const done=yearTasks.filter(x=>x.task&&x.task.done).length;
   const pct=Math.round(done/ANNUAL_TASKS.length*100);
@@ -820,44 +820,46 @@ function renderProgContent(){
       <div style="height:100%;background:var(--accent);width:${pct}%;transition:width 0.4s;border-radius:4px"></div>
     </div>`;
 
-  tbody.innerHTML=yearTasks.map(({at,task},idx)=>{
+  tbody.innerHTML=yearTasks.map(({at,task})=>{
     const t=task;
-    const done=t&&t.done;
+    const isDone=t&&t.done;
     const assignees=t&&t.parts?MEMBERS.filter(m=>t.parts.includes(m.id))
       .map(m=>`<span style="display:flex;flex-direction:column;align-items:center;gap:2px">${getMemberAvatar(m,24)}<span style="font-size:8px;color:var(--text3)">${(memberData[m.id]&&memberData[m.id].name)||m.name}</span></span>`).join(''):'';
     const subtasks=t&&t.subtasks?Object.values(t.subtasks):[];
     const subDone=subtasks.filter(s=>s.done).length;
     const hasSub=subtasks.length>0;
-    const subBadge=hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:6px">${subDone}/${subtasks.length}</span>`:'';
-    const collapseId=`sub_${at.key.replace(/[^a-z0-9]/gi,'_')}`;
-    const toggleBtn=hasSub?`<button onclick="event.stopPropagation();toggleSubRows('${collapseId}')" style="border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:11px;padding:0 4px" id="tbtn_${collapseId}">▾</button>`:'';
-    return `<tr class="${done?'done-row':''}" id="progrow_${at.key}" style="cursor:pointer" onclick="openProgTaskDetail('${at.key}')">
-      <td onclick="event.stopPropagation();toggleProgDirect('${at.key}')"><div class="check ${done?'done':''}">${done?'✓':''}</div></td>
+    const subBadge=hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:5px">${subDone}/${subtasks.length}</span>`:'';
+    // 用 task.id 做收合 id 避免特殊字符
+    const cid=t?`c${t.id.replace(/[^a-z0-9]/gi,'')}`:null;
+    const toggleBtn=hasSub&&cid?`<button onclick="event.stopPropagation();toggleSubRows('${cid}')" id="tbtn_${cid}" style="border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:11px;padding:0 3px">▾</button>`:'';
+    const subRows=hasSub&&cid?subtasks.map((s,si)=>`<tr data-cid="${cid}" style="background:var(--bg2)">
+      <td style="padding-left:18px"><div class="check ${s.done?'done':''}" onclick="toggleSubtask('${at.key}',${si})">${s.done?'✓':''}</div></td>
+      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.date||''}</td>
+      <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}">↳ ${s.title}</td>
+      <td><div style="display:flex;gap:3px">${s.parts?MEMBERS.filter(m=>s.parts.includes(m.id)).map(m=>getMemberAvatar(m,18)).join(''):''}</div></td>
+      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.deadline||''}</td>
+      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.doneDate||''}</td>
+      <td></td>
+    </tr>`).join(''):'';
+    return `<tr id="progrow_${at.key}" style="cursor:pointer;${isDone?'opacity:0.55':''}" onclick="openProgTaskDetail('${at.key}')">
+      <td onclick="event.stopPropagation();toggleProgDirect('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
       <td style="white-space:nowrap;font-size:11px">${t&&t.date?t.date:''}</td>
-      <td style="font-weight:${done?'400':'500'};color:var(--accent)">${at.label}${subBadge}${toggleBtn}</td>
+      <td style="font-weight:${isDone?'400':'500'};color:var(--accent)">${at.label}${subBadge}${toggleBtn}</td>
       <td><div style="display:flex;gap:4px;flex-wrap:wrap">${assignees}</div></td>
       <td style="font-size:11px;white-space:nowrap">${t&&t.deadline?t.deadline:''}</td>
       <td style="font-size:11px;white-space:nowrap">${t&&t.doneDate?t.doneDate:''}</td>
       <td><button onclick="event.stopPropagation();openProgTaskDetail('${at.key}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:14px">›</button></td>
-    </tr>
-    ${subtasks.map((s,si)=>`<tr class="subrow-${collapseId}" style="background:var(--bg2)">
-      <td style="padding-left:20px"><div class="check ${s.done?'done':''}" onclick="toggleSubtask('${at.key}',${si})">${s.done?'✓':''}</div></td>
-      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.date||''}</td>
-      <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}" >↳ ${s.title}</td>
-      <td><div style="display:flex;gap:4px;flex-wrap:wrap">${s.parts?MEMBERS.filter(m=>s.parts.includes(m.id)).map(m=>getMemberAvatar(m,18)).join(''):''}</div></td>
-      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.deadline||''}</td>
-      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.doneDate||''}</td>
-      <td><button onclick="event.stopPropagation();openSubtaskDetail('${at.key}',${si})" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:12px">›</button></td>
-    </tr>`).join('')}`;
+    </tr>${subRows}`;
   }).join('');
 }
 
-function toggleSubRows(collapseId){
-  const rows=document.querySelectorAll('.subrow-'+collapseId);
-  const btn=document.getElementById('tbtn_'+collapseId);
-  const hidden=rows.length&&rows[0].style.display==='none';
-  rows.forEach(r=>r.style.display=hidden?'':'none');
-  if(btn)btn.textContent=hidden?'▾':'▸';
+function toggleSubRows(cid){
+  const rows=document.querySelectorAll(`tr[data-cid="${cid}"]`);
+  const btn=document.getElementById('tbtn_'+cid);
+  if(!rows.length)return;
+  const isHidden=rows[0].style.display==='none';
+  rows.forEach(r=>r.style.display=isHidden?'':'none');
+  if(btn)btn.textContent=isHidden?'▾':'▸';
 }
 
 let currentProgKey=null;
@@ -868,9 +870,10 @@ const WAVE_LABELS={2023:'W1 2023',2024:'W2 2024',2025:'W3 2025',2026:'W4 2026'};
 function openProgTaskDetail(atKey){
   currentProgKey=atKey;
   const at=ANNUAL_TASKS.find(x=>x.key===atKey);
-  // 用寬鬆比對找到 task，並記錄其 id
+  // 統一用 yearStr 比對
+  const yearStr=String(progYear);
   const task=tasks.find(t=>t.annualKey===atKey&&(
-    String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')
+    String(t.progYear)===yearStr||(t.progYear==null&&yearStr==='2023')
   ));
   currentTaskId=task?task.id:null;
 
@@ -906,7 +909,7 @@ function openProgTaskDetail(atKey){
 
 function toggleTdAssignee(mid){
   const el=document.getElementById('tda_'+mid);
-  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
+  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
   let parts=task&&task.parts?[...task.parts]:[];
   const idx=parts.indexOf(mid);
   if(idx>=0)parts.splice(idx,1); else parts.push(mid);
@@ -935,7 +938,7 @@ function renderTdSubtasks(task){
 function addSubtask(){
   const title=prompt('子任務名稱：');
   if(!title)return;
-  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
+  const task=tasks.find(t=>t.annualKey===currentProgKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
   const newSub={title,done:false,createdAt:new Date().toISOString()};
   if(task){
     const ref=db.ref('tasks/'+task.id+'/subtasks').push(newSub);
@@ -965,7 +968,7 @@ function addSubtask(){
 }
 
 function toggleSubtask(atKey,idx){
-  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
+  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
   if(!task||!task.subtasks)return;
   const keys=Object.keys(task.subtasks);
   if(!keys[idx])return;
@@ -980,7 +983,7 @@ function toggleSubtask(atKey,idx){
 
 function deleteSubtask(atKey,idx){
   if(!confirm('確定刪除子任務？'))return;
-  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
+  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
   if(!task||!task.subtasks)return;
   const keys=Object.keys(task.subtasks);
   if(!keys[idx])return;
@@ -992,7 +995,7 @@ function deleteSubtask(atKey,idx){
 }
 
 function toggleProgDirect(atKey){
-  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2024')));
+  const task=tasks.find(t=>t.annualKey===atKey&&(String(t.progYear)===String(progYear)||(t.progYear==null&&String(progYear)==='2023')));
   if(task){
     const newDone=!task.done;
     const update={done:newDone,status:newDone?'done':'notstarted',doneDate:newDone?new Date().toISOString().split('T')[0]:''};
