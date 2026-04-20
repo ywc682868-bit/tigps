@@ -689,12 +689,13 @@ function renderDashSidebar(){
 // 波次依序 W1, W2, W3... 跟年份無關
 const PROG_YEARS_ORDER=[2023,2024,2025,2026];
 let progYears=[...PROG_YEARS_ORDER];
+let WAVE_LABELS={2023:'W1 2023',2024:'W2 2024',2025:'W3 2025',2026:'W4 2026'};
 function getWaveLabel(year){
   const idx=progYears.indexOf(year);
   return idx>=0?`W${idx+1} ${year}`:`W? ${year}`;
 }
-// 重新建立 WAVE_LABELS（動態）
 function rebuildWaveLabels(){
+  WAVE_LABELS={};
   progYears.forEach((y,i)=>{WAVE_LABELS[y]=`W${i+1} ${y}`;});
 }
 function addNextProgYear(){
