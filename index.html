@@ -416,6 +416,7 @@ tr[draggable]:active{cursor:grabbing}
       <label class="flabel">姓名</label>
       <input type="text" id="memberEditName" placeholder="輸入姓名">
     </div>
+    
     <div class="fg">
       <label class="flabel">信箱</label>
       <input type="email" id="memberEditEmail" placeholder="輸入信箱">
@@ -604,6 +605,7 @@ db.ref('tasks').on('value', snapshot => {
   renderCalendar();
   renderDashSidebar();
   renderProgContent();
+  
   if (_detailKey && document.getElementById('taskDetailOverlay').classList.contains('open')) {
     const freshTask = getProgTask(_detailKey);
     _detailTaskId = freshTask ? freshTask.id : null;
@@ -682,8 +684,10 @@ function saveMemberEdit() {
   const email = document.getElementById('memberEditEmail').value.trim();
   if (!name) return;
   if (!memberData[id]) memberData[id] = {};
+  
   memberData[id].name = name;
   memberData[id].email = email;
+  
   const preview = document.getElementById('memberEditPreview');
   const hasPhoto = preview && preview.src && preview.src.length > 100 && !preview.src.endsWith('undefined');
   const dataToSave = { name, email };
@@ -736,13 +740,14 @@ function sendAlarmEmail(taskTitle, partIds) {
     alert('已勾選鬧鐘通知，但您所選擇的參與成員均未設定有效的電子信箱。');
     return;
   }
-  const useOfficial = confirm('要使用官方帳號 (tigpsteam@gmail.com) 寄信嗎？\n\n按「確定」：開啟官方帳號撰寫視窗 (需先登入)\n按「取消」：使用目前瀏覽器登入的帳號');
+  
+  if (!confirm('要使用官方帳號 (tigpsteam@gmail.com) 寄信通知參與成員嗎？\n\n按「確定」：開啟官方帳號撰寫視窗\n按「取消」：取消寄信')) {
+    return;
+  }
+  
   const subject = encodeURIComponent(`【TIGPS 任務提醒】${taskTitle}`);
   const body = encodeURIComponent(`您好，\n\n這是一封來自 TIGPS 系統的任務提醒。\n\n工作名稱：${taskTitle}\n\n請記得至系統確認詳細進度與期限！\n\n祝 順心\n\nTIGPS 團隊敬上`);
-  let baseUrl = "https://mail.google.com/mail/?view=cm&fs=1";
-  if (useOfficial) {
-    baseUrl = "https://mail.google.com/mail/u/tigpsteam@gmail.com/?view=cm&fs=1";
-  }
+  const baseUrl = "https://mail.google.com/mail/u/tigpsteam@gmail.com/?view=cm&fs=1";
   const gmailUrl = `${baseUrl}&to=${emails.join(',')}&su=${subject}&body=${body}`;
   window.open(gmailUrl, '_blank');
 }
@@ -754,15 +759,20 @@ function renderCalendar() {
   const first = new Date(calYear, calMonth, 1);
   const lastDay = new Date(calYear, calMonth + 1, 0).getDate();
   const startDow = first.getDay();
-  const allEvts = getAllCalendarEvents();
+  const monthStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+
   let cells = '';
   const prevMonth = calMonth === 0 ? 11 : calMonth - 1;
   const prevYear = calMonth === 0 ? calYear - 1 : calYear;
   const prevLastDay = new Date(prevYear, prevMonth + 1, 0).getDate();
+  
+  const allEvts = getAllCalendarEvents();
+
   for (let i = 0; i < startDow; i++) {
     const d = prevLastDay - startDow + i + 1;
     cells += `<div class="cal-cell other-month"><div class="cal-date-num">${d}</div></div>`;
   }
+
   for (let d = 1; d <= lastDay; d++) {
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dt = allEvts.filter(e => e.date === ds);
@@ -770,18 +780,26 @@ function renderCalendar() {
     const allChips = [...dt, ...dlTasks];
     const isT = new Date(calYear, calMonth, d).getTime() === today.getTime();
     const numCls = isT ? 'cal-date-num today' : 'cal-date-num';
-    const weekendCls = (new Date(ds).getDay() === 0 || new Date(ds).getDay() === 6) ? 'weekend' : '';
+    const dow = new Date(ds).getDay();
+    const weekendCls = (dow === 0 || dow === 6) ? 'weekend' : '';
     const holidayName = TW_HOLIDAYS[ds] || '';
+    const holidayCls = holidayName ? 'holiday' : '';
+    const todayCls = isT ? 'is-today' : '';
+    const holidayLabel = holidayName
+      ? `<div style="font-size:8px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`
+      : '';
     const chips = allChips.slice(0, 3).map(e => {
       const isDL = e.deadline === ds && e.date !== ds;
       const border = isDL ? 'border-left:2px solid #c97070;' : '';
-      return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="openEdit('${e.id}');event.stopPropagation()">${e.title}</div>`;
+      const clickAction = `openEdit('${e.id}')`;
+      return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="${clickAction};event.stopPropagation()">${e.title}</div>`;
     }).join('');
     const more = allChips.length > 3 ? `<div style="font-size:9px;color:var(--text3);padding:1px">+${allChips.length-3}</div>` : '';
-    cells += `<div class="cal-cell ${weekendCls} ${holidayName?'holiday':''} ${isT?'is-today':''}" onclick="openAddOnDate('${ds}')">
-      <div class="${numCls}">${d}</div>${holidayName?`<div style="font-size:8px;color:#c97070;">${holidayName}</div>`:''}${chips}${more}
+    cells += `<div class="cal-cell ${weekendCls} ${holidayCls} ${todayCls}" onclick="openAddOnDate('${ds}')">
+      <div class="${numCls}">${d}</div>${holidayLabel}${chips}${more}
     </div>`;
   }
+
   const total = startDow + lastDay;
   const rem = (7 - total % 7) % 7;
   for (let i = 0; i < rem; i++) cells += `<div class="cal-cell other-month"><div class="cal-date-num">${i+1}</div></div>`;
@@ -908,6 +926,38 @@ function renderProgContent() {
     </tr>`;
   }
   tbody.innerHTML = html;
+}
+
+function progToggleSub(safeKey) {
+  const rows = document.querySelectorAll('.subrow_' + safeKey);
+  const btn = document.getElementById('stbtn_' + safeKey);
+  if (!rows.length) return;
+  const isHidden = rows[0].style.display === 'none';
+  rows.forEach(r => { r.style.display = isHidden ? '' : 'none'; });
+  if (btn) btn.textContent = isHidden ? '▾' : '▸';
+}
+
+function quickDone(atKey) {
+  const t = getProgTask(atKey);
+  if (t) {
+    const newDone = !t.done;
+    const doneDate = newDone ? new Date().toISOString().split('T')[0] : '';
+    db.ref('tasks/' + t.id).update({ done: newDone, status: newDone ? 'done' : 'notstarted', doneDate });
+  } else {
+    let at = ANNUAL_TASKS.find(x => x.key === atKey);
+    const data = {
+      annualKey: atKey,
+      progYear: String(progYear),
+      title: at ? at.label : '未命名工作',
+      done: true,
+      status: 'done',
+      doneDate: new Date().toISOString().split('T')[0],
+      parts: [],
+      subtasks: {},
+      deleted: false
+    };
+    db.ref('tasks').push(data);
+  }
 }
 
 // ── Progress Detail Logic ──
