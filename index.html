@@ -427,10 +427,11 @@ let selCreator = '';
 let selParts = [];
 let progYear = 2023;
 let progYears = [2023, 2024, 2025, 2026];
-let progOrders = {}; // 存放自訂排序的陣列
+let progOrders = {}; 
 let _detailKey = null;
 let _detailTaskId = null;
 let _dndSrc = null;
+let _dndAction = null; // 用於判斷拖曳行為是「排序」或「子計畫」
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -854,6 +855,7 @@ function yearTabDrop(ev, targetYear) {
   
   const srcKey = _dndSrc;
   _dndSrc = null;
+  _dndAction = null;
   if (!srcKey) return;
   
   const t = getProgTask(srcKey);
@@ -1210,7 +1212,6 @@ function toggleSubMember(subKey, mid) {
 }
 
 function addSubtask() {
-  // 直接建立空的子計畫，不使用 prompt() 詢問
   const newSub = { title: '', done: false, date: '', deadline: '', doneDate: '', parts: [], createdAt: new Date().toISOString() };
   ensureProgTask(_detailKey, t => {
     db.ref(`tasks/${t.id}/subtasks`).push(newSub).then(() => {
@@ -1308,7 +1309,6 @@ function copyCurrentTask() {
   delete newData.id;
 
   db.ref('tasks').push(newData).then((ref) => {
-    // 複製成功後，直接開啟剛複製的任務
     openProgDetail(newKey);
     renderProgContent();
   });
@@ -1374,9 +1374,10 @@ function ensureProgTask(atKey, cb) {
   });
 }
 
-// ── Drag and Drop Reordering ──────────────────────────────────────────────────
+// ── Drag and Drop (Reordering & Subtask) ──────────────────────────────────────
 function dndStart(ev, atKey) {
   _dndSrc = atKey;
+  _dndAction = null;
   ev.dataTransfer.effectAllowed = 'move';
   ev.dataTransfer.setData('text/plain', atKey);
 }
@@ -1385,28 +1386,98 @@ function dndOver(ev, atKey) {
   if (atKey === _dndSrc) return;
   ev.preventDefault();
   ev.dataTransfer.dropEffect = 'move';
-  // 加入上方邊框的視覺提示，讓使用者知道會插入在此列之上
+  
   const row = document.getElementById('dndrow_' + atKey);
-  if (row) row.style.borderTop = '2px solid var(--accent)';
+  if (!row) return;
+
+  const rect = row.getBoundingClientRect();
+  const y = ev.clientY - rect.top;
+
+  // 清除預設樣式
+  row.style.borderTop = '';
+  row.style.borderBottom = '';
+  row.style.backgroundColor = '';
+  row.style.outline = '';
+
+  // 判斷意圖：上方30%排序、下方30%排序、中間40%轉換為子計畫
+  if (y < rect.height * 0.3) {
+    row.style.borderTop = '2px solid var(--accent)';
+    _dndAction = 'above';
+  } else if (y > rect.height * 0.7) {
+    row.style.borderBottom = '2px solid var(--accent)';
+    _dndAction = 'below';
+  } else {
+    row.style.backgroundColor = 'var(--bg3)';
+    row.style.outline = '2px dashed var(--accent)';
+    _dndAction = 'subtask';
+  }
 }
 
 function dndLeave(ev, atKey) {
   const row = document.getElementById('dndrow_' + atKey);
-  if (row) row.style.borderTop = '';
+  if (row) {
+    row.style.borderTop = '';
+    row.style.borderBottom = '';
+    row.style.backgroundColor = '';
+    row.style.outline = '';
+  }
 }
 
 function dndDrop(ev, targetKey) {
   ev.preventDefault();
   
-  // 清除視覺提示
-  const row = document.getElementById('dndrow_' + targetKey);
-  if (row) row.style.borderTop = '';
+  document.querySelectorAll('.data-table tr').forEach(r => {
+    r.style.borderTop = '';
+    r.style.borderBottom = '';
+    r.style.backgroundColor = '';
+    r.style.outline = '';
+  });
 
   const srcKey = _dndSrc;
+  const action = _dndAction;
   _dndSrc = null;
+  _dndAction = null;
+
   if (!srcKey || srcKey === targetKey) return;
 
-  // 取得目前在畫面上渲染的全部鍵值順序
+  // 處理意圖：變成子計畫
+  if (action === 'subtask') {
+    const srcAt = ANNUAL_TASKS.find(x => x.key === srcKey);
+    const srcTask = getProgTask(srcKey);
+    
+    let srcLabel = srcKey;
+    if (srcAt) srcLabel = srcAt.label;
+    else if (srcTask) srcLabel = srcTask.title;
+
+    if (!confirm(`確定將「${srcLabel}」變成目標工作的子計畫？此操作無法還原。`)) return;
+
+    const sub = {
+      title: srcLabel,
+      done: srcTask ? (srcTask.done || false) : false,
+      date: srcTask ? (srcTask.date || '') : '',
+      deadline: srcTask ? (srcTask.deadline || '') : '',
+      doneDate: srcTask ? (srcTask.doneDate || '') : '',
+      parts: srcTask ? (srcTask.parts || []) : [],
+      createdAt: new Date().toISOString()
+    };
+
+    ensureProgTask(targetKey, targetTask => {
+      db.ref('tasks/' + targetTask.id + '/subtasks').push(sub).then(() => {
+        if (srcTask) {
+          db.ref('tasks/' + srcTask.id).update({deleted: true}).then(() => {
+            const idx = tasks.findIndex(x => x.id === srcTask.id);
+            if (idx >= 0) tasks[idx].deleted = true;
+            renderProgContent();
+          });
+        } else {
+          renderProgContent();
+        }
+      });
+    });
+    return;
+  }
+
+  // 處理意圖：重新排序 (above 或 below)
   let yearTasks = [];
   ANNUAL_TASKS.forEach(at => {
     const t = getProgTask(at.key);
@@ -1421,7 +1492,6 @@ function dndDrop(ev, targetKey) {
 
   let yearOrder = progOrders[progYear] || [];
   
-  // 套用與渲染時完全相同的排序以獲得當前正確陣列
   yearTasks.sort((a, b) => {
     const aDone = a.t && a.t.done ? 1 : 0;
     const bDone = b.t && b.t.done ? 1 : 0;
@@ -1446,12 +1516,16 @@ function dndDrop(ev, targetKey) {
   const srcIdx = currentKeys.indexOf(srcKey);
   const tgtIdx = currentKeys.indexOf(targetKey);
 
-  // 重新安插位置並存入 Firebase
   if (srcIdx > -1 && tgtIdx > -1) {
     currentKeys.splice(srcIdx, 1);
-    const newTgtIdx = currentKeys.indexOf(targetKey);
-    currentKeys.splice(newTgtIdx, 0, srcKey);
+    let newTgtIdx = currentKeys.indexOf(targetKey);
     
+    // 若意圖為下方，則插入點向後移一位
+    if (action === 'below') {
+      newTgtIdx += 1;
+    }
+    
+    currentKeys.splice(newTgtIdx, 0, srcKey);
     db.ref('progOrders/' + progYear).set(currentKeys);
   }
 }
