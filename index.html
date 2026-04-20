@@ -99,18 +99,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 /* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:300;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg);border-radius:8px;border:1px solid var(--border);width:520px;max-height:88vh;overflow-y:auto;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,0.08)}
+.modal{background:var(--bg);border-radius:12px;border:1px solid var(--border);width:540px;max-height:90vh;overflow-y:auto;padding:24px 28px;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .modal-title{font-size:16px;font-weight:600}
-.close-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center}
+.close-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
 .close-btn:hover{background:var(--bg2)}
 .fg{margin-bottom:14px}
-.flabel{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:0.05em}
-input,select,textarea{width:100%;padding:7px 10px;font-size:13px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);outline:none;font-family:inherit}
+.flabel{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+input[type="text"], input[type="date"], input[type="email"], select, textarea{width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;transition:border-color 0.2s;}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);background:var(--bg2)}
-textarea{resize:vertical;min-height:60px}
-.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
-.btn{padding:6px 14px;font-size:12px;border-radius:var(--radius);border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:5px;transition:all 0.2s}
+textarea{resize:vertical;min-height:80px}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.btn{padding:8px 18px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:5px;transition:all 0.2s}
 .btn:hover{background:var(--bg2)}
 .btn-primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 .btn-primary:hover{background:#5a6161}
@@ -291,12 +291,14 @@ tr[draggable]:active{cursor:grabbing}
 
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:10px">
+    <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:12px; flex-wrap: wrap;">
       <div id="creatorChips" style="display:flex;gap:6px;align-items:center;flex-shrink:0"></div>
+      
       <div class="fg" style="flex:0 0 auto;margin-bottom:0">
         <label class="flabel">波次</label>
         <select id="iProgYear" style="padding:7px 5px;width:88px"></select>
       </div>
+      
       <div class="fg" style="flex:0 0 auto;margin-bottom:0">
         <label class="flabel">類型</label>
         <select id="iCat" style="padding:7px 6px;width:90px" onchange="updateCatColor(this)">
@@ -307,6 +309,7 @@ tr[draggable]:active{cursor:grabbing}
           <option value="platform">💻 平台</option>
         </select>
       </div>
+      
       <div class="fg" style="flex:0 0 auto;margin-bottom:0">
         <label class="flabel" style="visibility:hidden">!</label>
         <select id="iUrgency" style="padding:7px 4px;width:54px;text-align:center">
@@ -315,52 +318,70 @@ tr[draggable]:active{cursor:grabbing}
           <option value="high">！！！</option>
         </select>
       </div>
+
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px; margin-left: 6px;">
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text2); font-weight: 500;">
+          <input type="checkbox" id="iDoneCheckbox" style="width:14px; height:14px;"> 完成
+        </label>
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text2); font-weight: 500;" title="寄信通知參與成員">
+          <input type="checkbox" id="iAlarmCheckbox" style="width:14px; height:14px;"> ⏰
+        </label>
+      </div>
+
       <div style="flex:1"></div>
-      <button class="close-btn" onclick="closeModal()" style="margin-bottom:1px">✕</button>
+      <button class="close-btn" onclick="closeModal()" style="margin-bottom:4px">✕</button>
     </div>
-    <div style="margin-bottom:14px">
-      <input type="text" id="iTitle" placeholder="輸入名稱..." style="width:100%;font-size:14px;font-weight:500;border:none;border-bottom:1.5px solid var(--border2);border-radius:0;padding:5px 0;background:transparent;outline:none">
+
+    <div style="margin-bottom:18px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
+      <input type="text" id="iTitle" placeholder="輸入名稱..." style="width:100%;font-size:18px;font-weight:600;border:none;border-radius:0;padding:0;background:transparent;outline:none;">
     </div>
-    <div style="display:flex;gap:12px;margin-bottom:14px">
-      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px">
+      <div style="display:flex;flex-direction:column;gap:12px">
         <div class="fg" style="margin-bottom:0"><label class="flabel">日期</label><input type="date" id="iDate"></div>
         <div class="fg" style="margin-bottom:0">
           <label class="flabel">時間</label>
-          <div style="display:flex;gap:3px">
-            <select id="iTimeH" style="flex:1;padding:7px 4px;text-align:center">
+          <div style="display:flex;gap:4px">
+            <select id="iTimeH" style="flex:1;text-align:center">
+              <option value="">--</option>
               <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option>
             </select>
             <span style="display:flex;align-items:center;color:var(--text2)">:</span>
-            <select id="iTimeM" style="flex:1;padding:7px 4px;text-align:center">
+            <select id="iTimeM" style="flex:1;text-align:center">
+              <option value="">--</option>
               <option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option>
             </select>
           </div>
         </div>
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+      <div style="display:flex;flex-direction:column;gap:12px">
         <div class="fg" style="margin-bottom:0"><label class="flabel">Deadline 日期</label><input type="date" id="iDeadline"></div>
         <div class="fg" style="margin-bottom:0">
           <label class="flabel">Deadline 時間</label>
-          <div style="display:flex;gap:3px">
-            <select id="iDeadlineH" style="flex:1;padding:7px 4px;text-align:center">
+          <div style="display:flex;gap:4px">
+            <select id="iDeadlineH" style="flex:1;text-align:center">
+              <option value="">--</option>
               <option>00</option><option>01</option><option>02</option><option>03</option><option>04</option><option>05</option><option>06</option><option>07</option><option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option><option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option><option>20</option><option>21</option><option>22</option><option>23</option>
             </select>
             <span style="display:flex;align-items:center;color:var(--text2)">:</span>
-            <select id="iDeadlineM" style="flex:1;padding:7px 4px;text-align:center">
+            <select id="iDeadlineM" style="flex:1;text-align:center">
+              <option value="">--</option>
               <option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option>
             </select>
           </div>
         </div>
       </div>
     </div>
-    <div class="fg" style="margin-bottom:14px">
+
+    <div class="fg" style="margin-bottom:16px">
       <label class="flabel">說明</label>
-      <textarea id="iDesc" style="min-height:48px"></textarea>
+      <textarea id="iDesc"></textarea>
     </div>
     <div class="fg" style="margin-bottom:0">
       <label class="flabel">參與成員</label>
-      <div id="partChips" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px"></div>
+      <div id="partChips" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px"></div>
     </div>
+    
     <div class="modal-footer" style="display:flex;justify-content:space-between">
       <button id="modalDeleteBtn" class="btn btn-danger" style="display:none" onclick="deleteEditingTask()">刪除</button>
       <button class="btn btn-primary" onclick="saveTask()">儲存</button>
@@ -375,6 +396,7 @@ tr[draggable]:active{cursor:grabbing}
       <button class="close-btn" onclick="closeMemberEdit()">✕</button>
     </div>
     <input type="hidden" id="memberEditId">
+    
     <div class="fg" style="text-align:center;margin-bottom:16px">
       <div style="position:relative;display:inline-block">
         <label id="photoUploadLabel" style="display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:50%;border:1.5px dashed var(--border2);background:var(--bg2);cursor:pointer;color:var(--text2);font-size:11px;flex-direction:column;gap:2px">
@@ -383,18 +405,26 @@ tr[draggable]:active{cursor:grabbing}
           <input type="file" accept="image/*" onchange="onPhotoChange(event)" id="photoInput" style="display:none">
         </label>
         <label id="photoPreviewLabel" style="display:none;cursor:pointer" title="點擊更換照片">
-          <img id="memberEditPreview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border2);display:block">
+          <img id="memberEditPreview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border2);display:block; margin: 0 auto;">
           <input type="file" accept="image/*" onchange="onPhotoChange(event)" style="display:none">
         </label>
         <button id="memberDeletePhotoBtn" onclick="deleteMemberPhoto()" title="移除照片" style="display:none;position:absolute;top:-2px;right:-2px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg);cursor:pointer;font-size:11px;color:var(--text2);align-items:center;justify-content:center">✕</button>
       </div>
       <div style="font-size:10px;color:var(--text3);margin-top:6px">點擊照片可更換</div>
     </div>
+    
     <div class="fg">
       <label class="flabel">姓名</label>
       <input type="text" id="memberEditName" placeholder="輸入姓名">
     </div>
-    <div class="modal-footer" style="justify-content:space-between">
+    <div class="fg">
+      <label class="flabel">信箱 <span style="font-weight:400; text-transform:none; color:var(--text3)">(設定後即可使用鬧鐘通知功能)</span></label>
+      <input type="email" id="memberEditEmail" placeholder="輸入信箱">
+    </div>
+    
+    <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
+    
+    <div class="modal-footer" style="justify-content:space-between; border-top:none; padding-top:0; margin-top:0;">
       <button class="btn btn-danger" onclick="confirmDeleteMember()">刪除成員</button>
       <div style="display:flex;gap:8px">
         <button class="btn" onclick="closeMemberEdit()">取消</button>
@@ -491,6 +521,7 @@ function getActiveMembers() {
     .map(([id, d], i) => ({
       id,
       name: d.name || id,
+      email: d.email || '',
       initials: (d.name || id).charAt(0),
       bg: MEMBER_BG[i % MEMBER_BG.length],
       photo: d.photo || null
@@ -525,7 +556,6 @@ function waveLabel(y) {
 function getAllCalendarEvents() {
   let events = [];
   tasks.filter(t => !t.deleted).forEach(t => {
-    // 匯入母任務
     if (t.date || t.deadline) {
       events.push({
         id: t.id,
@@ -539,7 +569,6 @@ function getAllCalendarEvents() {
         isSub: false
       });
     }
-    // 匯入所有子計畫
     if (t.subtasks) {
       Object.entries(t.subtasks).forEach(([sKey, s]) => {
         if (s.date || s.deadline) {
@@ -580,7 +609,7 @@ db.ref('tasks').on('value', snapshot => {
   renderCalendar();
   renderDashSidebar();
   renderProgContent();
-  // Refresh detail panel if open
+  
   if (_detailKey && document.getElementById('taskDetailOverlay').classList.contains('open')) {
     const freshTask = getProgTask(_detailKey);
     _detailTaskId = freshTask ? freshTask.id : null;
@@ -611,6 +640,7 @@ function openMemberEdit(id) {
   document.getElementById('memberEditOverlay').classList.add('open');
   document.getElementById('memberEditId').value = id;
   document.getElementById('memberEditName').value = saved.name || '';
+  document.getElementById('memberEditEmail').value = saved.email || '';
   refreshPhotoUI(saved.photo || null);
 }
 
@@ -655,12 +685,16 @@ function closeMemberEdit() { document.getElementById('memberEditOverlay').classL
 function saveMemberEdit() {
   const id = document.getElementById('memberEditId').value;
   const name = document.getElementById('memberEditName').value.trim();
+  const email = document.getElementById('memberEditEmail').value.trim();
   if (!name) return;
   if (!memberData[id]) memberData[id] = {};
+  
   memberData[id].name = name;
+  memberData[id].email = email;
+  
   const preview = document.getElementById('memberEditPreview');
   const hasPhoto = preview && preview.src && preview.src.length > 100 && !preview.src.endsWith('undefined');
-  const dataToSave = { name };
+  const dataToSave = { name, email };
   if (hasPhoto) {
     memberData[id].photo = preview.src;
     dataToSave.photo = preview.src;
@@ -668,8 +702,8 @@ function saveMemberEdit() {
   db.ref('members/' + id).set(dataToSave)
     .catch(err => {
       if (err.message && err.message.toLowerCase().includes('size')) {
-        db.ref('members/' + id).set({ name });
-        alert('照片太大，只儲存姓名。');
+        db.ref('members/' + id).set({ name, email });
+        alert('照片太大，只儲存姓名與信箱。');
       } else {
         alert('儲存失敗: ' + err.message);
       }
@@ -698,6 +732,28 @@ function onPhotoChange(e) {
     img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+// ── Send Email Function via Mailto ────────────────────────────────────────────
+function sendAlarmEmail(taskTitle, partIds) {
+  if (!partIds || partIds.length === 0) return;
+  
+  // 收集有填寫信箱的成員
+  const emails = partIds
+    .map(id => memberData[id] && memberData[id].email)
+    .filter(email => email && email.includes('@'));
+    
+  if (emails.length === 0) {
+    alert('已勾選鬧鐘通知，但您所選擇的參與成員均未設定有效的電子信箱。');
+    return;
+  }
+  
+  if (confirm('是否開啟您的預設郵件軟體，寄送提醒通知給參與成員？\n(受限於網頁安全性，此功能將利用信箱軟體的密件副本發送)')) {
+    const subject = encodeURIComponent(`【TIGPS 任務提醒】${taskTitle}`);
+    const body = encodeURIComponent(`您好，\n\n這是一封來自 TIGPS 系統的任務提醒。\n\n工作名稱：${taskTitle}\n\n請記得至系統確認詳細進度與期限！\n\n祝 順心`);
+    const mailtoUrl = `mailto:?bcc=${emails.join(',')}&subject=${subject}&body=${body}`;
+    window.location.href = mailtoUrl;
+  }
 }
 
 // ── Calendar ──────────────────────────────────────────────────────────────────
@@ -740,7 +796,7 @@ function renderCalendar() {
       const isDL = e.deadline === ds && e.date !== ds;
       const border = isDL ? 'border-left:2px solid #c97070;' : '';
       
-      // 無論是否為進度工作，只要在行事曆上點擊，一律開啟置中 Calendar Modal
+      // 在行事曆上點擊，一律開啟 Calendar Center Modal
       const clickAction = `openEdit('${e.id}')`;
       
       return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="${clickAction};event.stopPropagation()">${e.title}</div>`;
@@ -781,7 +837,6 @@ function renderDashSidebar() {
   const mtg = allEvts.filter(e => e.cat === 'meeting' && e.date && !e.done).sort((a,b) => a.date.localeCompare(b.date));
 
   const renderItem = e => {
-    // 側邊欄點擊亦一律開啟 Calendar Modal
     const clickAction = `openEdit('${e.id}')`;
     return `<div class="cal-side-item" onclick="${clickAction}">
       <div class="cal-side-dot" style="background:#8a6b66;margin-top:4px"></div>
@@ -883,7 +938,7 @@ function renderProgContent() {
 
   let yearTasks = [];
   
-  // 1. 預設的 ANNUAL_TASKS (略過被標示刪除的)
+  // 1. 預設的 ANNUAL_TASKS
   ANNUAL_TASKS.forEach(at => {
     const t = getProgTask(at.key);
     if (t && t.deleted) return; 
@@ -1031,52 +1086,13 @@ function quickDone(atKey) {
   }
 }
 
-// ── Progress: open new task via + button ──────────────────────────────────────
-function openProgNew() {
-  const newKey = 'custom_' + Date.now();
-  _detailKey = newKey;
-  _detailTaskId = null;
-
-  const badge = document.getElementById('tdCatBadge');
-  badge.textContent = waveLabel(progYear);
-
-  const titleInput = document.getElementById('tdTitle');
-  titleInput.value = '';
-  titleInput.placeholder = '新增工作';
-  titleInput.readOnly = false; // 開放修改標題
-  
-  document.getElementById('tdDate').value = '';
-  document.getElementById('tdDeadline').value = '';
-  document.getElementById('tdDoneDate').value = '';
-  document.getElementById('tdStatus').value = 'notstarted';
-  document.getElementById('tdDesc').value = '';
-  
-  const vis = getActiveMembers();
-  document.getElementById('tdAssignees').innerHTML = vis.map(m => {
-    const saved = memberData[m.id] || {};
-    const nm = saved.name || m.name;
-    const ph = saved.photo;
-    const av = ph
-      ? `<img src="${ph}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">`
-      : `<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;">${m.initials}</div>`;
-    return `<div id="tda_${m.id}" onclick="detailToggleAssignee('${m.id}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;opacity:0.4;transition:opacity 0.2s">
-      ${av}<span style="font-size:11px;color:#b4ada5;white-space:nowrap">${nm}</span>
-    </div>`;
-  }).join('');
-
-  document.getElementById('tdSubtasks').innerHTML = '<div style="font-size:12px;color:var(--text3);margin-top:8px;">尚無子計畫</div>';
-
-  document.getElementById('taskDetailOverlay').classList.add('open');
-}
-
-// ── Progress Detail Panel ─────────────────────────────────────────────────────
+// ── Progress Detail Panel (Right Slide-in) ────────────────────────────────────
 function openProgDetail(atKey) {
   _detailKey = atKey;
   const t = getProgTask(atKey);
   _detailTaskId = t ? t.id : null;
   const at = ANNUAL_TASKS.find(x => x.key === atKey);
 
-  // Badge
   const badge = document.getElementById('tdCatBadge');
   badge.textContent = waveLabel(progYear);
 
@@ -1084,7 +1100,6 @@ function openProgDetail(atKey) {
   titleInput.value = at ? at.label : (t ? t.title : '');
   titleInput.placeholder = '新增工作';
   
-  // 檢查是否為自訂工作，若不是則鎖定標題不讓使用者修改
   const isCustom = _detailKey && _detailKey.startsWith('custom_');
   titleInput.readOnly = !isCustom;
   
@@ -1094,7 +1109,6 @@ function openProgDetail(atKey) {
   document.getElementById('tdStatus').value = t ? (t.status || 'notstarted') : 'notstarted';
   document.getElementById('tdDesc').value = t ? (t.desc || '') : '';
 
-  // Assignees
   const vis = getActiveMembers();
   const selP = t ? (t.parts || []) : [];
   document.getElementById('tdAssignees').innerHTML = vis.map(m => {
@@ -1135,20 +1149,15 @@ function detailToggleAssigneeOnTask(t, mid) {
   if (idx >= 0) parts.splice(idx, 1); else parts.push(mid);
   t.parts = parts;
   db.ref('tasks/' + t.id + '/parts').set(parts);
-  // Update UI
   getActiveMembers().forEach(m => {
     const el = document.getElementById('tda_' + m.id);
     if (!el) return;
     const sel = parts.includes(m.id);
     el.style.opacity = sel ? '1' : '0.4';
     const img = el.querySelector('img,div');
-    if (img) {
-      img.style.boxShadow = sel ? '0 0 0 2px #fff, 0 0 0 4px var(--accent)' : '';
-    }
+    if (img) img.style.boxShadow = sel ? '0 0 0 2px #fff, 0 0 0 4px var(--accent)' : '';
     const nameSpan = el.querySelector('.td-assignee-name');
-    if (nameSpan) {
-      nameSpan.style.color = sel ? '#8b8580' : '#b4ada5';
-    }
+    if (nameSpan) nameSpan.style.color = sel ? '#8b8580' : '#b4ada5';
   });
 }
 
@@ -1162,14 +1171,11 @@ function renderDetailSubs(task) {
   }
   const vis = getActiveMembers();
   
-  // 渲染為可編輯的卡片式輸入介面
   el.innerHTML = subs.map(([subKey, s], i) => `
     <div style="padding:16px;border-radius:8px;background:var(--bg);border:1px solid var(--border2);margin-bottom:12px">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div class="check ${s.done?'done':''}" onclick="progSubToggle('${_detailKey}','${subKey}');renderDetailSubs(getProgTask('${_detailKey}'))">${s.done?'✓':''}</div>
-        
         <input type="text" value="${s.title||''}" placeholder="請輸入子計畫名稱" onchange="updateSubField('${subKey}','title',this.value)" style="flex:1;font-size:14px;font-weight:600;color:var(--text);border:none;background:transparent;outline:none;${s.done?'text-decoration:line-through;color:var(--text3)':''}">
-        
         <button onclick="deleteDetailSub('${subKey}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px">✕</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -1258,6 +1264,7 @@ function deleteDetailSub(subKey) {
 function saveTaskDetail() {
   const status = document.getElementById('tdStatus').value;
   const titleVal = document.getElementById('tdTitle').value.trim() || '未命名工作';
+  const isDone = status === 'done';
   const data = {
     annualKey: _detailKey,
     progYear: String(progYear),
@@ -1267,7 +1274,7 @@ function saveTaskDetail() {
     doneDate: document.getElementById('tdDoneDate').value,
     status,
     desc: document.getElementById('tdDesc').value,
-    done: status === 'done',
+    done: isDone,
     deleted: false 
   };
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
@@ -1399,13 +1406,11 @@ function dndOver(ev, atKey) {
   const rect = row.getBoundingClientRect();
   const y = ev.clientY - rect.top;
 
-  // 清除預設樣式
   row.style.borderTop = '';
   row.style.borderBottom = '';
   row.style.backgroundColor = '';
   row.style.outline = '';
 
-  // 判斷意圖：上方30%排序、下方30%排序、中間40%轉換為子計畫
   if (y < rect.height * 0.3) {
     row.style.borderTop = '2px solid var(--accent)';
     _dndAction = 'above';
@@ -1446,11 +1451,9 @@ function dndDrop(ev, targetKey) {
 
   if (!srcKey || srcKey === targetKey) return;
 
-  // 處理意圖：變成子計畫
   if (action === 'subtask') {
     const srcAt = ANNUAL_TASKS.find(x => x.key === srcKey);
     const srcTask = getProgTask(srcKey);
-    
     let srcLabel = srcKey;
     if (srcAt) srcLabel = srcAt.label;
     else if (srcTask) srcLabel = srcTask.title;
@@ -1483,7 +1486,6 @@ function dndDrop(ev, targetKey) {
     return;
   }
 
-  // 處理意圖：重新排序 (above 或 below)
   let yearTasks = [];
   ANNUAL_TASKS.forEach(at => {
     const t = getProgTask(at.key);
@@ -1497,18 +1499,15 @@ function dndDrop(ev, targetKey) {
   customTasks.forEach(t => yearTasks.push({ at: { key: t.annualKey, label: t.title }, t }));
 
   let yearOrder = progOrders[progYear] || [];
-  
   yearTasks.sort((a, b) => {
     const aDone = a.t && a.t.done ? 1 : 0;
     const bDone = b.t && b.t.done ? 1 : 0;
     if (aDone !== bDone) return aDone - bDone;
-
     const aIdx = yearOrder.indexOf(a.at.key);
     const bIdx = yearOrder.indexOf(b.at.key);
     if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
     if (aIdx !== -1) return -1;
     if (bIdx !== -1) return 1;
-
     const aAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === a.at.key);
     const bAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === b.at.key);
     if (aAnnIdx !== -1 && bAnnIdx !== -1) return aAnnIdx - bAnnIdx;
@@ -1518,41 +1517,40 @@ function dndDrop(ev, targetKey) {
   });
 
   let currentKeys = yearTasks.map(x => x.at.key);
-
   const srcIdx = currentKeys.indexOf(srcKey);
   const tgtIdx = currentKeys.indexOf(targetKey);
 
   if (srcIdx > -1 && tgtIdx > -1) {
     currentKeys.splice(srcIdx, 1);
     let newTgtIdx = currentKeys.indexOf(targetKey);
-    
-    // 若意圖為下方，則插入點向後移一位
-    if (action === 'below') {
-      newTgtIdx += 1;
-    }
-    
+    if (action === 'below') newTgtIdx += 1;
     currentKeys.splice(newTgtIdx, 0, srcKey);
     db.ref('progOrders/' + progYear).set(currentKeys);
   }
 }
 
-// ── Add / Edit Modal ──────────────────────────────────────────────────────────
-function openAdd() {
+// ── Add / Edit Modal (Center Modal - for Calendar) ────────────────────────────
+function openProgNew() {
   editingId = null;
   selCreator = getActiveMembers()[0] ? getActiveMembers()[0].id : '';
   selParts = [];
+  
   document.getElementById('iTitle').value = '';
   document.getElementById('iDesc').value = '';
   document.getElementById('iDate').value = '';
   document.getElementById('iDeadline').value = '';
-  document.getElementById('iTimeH').value = '09';
-  document.getElementById('iTimeM').value = '00';
-  document.getElementById('iDeadlineH').value = '18';
-  document.getElementById('iDeadlineM').value = '00';
+  document.getElementById('iTimeH').value = '';
+  document.getElementById('iTimeM').value = '';
+  document.getElementById('iDeadlineH').value = '';
+  document.getElementById('iDeadlineM').value = '';
   document.getElementById('iUrgency').value = 'low';
+  document.getElementById('iDoneCheckbox').checked = false;
+  document.getElementById('iAlarmCheckbox').checked = false;
+  
   const cat = document.getElementById('iCat');
   cat.value = 'data';
   updateCatColor(cat);
+  
   document.querySelector('#modalOverlay .btn-primary').textContent = '新增';
   document.getElementById('modalDeleteBtn').style.display = 'none';
   renderProgYearSelect(progYear);
@@ -1561,7 +1559,7 @@ function openAdd() {
 }
 
 function openAddOnDate(ds) {
-  openAdd();
+  openProgNew();
   document.getElementById('iDate').value = ds;
 }
 
@@ -1571,20 +1569,28 @@ function openEdit(id) {
   editingId = id;
   selCreator = t.creator || '';
   selParts = [...(t.parts || [])];
+  
   document.getElementById('iTitle').value = t.title || '';
   document.getElementById('iDesc').value = t.desc || '';
   document.getElementById('iDate').value = t.date || '';
   document.getElementById('iDeadline').value = t.deadline || '';
-  const tp = (t.time || '09:00').split(':');
-  document.getElementById('iTimeH').value = tp[0] || '09';
-  document.getElementById('iTimeM').value = tp[1] ? String(Math.round(parseInt(tp[1])/10)*10).padStart(2,'0') : '00';
-  const dp = (t.deadlineTime || '18:00').split(':');
-  document.getElementById('iDeadlineH').value = dp[0] || '18';
-  document.getElementById('iDeadlineM').value = dp[1] ? String(Math.round(parseInt(dp[1])/10)*10).padStart(2,'0') : '00';
+  
+  const tp = t.time ? t.time.split(':') : [];
+  document.getElementById('iTimeH').value = tp[0] || '';
+  document.getElementById('iTimeM').value = tp[1] || '';
+  
+  const dp = t.deadlineTime ? t.deadlineTime.split(':') : [];
+  document.getElementById('iDeadlineH').value = dp[0] || '';
+  document.getElementById('iDeadlineM').value = dp[1] || '';
+  
   document.getElementById('iUrgency').value = t.urgency || 'low';
+  document.getElementById('iDoneCheckbox').checked = t.done || false;
+  document.getElementById('iAlarmCheckbox').checked = t.alarm || false;
+  
   const cat = document.getElementById('iCat');
   cat.value = t.cat || 'data';
   updateCatColor(cat);
+  
   document.querySelector('#modalOverlay .btn-primary').textContent = '儲存';
   document.getElementById('modalDeleteBtn').style.display = '';
   renderProgYearSelect(t.progYear || progYear);
@@ -1636,33 +1642,50 @@ function renderModalMembers() {
 function saveTask() {
   const title = document.getElementById('iTitle').value.trim();
   if (!title) { alert('請輸入工作名稱'); return; }
+  
   const h = document.getElementById('iTimeH').value;
   const m = document.getElementById('iTimeM').value;
   const dh = document.getElementById('iDeadlineH').value;
   const dm = document.getElementById('iDeadlineM').value;
+  const isDone = document.getElementById('iDoneCheckbox').checked;
+  const isAlarm = document.getElementById('iAlarmCheckbox').checked;
   const selProgYear = document.getElementById('iProgYear').value || String(progYear);
+  
   const data = {
     title,
     desc: document.getElementById('iDesc').value,
     date: document.getElementById('iDate').value,
-    time: `${h}:${m}`,
+    time: (h && m) ? `${h}:${m}` : '',
     deadline: document.getElementById('iDeadline').value,
-    deadlineTime: `${dh}:${dm}`,
+    deadlineTime: (dh && dm) ? `${dh}:${dm}` : '',
     cat: document.getElementById('iCat').value,
     urgency: document.getElementById('iUrgency').value,
-    status: editingId ? (tasks.find(x=>x.id===editingId)?.status||'notstarted') : 'notstarted',
+    status: isDone ? 'done' : (editingId ? (tasks.find(x=>x.id===editingId)?.status||'notstarted') : 'notstarted'),
     creator: selCreator,
     parts: [...selParts],
-    done: editingId ? (tasks.find(x=>x.id===editingId)?.done||false) : false,
+    done: isDone,
+    alarm: isAlarm,
     progYear: selProgYear,
     timestamp: new Date().toISOString()
   };
+
+  // 若為新建任務，則自動產生 custom_ 標籤使其能與進度表相容
+  if (!editingId && !data.annualKey) {
+    data.annualKey = 'custom_' + Date.now();
+  }
+
   if (editingId) {
     db.ref('tasks/' + editingId).update(data);
   } else {
     db.ref('tasks').push(data);
   }
+  
   closeModal();
+  
+  // 若勾選鬧鐘，且有設定參與成員，則啟動信件通知
+  if (isAlarm) {
+    sendAlarmEmail(title, selParts);
+  }
 }
 
 function deleteEditingTask() {
