@@ -417,7 +417,7 @@ tr[draggable]:active{cursor:grabbing}
       <input type="text" id="memberEditName" placeholder="輸入姓名">
     </div>
     <div class="fg">
-      <label class="flabel">信箱 <span style="font-weight:400; text-transform:none; color:var(--text3)">(設定後即可使用鬧鐘通知功能)</span></label>
+      <label class="flabel">信箱</label>
       <input type="email" id="memberEditEmail" placeholder="輸入信箱">
     </div>
     
@@ -548,7 +548,6 @@ function waveLabel(y) {
   return idx >= 0 ? `W${idx+1} ${y}` : `W? ${y}`;
 }
 
-// 產生含母任務與子任務的完整行事曆陣列
 function getAllCalendarEvents() {
   let events = [];
   tasks.filter(t => !t.deleted).forEach(t => {
@@ -605,7 +604,6 @@ db.ref('tasks').on('value', snapshot => {
   renderCalendar();
   renderDashSidebar();
   renderProgContent();
-  
   if (_detailKey && document.getElementById('taskDetailOverlay').classList.contains('open')) {
     const freshTask = getProgTask(_detailKey);
     _detailTaskId = freshTask ? freshTask.id : null;
@@ -684,10 +682,8 @@ function saveMemberEdit() {
   const email = document.getElementById('memberEditEmail').value.trim();
   if (!name) return;
   if (!memberData[id]) memberData[id] = {};
-  
   memberData[id].name = name;
   memberData[id].email = email;
-  
   const preview = document.getElementById('memberEditPreview');
   const hasPhoto = preview && preview.src && preview.src.length > 100 && !preview.src.endsWith('undefined');
   const dataToSave = { name, email };
@@ -730,26 +726,25 @@ function onPhotoChange(e) {
   reader.readAsDataURL(file);
 }
 
-// ── Send Email Function via Mailto ────────────────────────────────────────────
+// ── Email Notification Logic ──
 function sendAlarmEmail(taskTitle, partIds) {
   if (!partIds || partIds.length === 0) return;
-  
   const emails = partIds
     .map(id => memberData[id] && memberData[id].email)
     .filter(email => email && email.includes('@'));
-    
   if (emails.length === 0) {
     alert('已勾選鬧鐘通知，但您所選擇的參與成員均未設定有效的電子信箱。');
     return;
   }
-  
-  if (confirm('即將開啟 Gmail 網頁版來寄送提醒通知給參與成員。\n\n(註：純網頁無法在背景自動寄信，系統會幫您寫好草稿，請您確認後手動點擊送出)')) {
-    const subject = encodeURIComponent(`【TIGPS 任務提醒】${taskTitle}`);
-    const body = encodeURIComponent(`您好，\n\n這是一封來自 TIGPS 系統的任務提醒。\n\n工作名稱：${taskTitle}\n\n請記得至系統確認詳細進度與期限！\n\n祝 順心`);
-    // 將 bcc 改為 to 參數，即可將人員設定為收件者
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${emails.join(',')}&su=${subject}&body=${body}`;
-    window.open(gmailUrl, '_blank');
+  const useOfficial = confirm('要使用官方帳號 (tigpsteam@gmail.com) 寄信嗎？\n\n按「確定」：開啟官方帳號撰寫視窗 (需先登入)\n按「取消」：使用目前瀏覽器登入的帳號');
+  const subject = encodeURIComponent(`【TIGPS 任務提醒】${taskTitle}`);
+  const body = encodeURIComponent(`您好，\n\n這是一封來自 TIGPS 系統的任務提醒。\n\n工作名稱：${taskTitle}\n\n請記得至系統確認詳細進度與期限！\n\n祝 順心\n\nTIGPS 團隊敬上`);
+  let baseUrl = "https://mail.google.com/mail/?view=cm&fs=1";
+  if (useOfficial) {
+    baseUrl = "https://mail.google.com/mail/u/tigpsteam@gmail.com/?view=cm&fs=1";
   }
+  const gmailUrl = `${baseUrl}&to=${emails.join(',')}&su=${subject}&body=${body}`;
+  window.open(gmailUrl, '_blank');
 }
 
 // ── Calendar ──────────────────────────────────────────────────────────────────
@@ -759,20 +754,15 @@ function renderCalendar() {
   const first = new Date(calYear, calMonth, 1);
   const lastDay = new Date(calYear, calMonth + 1, 0).getDate();
   const startDow = first.getDay();
-  const monthStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
-
+  const allEvts = getAllCalendarEvents();
   let cells = '';
   const prevMonth = calMonth === 0 ? 11 : calMonth - 1;
   const prevYear = calMonth === 0 ? calYear - 1 : calYear;
   const prevLastDay = new Date(prevYear, prevMonth + 1, 0).getDate();
-  
-  const allEvts = getAllCalendarEvents();
-
   for (let i = 0; i < startDow; i++) {
     const d = prevLastDay - startDow + i + 1;
     cells += `<div class="cal-cell other-month"><div class="cal-date-num">${d}</div></div>`;
   }
-
   for (let d = 1; d <= lastDay; d++) {
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const dt = allEvts.filter(e => e.date === ds);
@@ -780,28 +770,18 @@ function renderCalendar() {
     const allChips = [...dt, ...dlTasks];
     const isT = new Date(calYear, calMonth, d).getTime() === today.getTime();
     const numCls = isT ? 'cal-date-num today' : 'cal-date-num';
-    const dow = new Date(ds).getDay();
-    const weekendCls = (dow === 0 || dow === 6) ? 'weekend' : '';
+    const weekendCls = (new Date(ds).getDay() === 0 || new Date(ds).getDay() === 6) ? 'weekend' : '';
     const holidayName = TW_HOLIDAYS[ds] || '';
-    const holidayCls = holidayName ? 'holiday' : '';
-    const todayCls = isT ? 'is-today' : '';
-    const holidayLabel = holidayName
-      ? `<div style="font-size:8px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`
-      : '';
     const chips = allChips.slice(0, 3).map(e => {
       const isDL = e.deadline === ds && e.date !== ds;
       const border = isDL ? 'border-left:2px solid #c97070;' : '';
-      
-      const clickAction = `openEdit('${e.id}')`;
-      
-      return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="${clickAction};event.stopPropagation()">${e.title}</div>`;
+      return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="openEdit('${e.id}');event.stopPropagation()">${e.title}</div>`;
     }).join('');
     const more = allChips.length > 3 ? `<div style="font-size:9px;color:var(--text3);padding:1px">+${allChips.length-3}</div>` : '';
-    cells += `<div class="cal-cell ${weekendCls} ${holidayCls} ${todayCls}" onclick="openAddOnDate('${ds}')">
-      <div class="${numCls}">${d}</div>${holidayLabel}${chips}${more}
+    cells += `<div class="cal-cell ${weekendCls} ${holidayName?'holiday':''} ${isT?'is-today':''}" onclick="openAddOnDate('${ds}')">
+      <div class="${numCls}">${d}</div>${holidayName?`<div style="font-size:8px;color:#c97070;">${holidayName}</div>`:''}${chips}${more}
     </div>`;
   }
-
   const total = startDow + lastDay;
   const rem = (7 - total % 7) % 7;
   for (let i = 0; i < rem; i++) cells += `<div class="cal-cell other-month"><div class="cal-date-num">${i+1}</div></div>`;
@@ -820,37 +800,22 @@ function goToday() { calYear = new Date().getFullYear(); calMonth = new Date().g
 function renderDashSidebar() {
   const now = new Date();
   const curY = now.getFullYear(), curM = now.getMonth();
-  const nextY = curM === 11 ? curY + 1 : curY;
-  const nextM = curM === 11 ? 0 : curM + 1;
   const curStr = `${curY}-${String(curM+1).padStart(2,'0')}`;
-  const nextStr = `${nextY}-${String(nextM+1).padStart(2,'0')}`;
-
   const allEvts = getAllCalendarEvents();
   const cur = allEvts.filter(e => e.date && e.date.startsWith(curStr) && !e.done && e.cat !== 'meeting');
-  const nxt = allEvts.filter(e => e.date && e.date.startsWith(nextStr) && !e.done && e.cat !== 'meeting');
   const urgent = allEvts.filter(e => e.urgency === 'high' && !e.done).sort((a,b) => (a.date||'').localeCompare(b.date||''));
   const mtg = allEvts.filter(e => e.cat === 'meeting' && e.date && !e.done).sort((a,b) => a.date.localeCompare(b.date));
-
-  const renderItem = e => {
-    const clickAction = `openEdit('${e.id}')`;
-    return `<div class="cal-side-item" onclick="${clickAction}">
+  const renderItem = e => `<div class="cal-side-item" onclick="openEdit('${e.id}')">
       <div class="cal-side-dot" style="background:#8a6b66;margin-top:4px"></div>
       <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
     </div>`;
-  };
-
   const empty = '<div style="font-size:11px;color:var(--text3)">無</div>';
   document.getElementById('dashCurrentMonth').innerHTML = cur.length ? cur.map(renderItem).join('') : empty;
-  document.getElementById('dashNextMonth').innerHTML = nxt.length ? nxt.map(renderItem).join('') : empty;
   document.getElementById('dashDeadlines').innerHTML = urgent.length ? urgent.map(renderItem).join('') : empty;
-  
-  document.getElementById('dashMeetings').innerHTML = mtg.length ? mtg.map(e => {
-    const clickAction = `openEdit('${e.id}')`;
-    return `<div class="cal-side-item" onclick="${clickAction}">
+  document.getElementById('dashMeetings').innerHTML = mtg.length ? mtg.map(e => `<div class="cal-side-item" onclick="openEdit('${e.id}')">
       <div class="cal-side-dot" style="background:var(--cat-meeting-text);margin-top:4px"></div>
       <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
-    </div>`;
-  }).join('') : empty;
+    </div>`).join('') : empty;
 }
 
 // ── Progress View ─────────────────────────────────────────────────────────────
@@ -875,54 +840,14 @@ function switchProgYear(y, el) {
   renderProgContent();
 }
 
-function addNextProgYear() {
-  const maxYear = Math.max(...progYears);
-  const nextYear = maxYear + 1;
-  progYears.push(nextYear);
-  const tabsEl = document.getElementById('progYearTabs');
-  
-  const btnHTML = `<button class="filter-chip" 
-      onclick="switchProgYear(${nextYear},this)"
-      ondragover="yearTabDragOver(event)"
-      ondragleave="yearTabDragLeave(event)"
-      ondrop="yearTabDrop(event, ${nextYear})"
-      style="transition: all 0.2s;"
-      >${waveLabel(nextYear)}</button>`;
-      
-  tabsEl.insertAdjacentHTML('beforeend', btnHTML);
-  switchProgYear(nextYear, tabsEl.lastElementChild);
-}
-
-// ── Year Tab Drag & Drop handlers ──
-function yearTabDragOver(ev) {
-  ev.preventDefault();
-  ev.dataTransfer.dropEffect = 'move';
-  ev.currentTarget.style.transform = 'scale(1.1)';
-  ev.currentTarget.style.boxShadow = '0 0 0 2px var(--accent)';
-}
-function yearTabDragLeave(ev) {
-  ev.currentTarget.style.transform = 'none';
-  ev.currentTarget.style.boxShadow = 'none';
-}
+function yearTabDragOver(ev) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; ev.currentTarget.style.transform = 'scale(1.1)'; ev.currentTarget.style.boxShadow = '0 0 0 2px var(--accent)'; }
+function yearTabDragLeave(ev) { ev.currentTarget.style.transform = 'none'; ev.currentTarget.style.boxShadow = 'none'; }
 function yearTabDrop(ev, targetYear) {
-  ev.preventDefault();
-  ev.currentTarget.style.transform = 'none';
-  ev.currentTarget.style.boxShadow = 'none';
-  
-  const srcKey = _dndSrc;
-  _dndSrc = null;
-  _dndAction = null;
-  if (!srcKey) return;
-  
-  const t = getProgTask(srcKey);
-  if (!t) return;
-  
-  if (String(t.progYear) === String(targetYear)) return; // 已經在該年份
-  
+  ev.preventDefault(); ev.currentTarget.style.transform = 'none'; ev.currentTarget.style.boxShadow = 'none';
+  const srcKey = _dndSrc; _dndSrc = null; if (!srcKey) return;
+  const t = getProgTask(srcKey); if (!t || String(t.progYear) === String(targetYear)) return;
   if (confirm(`確定將整筆工作移至 ${targetYear} 年度嗎？`)) {
-    db.ref('tasks/' + t.id).update({ progYear: String(targetYear) }).then(() => {
-      renderProgContent();
-    });
+    db.ref('tasks/' + t.id).update({ progYear: String(targetYear) }).then(() => renderProgContent());
   }
 }
 
@@ -930,243 +855,96 @@ function renderProgContent() {
   const barEl = document.getElementById('progBar');
   const tbody = document.getElementById('progTbody');
   if (!barEl || !tbody) return;
-
   let yearTasks = [];
-  
-  // 1. 預設的 ANNUAL_TASKS
   ANNUAL_TASKS.forEach(at => {
     const t = getProgTask(at.key);
     if (t && t.deleted) return; 
     yearTasks.push({ at, t });
   });
-
-  // 2. 自訂的工作 (來自 Firebase 且開頭為 custom_)
-  const customTasks = tasks.filter(t => 
-    (String(t.progYear) === String(progYear) || (t.progYear == null && String(progYear) === '2023')) &&
-    t.annualKey && t.annualKey.startsWith('custom_') &&
-    !t.deleted
-  );
-  customTasks.forEach(t => {
-    yearTasks.push({ at: { key: t.annualKey, label: t.title }, t });
-  });
-
-  // 排序邏輯：1. 未完成優先  2. Firebase 儲存的拖曳順序  3. 預設順序
+  const customTasks = tasks.filter(t => (String(t.progYear) === String(progYear) || (t.progYear == null && String(progYear) === '2023')) && t.annualKey && t.annualKey.startsWith('custom_') && !t.deleted);
+  customTasks.forEach(t => yearTasks.push({ at: { key: t.annualKey, label: t.title }, t }));
   let yearOrder = progOrders[progYear] || [];
-  
   yearTasks.sort((a, b) => {
-    // 條件一：完成狀態 (未完成放前面，已完成沉到底部)
     const aDone = a.t && a.t.done ? 1 : 0;
     const bDone = b.t && b.t.done ? 1 : 0;
     if (aDone !== bDone) return aDone - bDone;
-
-    // 條件二：自訂的拖曳順序
     const aIdx = yearOrder.indexOf(a.at.key);
     const bIdx = yearOrder.indexOf(b.at.key);
     if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
     if (aIdx !== -1) return -1;
     if (bIdx !== -1) return 1;
-
-    // 條件三：原先的預設順序
     const aAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === a.at.key);
     const bAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === b.at.key);
-    if (aAnnIdx !== -1 && bAnnIdx !== -1) return aAnnIdx - bAnnIdx;
-    if (aAnnIdx !== -1) return -1;
-    if (bAnnIdx !== -1) return 1;
-
-    return 0;
+    return aAnnIdx - bAnnIdx;
   });
-
-  const totalCount = yearTasks.length;
   const doneCount = yearTasks.filter(x => x.t && x.t.done).length;
-  const pct = totalCount === 0 ? 0 : Math.round(doneCount / totalCount * 100);
-
+  const pct = yearTasks.length === 0 ? 0 : Math.round(doneCount / yearTasks.length * 100);
   barEl.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:5px">
     <span>${waveLabel(progYear)} 年度完成進度</span>
-    <span>${doneCount} / ${totalCount}（${pct}%）</span>
+    <span>${doneCount} / ${yearTasks.length}（${pct}%）</span>
   </div>
   <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
-    <div style="height:100%;background:var(--accent);width:${pct}%;transition:width 0.4s;border-radius:4px"></div>
+    <div style="height:100%;background:var(--accent);width:${pct}%;transition:width 0.4s;"></div>
   </div>`;
-
   let html = '';
   for (const { at, t } of yearTasks) {
     const isDone = !!(t && t.done);
     const parts = t && Array.isArray(t.parts) ? t.parts : [];
-    const vis = getActiveMembers();
-    const assignees = vis.filter(m => parts.includes(m.id))
-      .map(m => `<span style="display:flex;flex-direction:column;align-items:center;gap:2px">
+    const assignees = getActiveMembers().filter(m => parts.includes(m.id)).map(m => `<span style="display:flex;flex-direction:column;align-items:center;gap:2px">
         ${getMemberAvatar(m, 22)}
-        <span style="font-size:8px;color:var(--text3)">${(memberData[m.id]&&memberData[m.id].name)||m.name||''}</span>
+        <span style="font-size:8px;color:var(--text3)">${m.name}</span>
       </span>`).join('');
-
     const subs = t && t.subtasks ? Object.entries(t.subtasks) : [];
     const hasSub = subs.length > 0;
     const subDone = subs.filter(([k,s]) => s && s.done).length;
-    const badge = hasSub ? `<span style="font-size:9px;color:var(--text3);margin-left:4px">${subDone}/${subs.length}</span>` : '';
-    const safeKey = at.key;
-    const toggleBtn = hasSub
-      ? `<button onclick="event.stopPropagation();progToggleSub('${safeKey}')" id="stbtn_${safeKey}" style="border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:11px;line-height:1;padding:0 2px">▾</button>`
-      : '';
-
-    html += `<tr id="dndrow_${safeKey}" onclick="openProgDetail('${safeKey}')"
-      draggable="true"
-      ondragstart="dndStart(event,'${safeKey}')"
-      ondragover="dndOver(event,'${safeKey}')"
-      ondragleave="dndLeave(event,'${safeKey}')"
-      ondrop="dndDrop(event,'${safeKey}')"
-      style="cursor:pointer${isDone?';opacity:0.5':''}">
-      <td onclick="event.stopPropagation();quickDone('${safeKey}')">
-        <div class="check ${isDone?'done':''}">${isDone?'✓':''}</div>
-      </td>
-      <td style="font-size:11px;white-space:nowrap">${t&&t.date?t.date:''}</td>
-      <td style="font-weight:${isDone?'400':'500'}">${at.label}${badge}${toggleBtn}</td>
+    html += `<tr id="dndrow_${at.key}" onclick="openProgDetail('${at.key}')" draggable="true" ondragstart="dndStart(event,'${at.key}')" ondragover="dndOver(event,'${at.key}')" ondragleave="dndLeave(event,'${at.key}')" ondrop="dndDrop(event,'${at.key}')" style="cursor:pointer${isDone?';opacity:0.5':''}">
+      <td onclick="event.stopPropagation();quickDone('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
+      <td style="font-size:11px;">${t&&t.date?t.date:''}</td>
+      <td style="font-weight:${isDone?'400':'500'}">${at.label}${hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:4px">${subDone}/${subs.length}</span>`:''}</td>
       <td><div style="display:flex;gap:3px;flex-wrap:wrap">${assignees}</div></td>
-      <td style="font-size:11px;white-space:nowrap">${t&&t.deadline?t.deadline:''}</td>
-      <td style="font-size:11px;white-space:nowrap">${t&&t.doneDate?t.doneDate:''}</td>
-      <td><button onclick="event.stopPropagation();openProgDetail('${safeKey}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px;padding:0">›</button></td>
+      <td style="font-size:11px;">${t&&t.deadline?t.deadline:''}</td>
+      <td style="font-size:11px;">${t&&t.doneDate?t.doneDate:''}</td>
+      <td><button onclick="event.stopPropagation();openProgDetail('${at.key}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px;">›</button></td>
     </tr>`;
-
-    if (hasSub) {
-      subs.forEach(([subKey, s], si) => {
-        if (!s) return;
-        const sAssignees = Array.isArray(s.parts)
-          ? vis.filter(m => s.parts.includes(m.id)).map(m => getMemberAvatar(m, 18)).join('')
-          : '';
-        html += `<tr class="sub-row subrow_${safeKey}" style="display:none">
-          <td style="padding-left:16px">
-            <div class="check ${s.done?'done':''}" onclick="progSubToggle('${safeKey}','${subKey}')">${s.done?'✓':''}</div>
-          </td>
-          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.date||''}</td>
-          <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}">↳ ${s.title||''}</td>
-          <td><div style="display:flex;gap:2px">${sAssignees}</div></td>
-          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.deadline||''}</td>
-          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.doneDate||''}</td>
-          <td></td>
-        </tr>`;
-      });
-    }
   }
   tbody.innerHTML = html;
 }
 
-function progToggleSub(safeKey) {
-  const rows = document.querySelectorAll('.subrow_' + safeKey);
-  const btn = document.getElementById('stbtn_' + safeKey);
-  if (!rows.length) return;
-  const isHidden = rows[0].style.display === 'none';
-  rows.forEach(r => { r.style.display = isHidden ? '' : 'none'; });
-  if (btn) btn.textContent = isHidden ? '▾' : '▸';
-}
-
-function quickDone(atKey) {
-  const t = getProgTask(atKey);
-  if (t) {
-    const newDone = !t.done;
-    const doneDate = newDone ? new Date().toISOString().split('T')[0] : '';
-    db.ref('tasks/' + t.id).update({ done: newDone, status: newDone ? 'done' : 'notstarted', doneDate });
-  } else {
-    let at = ANNUAL_TASKS.find(x => x.key === atKey);
-    const data = {
-      annualKey: atKey,
-      progYear: String(progYear),
-      title: at ? at.label : '未命名工作',
-      done: true,
-      status: 'done',
-      doneDate: new Date().toISOString().split('T')[0],
-      parts: [],
-      subtasks: {},
-      deleted: false
-    };
-    db.ref('tasks').push(data);
-  }
-}
-
-// ── Progress Detail Panel (Right Slide-in) ────────────────────────────────────
+// ── Progress Detail Logic ──
 function openProgDetail(atKey) {
   _detailKey = atKey;
   const t = getProgTask(atKey);
   _detailTaskId = t ? t.id : null;
   const at = ANNUAL_TASKS.find(x => x.key === atKey);
-
-  const badge = document.getElementById('tdCatBadge');
-  badge.textContent = waveLabel(progYear);
-
+  document.getElementById('tdCatBadge').textContent = waveLabel(progYear);
   const titleInput = document.getElementById('tdTitle');
   titleInput.value = at ? at.label : (t ? t.title : '');
-  titleInput.placeholder = '新增工作';
-  
-  const isCustom = _detailKey && _detailKey.startsWith('custom_');
-  titleInput.readOnly = !isCustom;
-  
+  titleInput.readOnly = !(_detailKey && _detailKey.startsWith('custom_'));
   document.getElementById('tdDate').value = t ? (t.date || '') : '';
   document.getElementById('tdDeadline').value = t ? (t.deadline || '') : '';
   document.getElementById('tdDoneDate').value = t ? (t.doneDate || '') : '';
   document.getElementById('tdStatus').value = t ? (t.status || 'notstarted') : 'notstarted';
   document.getElementById('tdDesc').value = t ? (t.desc || '') : '';
-
   const vis = getActiveMembers();
   const selP = t ? (t.parts || []) : [];
   document.getElementById('tdAssignees').innerHTML = vis.map(m => {
-    const saved = memberData[m.id] || {};
-    const nm = saved.name || m.name;
-    const ph = saved.photo;
     const sel = selP.includes(m.id);
     const ring = sel ? 'box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--accent);' : '';
-    const op = sel ? 1 : 0.4;
-    const fontCol = sel ? '#8b8580' : '#b4ada5';
-    const av = ph
-      ? `<img src="${ph}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring};transition:all 0.2s;">`
-      : `<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring};transition:all 0.2s;">${m.initials}</div>`;
-    return `<div id="tda_${m.id}" onclick="detailToggleAssignee('${m.id}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;opacity:${op};transition:opacity 0.2s">
-      ${av}<span class="td-assignee-name" style="font-size:11px;color:${fontCol};white-space:nowrap">${nm}</span>
+    return `<div id="tda_${m.id}" onclick="detailToggleAssignee('${m.id}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;opacity:${sel?1:0.4};transition:opacity 0.2s">
+      ${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`:`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`}
+      <span class="td-assignee-name" style="font-size:11px;color:${sel?'#8b8580':'#b4ada5'};white-space:nowrap">${m.name}</span>
     </div>`;
   }).join('');
-
   renderDetailSubs(t);
   document.getElementById('taskDetailOverlay').classList.add('open');
-}
-
-function detailToggleAssignee(mid) {
-  const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
-  if (!t) {
-    ensureProgTask(_detailKey, newT => {
-      _detailTaskId = newT.id;
-      detailToggleAssigneeOnTask(newT, mid);
-    });
-    return;
-  }
-  detailToggleAssigneeOnTask(t, mid);
-}
-
-function detailToggleAssigneeOnTask(t, mid) {
-  let parts = [...(t.parts || [])];
-  const idx = parts.indexOf(mid);
-  if (idx >= 0) parts.splice(idx, 1); else parts.push(mid);
-  t.parts = parts;
-  db.ref('tasks/' + t.id + '/parts').set(parts);
-  getActiveMembers().forEach(m => {
-    const el = document.getElementById('tda_' + m.id);
-    if (!el) return;
-    const sel = parts.includes(m.id);
-    el.style.opacity = sel ? '1' : '0.4';
-    const img = el.querySelector('img,div');
-    if (img) img.style.boxShadow = sel ? '0 0 0 2px #fff, 0 0 0 4px var(--accent)' : '';
-    const nameSpan = el.querySelector('.td-assignee-name');
-    if (nameSpan) nameSpan.style.color = sel ? '#8b8580' : '#b4ada5';
-  });
 }
 
 function renderDetailSubs(task) {
   const el = document.getElementById('tdSubtasks');
   if (!el) return;
   const subs = task && task.subtasks ? Object.entries(task.subtasks) : [];
-  if (!subs.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--text3);margin-top:8px;">尚無子計畫</div>';
-    return;
-  }
-  const vis = getActiveMembers();
-  
-  el.innerHTML = subs.map(([subKey, s], i) => `
+  if (!subs.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text3);margin-top:8px;">尚無子計畫</div>'; return; }
+  el.innerHTML = subs.map(([subKey, s]) => `
     <div style="padding:16px;border-radius:8px;background:var(--bg);border:1px solid var(--border2);margin-bottom:12px">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div class="check ${s.done?'done':''}" onclick="progSubToggle('${_detailKey}','${subKey}');renderDetailSubs(getProgTask('${_detailKey}'))">${s.done?'✓':''}</div>
@@ -1174,48 +952,28 @@ function renderDetailSubs(task) {
         <button onclick="deleteDetailSub('${subKey}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px">✕</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#8b8580;margin-bottom:6px">日期</div>
-          <input type="date" value="${s.date||''}" onchange="updateSubField('${subKey}','date',this.value)" style="height:36px;font-size:13px;border-radius:6px;border:1px solid #d4ccc2;padding:0 10px">
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#8b8580;margin-bottom:6px">DEADLINE</div>
-          <input type="date" value="${s.deadline||''}" onchange="updateSubField('${subKey}','deadline',this.value)" style="height:36px;font-size:13px;border-radius:6px;border:1px solid #d4ccc2;padding:0 10px">
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#8b8580;margin-bottom:6px">完成日期</div>
-          <input type="date" value="${s.doneDate||''}" onchange="updateSubField('${subKey}','doneDate',this.value)" style="height:36px;font-size:13px;border-radius:6px;border:1px solid #d4ccc2;padding:0 10px">
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;color:#8b8580;margin-bottom:6px">負責人</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
-            ${vis.map(m => {
-              const sel = s.parts && s.parts.includes(m.id);
-              return `<span onclick="toggleSubMember('${subKey}','${m.id}')" style="cursor:pointer;opacity:${sel?1:0.35}">${getMemberAvatar(m, 28)}</span>`;
-            }).join('')}
-          </div>
-        </div>
+        <div><div class="flabel">日期</div><input type="date" value="${s.date||''}" onchange="updateSubField('${subKey}','date',this.value)"></div>
+        <div><div class="flabel">DEADLINE</div><input type="date" value="${s.deadline||''}" onchange="updateSubField('${subKey}','deadline',this.value)"></div>
+        <div><div class="flabel">完成日期</div><input type="date" value="${s.doneDate||''}" onchange="updateSubField('${subKey}','doneDate',this.value)"></div>
+        <div><div class="flabel">負責人</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${getActiveMembers().map(m => `<span onclick="toggleSubMember('${subKey}','${m.id}')" style="cursor:pointer;opacity:${s.parts&&s.parts.includes(m.id)?1:0.35}">${getMemberAvatar(m, 28)}</span>`).join('')}</div></div>
       </div>
     </div>`).join('');
 }
 
 function updateSubField(subKey, field, val) {
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
-  if (!t || !t.subtasks || !t.subtasks[subKey]) return;
-  t.subtasks[subKey][field] = val;
-  db.ref(`tasks/${t.id}/subtasks/${subKey}/${field}`).set(val);
+  if (t && t.subtasks[subKey]) { t.subtasks[subKey][field] = val; db.ref(`tasks/${t.id}/subtasks/${subKey}/${field}`).set(val); }
 }
 
 function toggleSubMember(subKey, mid) {
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
-  if (!t || !t.subtasks || !t.subtasks[subKey]) return;
+  if (!t) return;
   const sub = t.subtasks[subKey];
   let parts = [...(sub.parts || [])];
   const idx = parts.indexOf(mid);
   if (idx >= 0) parts.splice(idx, 1); else parts.push(mid);
   sub.parts = parts;
-  db.ref(`tasks/${t.id}/subtasks/${subKey}/parts`).set(parts)
-    .then(() => renderDetailSubs(t));
+  db.ref(`tasks/${t.id}/subtasks/${subKey}/parts`).set(parts).then(() => renderDetailSubs(t));
 }
 
 function addSubtask() {
@@ -1240,122 +998,52 @@ function progSubToggle(atKey, subKey) {
   const cur = t.subtasks[subKey].done;
   db.ref(`tasks/${t.id}/subtasks/${subKey}/done`).set(!cur).then(() => {
     t.subtasks[subKey].done = !cur;
-    renderDetailSubs(t);
-    renderProgContent();
+    renderDetailSubs(t); renderProgContent();
   });
 }
 
 function deleteDetailSub(subKey) {
   if (!confirm('確定刪除子計畫？')) return;
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
-  if (!t || !t.subtasks) return;
-  db.ref(`tasks/${t.id}/subtasks/${subKey}`).remove().then(() => {
-    delete t.subtasks[subKey];
-    renderDetailSubs(t);
-    renderProgContent();
-  });
+  if (!t) return;
+  db.ref(`tasks/${t.id}/subtasks/${subKey}`).remove().then(() => { delete t.subtasks[subKey]; renderDetailSubs(t); renderProgContent(); });
 }
 
 function saveTaskDetail() {
   const status = document.getElementById('tdStatus').value;
-  const titleVal = document.getElementById('tdTitle').value.trim() || '未命名工作';
-  const isDone = status === 'done';
-  const data = {
-    annualKey: _detailKey,
-    progYear: String(progYear),
-    title: titleVal,
-    date: document.getElementById('tdDate').value,
-    deadline: document.getElementById('tdDeadline').value,
-    doneDate: document.getElementById('tdDoneDate').value,
-    status,
-    desc: document.getElementById('tdDesc').value,
-    done: isDone,
-    deleted: false 
-  };
+  const data = { annualKey: _detailKey, progYear: String(progYear), title: document.getElementById('tdTitle').value.trim() || '未命名工作', date: document.getElementById('tdDate').value, deadline: document.getElementById('tdDeadline').value, doneDate: document.getElementById('tdDoneDate').value, status, desc: document.getElementById('tdDesc').value, done: status === 'done', deleted: false };
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
   if (t) {
-    data.parts = t.parts || [];
-    data.subtasks = t.subtasks || {};
-    db.ref('tasks/' + _detailTaskId).update(data).then(() => {
-      Object.assign(t, data);
-      renderProgContent();
-      closeTaskDetail();
-    });
+    data.parts = t.parts || []; data.subtasks = t.subtasks || {};
+    db.ref('tasks/' + _detailTaskId).update(data).then(() => { Object.assign(t, data); renderProgContent(); closeTaskDetail(); });
   } else {
-    data.parts = [];
-    data.subtasks = {};
-    db.ref('tasks').push(data).then(ref => {
-      tasks.push({ id: ref.key, ...data });
-      _detailTaskId = ref.key;
-      renderProgContent();
-      closeTaskDetail();
-    });
+    data.parts = []; data.subtasks = {};
+    db.ref('tasks').push(data).then(ref => { tasks.push({ id: ref.key, ...data }); renderProgContent(); closeTaskDetail(); });
   }
 }
 
 function copyCurrentTask() {
   const fresh = _detailKey ? getProgTask(_detailKey) : null;
   if (fresh) _detailTaskId = fresh.id;
-
-  if (!_detailTaskId) {
-    alert('這是一筆尚未儲存的空白任務，請先點擊「儲存」後再進行複製！');
-    return;
-  }
-
+  if (!_detailTaskId) { alert('請先點擊「儲存」後再進行複製！'); return; }
   const t = tasks.find(x => x.id === _detailTaskId);
-  if (!t) return;
-
-  if (!confirm('確定要完整複製此工作（包含所有子計畫與負責人）嗎？')) return;
-
+  if (!t || !confirm('確定要完整複製此工作（包含所有子計畫與負責人）嗎？')) return;
   const newKey = 'custom_' + Date.now();
-  const newData = {
-    ...t,
-    annualKey: newKey,
-    title: t.title + ' (複製)',
-    createdAt: new Date().toISOString()
-  };
+  const newData = { ...t, annualKey: newKey, title: t.title + ' (複製)', createdAt: new Date().toISOString() };
   delete newData.id;
-
-  db.ref('tasks').push(newData).then((ref) => {
-    openProgDetail(newKey);
-    renderProgContent();
-  });
+  db.ref('tasks').push(newData).then(() => { openProgDetail(newKey); renderProgContent(); });
 }
 
 function deleteCurrentTask() {
   const fresh = _detailKey ? getProgTask(_detailKey) : null;
   if (fresh) _detailTaskId = fresh.id;
-
-  if (!_detailTaskId) {
-    if (confirm('確定要從清單中隱藏此預設工作？')) {
-      const at = ANNUAL_TASKS.find(x => x.key === _detailKey);
-      db.ref('tasks').push({
-        annualKey: _detailKey,
-        progYear: String(progYear),
-        title: at ? at.label : '已隱藏',
-        deleted: true
-      }).then(() => {
-        closeTaskDetail();
-      });
-    }
-    return;
-  }
-  
+  if (!_detailTaskId) { closeTaskDetail(); return; }
   if (!confirm('確定要刪除此工作的所有資料（包含子計畫）？')) return;
-
-  const idToDelete = _detailTaskId;
-  db.ref('tasks/' + idToDelete).update({ deleted: true })
-    .then(() => {
-      const idx = tasks.findIndex(x => x.id === idToDelete);
-      if (idx >= 0) tasks[idx].deleted = true;
-      _detailTaskId = null;
-      _detailKey = null;
-      closeTaskDetail();
-      renderProgContent();
-    })
-    .catch(err => {
-      alert('刪除失敗：' + err.message + '\n請檢查 Firebase 規則設定');
-    });
+  db.ref('tasks/' + _detailTaskId).update({ deleted: true }).then(() => {
+    const idx = tasks.findIndex(x => x.id === _detailTaskId);
+    if (idx >= 0) tasks[idx].deleted = true;
+    _detailTaskId = null; _detailKey = null; closeTaskDetail(); renderProgContent();
+  });
 }
 
 function closeTaskDetail() { document.getElementById('taskDetailOverlay').classList.remove('open'); }
@@ -1363,158 +1051,47 @@ function closeTaskDetail() { document.getElementById('taskDetailOverlay').classL
 function ensureProgTask(atKey, cb) {
   let t = getProgTask(atKey);
   if (t) { cb(t); return; }
-  const titleVal = document.getElementById('tdTitle') ? document.getElementById('tdTitle').value : '';
   const at = ANNUAL_TASKS.find(x => x.key === atKey);
-  const data = {
-    annualKey: atKey,
-    progYear: String(progYear),
-    title: at ? at.label : (titleVal || '未命名工作'),
-    done: false,
-    status: 'notstarted',
-    parts: [],
-    subtasks: {},
-    deleted: false
-  };
-  db.ref('tasks').push(data).then(ref => {
-    const newT = { id: ref.key, ...data };
-    tasks.push(newT);
-    cb(newT);
-  });
+  const data = { annualKey: atKey, progYear: String(progYear), title: at ? at.label : (document.getElementById('tdTitle')?.value || '未命名工作'), done: false, status: 'notstarted', parts: [], subtasks: {}, deleted: false };
+  db.ref('tasks').push(data).then(ref => { const newT = { id: ref.key, ...data }; tasks.push(newT); cb(newT); });
 }
 
-// ── Drag and Drop (Reordering & Subtask) ──────────────────────────────────────
-function dndStart(ev, atKey) {
-  _dndSrc = atKey;
-  _dndAction = null;
-  ev.dataTransfer.effectAllowed = 'move';
-  ev.dataTransfer.setData('text/plain', atKey);
-}
-
+// ── Drag & Drop Reordering Logic ──
+function dndStart(ev, atKey) { _dndSrc = atKey; _dndAction = null; ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', atKey); }
 function dndOver(ev, atKey) {
   if (atKey === _dndSrc) return;
   ev.preventDefault();
-  ev.dataTransfer.dropEffect = 'move';
-  
-  const row = document.getElementById('dndrow_' + atKey);
-  if (!row) return;
-
-  const rect = row.getBoundingClientRect();
-  const y = ev.clientY - rect.top;
-
-  row.style.borderTop = '';
-  row.style.borderBottom = '';
-  row.style.backgroundColor = '';
-  row.style.outline = '';
-
-  if (y < rect.height * 0.3) {
-    row.style.borderTop = '2px solid var(--accent)';
-    _dndAction = 'above';
-  } else if (y > rect.height * 0.7) {
-    row.style.borderBottom = '2px solid var(--accent)';
-    _dndAction = 'below';
-  } else {
-    row.style.backgroundColor = 'var(--bg3)';
-    row.style.outline = '2px dashed var(--accent)';
-    _dndAction = 'subtask';
-  }
+  const row = document.getElementById('dndrow_' + atKey); if (!row) return;
+  const rect = row.getBoundingClientRect(); const y = ev.clientY - rect.top;
+  row.style.borderTop = ''; row.style.borderBottom = ''; row.style.backgroundColor = ''; row.style.outline = '';
+  if (y < rect.height * 0.3) { row.style.borderTop = '2px solid var(--accent)'; _dndAction = 'above'; }
+  else if (y > rect.height * 0.7) { row.style.borderBottom = '2px solid var(--accent)'; _dndAction = 'below'; }
+  else { row.style.backgroundColor = 'var(--bg3)'; row.style.outline = '2px dashed var(--accent)'; _dndAction = 'subtask'; }
 }
-
-function dndLeave(ev, atKey) {
-  const row = document.getElementById('dndrow_' + atKey);
-  if (row) {
-    row.style.borderTop = '';
-    row.style.borderBottom = '';
-    row.style.backgroundColor = '';
-    row.style.outline = '';
-  }
-}
-
+function dndLeave(ev, atKey) { const row = document.getElementById('dndrow_' + atKey); if (row) { row.style.borderTop = ''; row.style.borderBottom = ''; row.style.backgroundColor = ''; row.style.outline = ''; } }
 function dndDrop(ev, targetKey) {
   ev.preventDefault();
-  
-  document.querySelectorAll('.data-table tr').forEach(r => {
-    r.style.borderTop = '';
-    r.style.borderBottom = '';
-    r.style.backgroundColor = '';
-    r.style.outline = '';
-  });
-
-  const srcKey = _dndSrc;
-  const action = _dndAction;
-  _dndSrc = null;
-  _dndAction = null;
-
+  document.querySelectorAll('.data-table tr').forEach(r => { r.style.borderTop = ''; r.style.borderBottom = ''; r.style.backgroundColor = ''; r.style.outline = ''; });
+  const srcKey = _dndSrc; const action = _dndAction; _dndSrc = null; _dndAction = null;
   if (!srcKey || srcKey === targetKey) return;
-
   if (action === 'subtask') {
-    const srcAt = ANNUAL_TASKS.find(x => x.key === srcKey);
-    const srcTask = getProgTask(srcKey);
-    let srcLabel = srcKey;
-    if (srcAt) srcLabel = srcAt.label;
-    else if (srcTask) srcLabel = srcTask.title;
-
-    if (!confirm(`確定將「${srcLabel}」變成目標工作的子計畫？此操作無法還原。`)) return;
-
-    const sub = {
-      title: srcLabel,
-      done: srcTask ? (srcTask.done || false) : false,
-      date: srcTask ? (srcTask.date || '') : '',
-      deadline: srcTask ? (srcTask.deadline || '') : '',
-      doneDate: srcTask ? (srcTask.doneDate || '') : '',
-      parts: srcTask ? (srcTask.parts || []) : [],
-      createdAt: new Date().toISOString()
-    };
-
+    const srcTask = getProgTask(srcKey); if (!confirm(`確定將其變為子計畫？此操作無法還原。`)) return;
+    const sub = { title: srcTask?srcTask.title:srcKey, done: srcTask?srcTask.done:false, date: srcTask?srcTask.date:'', deadline: srcTask?srcTask.deadline:'', doneDate: srcTask?srcTask.doneDate:'', parts: srcTask?srcTask.parts:[], createdAt: new Date().toISOString() };
     ensureProgTask(targetKey, targetTask => {
       db.ref('tasks/' + targetTask.id + '/subtasks').push(sub).then(() => {
-        if (srcTask) {
-          db.ref('tasks/' + srcTask.id).update({deleted: true}).then(() => {
-            const idx = tasks.findIndex(x => x.id === srcTask.id);
-            if (idx >= 0) tasks[idx].deleted = true;
-            renderProgContent();
-          });
-        } else {
-          renderProgContent();
-        }
+        if (srcTask) db.ref('tasks/' + srcTask.id).update({deleted: true});
       });
     });
     return;
   }
-
   let yearTasks = [];
-  ANNUAL_TASKS.forEach(at => {
-    const t = getProgTask(at.key);
-    if (!(t && t.deleted)) yearTasks.push({ at, t });
-  });
-  const customTasks = tasks.filter(t => 
-    (String(t.progYear) === String(progYear) || (t.progYear == null && String(progYear) === '2023')) &&
-    t.annualKey && t.annualKey.startsWith('custom_') &&
-    !t.deleted
-  );
+  ANNUAL_TASKS.forEach(at => { const t = getProgTask(at.key); if (!(t && t.deleted)) yearTasks.push({ at, t }); });
+  const customTasks = tasks.filter(t => (String(t.progYear) === String(progYear) || (t.progYear == null && String(progYear) === '2023')) && t.annualKey && t.annualKey.startsWith('custom_') && !t.deleted);
   customTasks.forEach(t => yearTasks.push({ at: { key: t.annualKey, label: t.title }, t }));
-
   let yearOrder = progOrders[progYear] || [];
-  yearTasks.sort((a, b) => {
-    const aDone = a.t && a.t.done ? 1 : 0;
-    const bDone = b.t && b.t.done ? 1 : 0;
-    if (aDone !== bDone) return aDone - bDone;
-    const aIdx = yearOrder.indexOf(a.at.key);
-    const bIdx = yearOrder.indexOf(b.at.key);
-    if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
-    if (aIdx !== -1) return -1;
-    if (bIdx !== -1) return 1;
-    const aAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === a.at.key);
-    const bAnnIdx = ANNUAL_TASKS.findIndex(x => x.key === b.at.key);
-    if (aAnnIdx !== -1 && bAnnIdx !== -1) return aAnnIdx - bAnnIdx;
-    if (aAnnIdx !== -1) return -1;
-    if (bAnnIdx !== -1) return 1;
-    return 0;
-  });
-
+  yearTasks.sort((a,b) => (a.t&&a.t.done?1:0)-(b.t&&b.t.done?1:0) || (yearOrder.indexOf(a.at.key)-yearOrder.indexOf(b.at.key)));
   let currentKeys = yearTasks.map(x => x.at.key);
-  const srcIdx = currentKeys.indexOf(srcKey);
-  const tgtIdx = currentKeys.indexOf(targetKey);
-
+  const srcIdx = currentKeys.indexOf(srcKey); const tgtIdx = currentKeys.indexOf(targetKey);
   if (srcIdx > -1 && tgtIdx > -1) {
     currentKeys.splice(srcIdx, 1);
     let newTgtIdx = currentKeys.indexOf(targetKey);
@@ -1524,197 +1101,67 @@ function dndDrop(ev, targetKey) {
   }
 }
 
-// ── Add / Edit Modal (Center Modal - for Calendar View) ───────────────────────
-function openProgNew() {
-  editingId = null;
-  selCreator = getActiveMembers()[0] ? getActiveMembers()[0].id : '';
-  selParts = [];
-  
-  document.getElementById('iTitle').value = '';
-  document.getElementById('iDesc').value = '';
-  document.getElementById('iDate').value = '';
-  document.getElementById('iDeadline').value = '';
-  document.getElementById('iTimeH').value = '';
-  document.getElementById('iTimeM').value = '';
-  document.getElementById('iDeadlineH').value = '';
-  document.getElementById('iDeadlineM').value = '';
+// ── Calendar Modal Logic ──
+function openAdd() {
+  editingId = null; selCreator = getActiveMembers()[0]?.id || ''; selParts = [];
+  document.getElementById('iTitle').value = ''; document.getElementById('iDesc').value = '';
+  document.getElementById('iDate').value = ''; document.getElementById('iDeadline').value = '';
+  document.getElementById('iTimeH').value = ''; document.getElementById('iTimeM').value = '';
+  document.getElementById('iDeadlineH').value = ''; document.getElementById('iDeadlineM').value = '';
   document.getElementById('iUrgency').value = 'low';
-  document.getElementById('iDoneCheckbox').checked = false;
-  document.getElementById('iAlarmCheckbox').checked = false;
-  
-  const cat = document.getElementById('iCat');
-  cat.value = 'data';
-  updateCatColor(cat);
-  
+  document.getElementById('iDoneCheckbox').checked = false; document.getElementById('iAlarmCheckbox').checked = false;
+  updateCatColor(document.getElementById('iCat'));
   document.querySelector('#modalOverlay .btn-primary').textContent = '新增';
   document.getElementById('modalDeleteBtn').style.display = 'none';
-  renderProgYearSelect(progYear);
-  renderModalMembers();
+  renderProgYearSelect(progYear); renderModalMembers();
   document.getElementById('modalOverlay').classList.add('open');
 }
-
-function openAddOnDate(ds) {
-  openProgNew();
-  document.getElementById('iDate').value = ds;
-}
-
+function openAddOnDate(ds) { openAdd(); document.getElementById('iDate').value = ds; }
 function openEdit(id) {
-  const t = tasks.find(x => x.id === id);
-  if (!t) return;
-  editingId = id;
-  selCreator = t.creator || '';
-  selParts = [...(t.parts || [])];
-  
-  document.getElementById('iTitle').value = t.title || '';
-  document.getElementById('iDesc').value = t.desc || '';
-  document.getElementById('iDate').value = t.date || '';
-  document.getElementById('iDeadline').value = t.deadline || '';
-  
-  const tp = t.time ? t.time.split(':') : [];
-  document.getElementById('iTimeH').value = tp[0] || '';
-  document.getElementById('iTimeM').value = tp[1] || '';
-  
-  const dp = t.deadlineTime ? t.deadlineTime.split(':') : [];
-  document.getElementById('iDeadlineH').value = dp[0] || '';
-  document.getElementById('iDeadlineM').value = dp[1] || '';
-  
+  const t = tasks.find(x => x.id === id); if (!t) return;
+  editingId = id; selCreator = t.creator || ''; selParts = [...(t.parts || [])];
+  document.getElementById('iTitle').value = t.title || ''; document.getElementById('iDesc').value = t.desc || '';
+  document.getElementById('iDate').value = t.date || ''; document.getElementById('iDeadline').value = t.deadline || '';
+  const tp = t.time ? t.time.split(':') : []; document.getElementById('iTimeH').value = tp[0] || ''; document.getElementById('iTimeM').value = tp[1] || '';
+  const dp = t.deadlineTime ? t.deadlineTime.split(':') : []; document.getElementById('iDeadlineH').value = dp[0] || ''; document.getElementById('iDeadlineM').value = dp[1] || '';
   document.getElementById('iUrgency').value = t.urgency || 'low';
   document.getElementById('iDoneCheckbox').checked = t.done || false;
   document.getElementById('iAlarmCheckbox').checked = t.alarm || false;
-  
-  const cat = document.getElementById('iCat');
-  cat.value = t.cat || 'data';
-  updateCatColor(cat);
-  
+  const cat = document.getElementById('iCat'); cat.value = t.cat || 'data'; updateCatColor(cat);
   document.querySelector('#modalOverlay .btn-primary').textContent = '儲存';
   document.getElementById('modalDeleteBtn').style.display = '';
-  renderProgYearSelect(t.progYear || progYear);
-  renderModalMembers();
+  renderProgYearSelect(t.progYear || progYear); renderModalMembers();
   document.getElementById('modalOverlay').classList.add('open');
 }
-
 function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
-
-function updateCatColor(sel) {
-  const colors = { data:'#dce4ef', meeting:'#efdcdc', admin:'#dceee0', questionnaire:'#eee8d8', platform:'#e5dced' };
-  sel.style.background = colors[sel.value] || '';
-}
-
-function renderProgYearSelect(selectedYear) {
-  const sel = document.getElementById('iProgYear');
-  if (!sel) return;
-  sel.innerHTML = progYears.map(y => `<option value="${y}" ${String(y)===String(selectedYear)?'selected':''}>${waveLabel(y)}</option>`).join('');
-}
-
+function updateCatColor(sel) { const colors = { data:'#dce4ef', meeting:'#efdcdc', admin:'#dceee0', questionnaire:'#eee8d8', platform:'#e5dced' }; sel.style.background = colors[sel.value] || ''; }
+function renderProgYearSelect(y) { document.getElementById('iProgYear').innerHTML = progYears.map(yr => `<option value="${yr}" ${String(yr)===String(y)?'selected':''}>${waveLabel(yr)}</option>`).join(''); }
 function renderModalMembers() {
   const vis = getActiveMembers();
-  document.getElementById('creatorChips').innerHTML = vis.map(m => {
-    const saved = memberData[m.id] || {};
-    const photo = saved.photo;
-    const isSel = m.id === selCreator;
-    const ring = isSel ? 'box-shadow:0 0 0 2.5px var(--accent);' : '';
-    const av = photo
-      ? `<img src="${photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;${ring}">`
-      : `<div style="width:32px;height:32px;border-radius:50%;background:${m.bg};color:#555;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
-    return `<div onclick="selCreator='${m.id}';renderModalMembers()" style="cursor:pointer;opacity:${isSel?1:0.4}">${av}</div>`;
-  }).join('');
-
-  document.getElementById('partChips').innerHTML = vis.map(m => {
-    const saved = memberData[m.id] || {};
-    const name = saved.name || m.name;
-    const photo = saved.photo;
-    const sel = selParts.includes(m.id);
-    const ring = sel ? 'box-shadow:0 0 0 2.5px var(--accent);' : '';
-    const av = photo
-      ? `<img src="${photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`
-      : `<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`;
-    return `<div onclick="(function(){const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers();})()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${sel?1:0.4}">
-      ${av}<span style="font-size:9px;color:var(--text2);white-space:nowrap">${name}</span>
-    </div>`;
-  }).join('');
+  document.getElementById('creatorChips').innerHTML = vis.map(m => `<div onclick="selCreator='${m.id}';renderModalMembers()" style="cursor:pointer;opacity:${m.id===selCreator?1:0.4}">${m.photo?`<img src="${m.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;${m.id===selCreator?'box-shadow:0 0 0 2.5px var(--accent);':''}">`:`<div style="width:32px;height:32px;border-radius:50%;background:${m.bg};color:#555;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;${m.id===selCreator?'box-shadow:0 0 0 2.5px var(--accent);':''}">${m.initials}</div>`}</div>`).join('');
+  document.getElementById('partChips').innerHTML = vis.map(m => `<div onclick="(function(){const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers();})()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${selParts.includes(m.id)?1:0.4}">
+      ${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${selParts.includes(m.id)?'box-shadow:0 0 0 2.5px var(--accent);':''}">`:`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${selParts.includes(m.id)?'box-shadow:0 0 0 2.5px var(--accent);':''}">${m.initials}</div>`}
+      <span style="font-size:9px;color:var(--text2);">${m.name}</span>
+    </div>`).join('');
 }
-
 function saveTask() {
-  const title = document.getElementById('iTitle').value.trim();
-  if (!title) { alert('請輸入工作名稱'); return; }
-  
-  const h = document.getElementById('iTimeH').value;
-  const m = document.getElementById('iTimeM').value;
-  const dh = document.getElementById('iDeadlineH').value;
-  const dm = document.getElementById('iDeadlineM').value;
+  const title = document.getElementById('iTitle').value.trim(); if (!title) return alert('請輸入名稱');
   const isDone = document.getElementById('iDoneCheckbox').checked;
   const isAlarm = document.getElementById('iAlarmCheckbox').checked;
-  const selProgYear = document.getElementById('iProgYear').value || String(progYear);
-  
-  const data = {
-    title,
-    desc: document.getElementById('iDesc').value,
-    date: document.getElementById('iDate').value,
-    time: (h && m) ? `${h}:${m}` : '',
-    deadline: document.getElementById('iDeadline').value,
-    deadlineTime: (dh && dm) ? `${dh}:${dm}` : '',
-    cat: document.getElementById('iCat').value,
-    urgency: document.getElementById('iUrgency').value,
-    status: isDone ? 'done' : (editingId ? (tasks.find(x=>x.id===editingId)?.status||'notstarted') : 'notstarted'),
-    creator: selCreator,
-    parts: [...selParts],
-    done: isDone,
-    alarm: isAlarm,
-    progYear: selProgYear,
-    timestamp: new Date().toISOString()
-  };
-
-  if (!editingId && !data.annualKey) {
-    data.annualKey = 'custom_' + Date.now();
-  }
-
-  if (editingId) {
-    db.ref('tasks/' + editingId).update(data);
-  } else {
-    db.ref('tasks').push(data);
-  }
-  
-  closeModal();
-  
-  if (isAlarm) {
-    sendAlarmEmail(title, selParts);
-  }
+  const data = { title, desc: document.getElementById('iDesc').value, date: document.getElementById('iDate').value, time: (document.getElementById('iTimeH').value && document.getElementById('iTimeM').value)?`${document.getElementById('iTimeH').value}:${document.getElementById('iTimeM').value}`:'', deadline: document.getElementById('iDeadline').value, deadlineTime: (document.getElementById('iDeadlineH').value && document.getElementById('iDeadlineM').value)?`${document.getElementById('iDeadlineH').value}:${document.getElementById('iDeadlineM').value}`:'', cat: document.getElementById('iCat').value, urgency: document.getElementById('iUrgency').value, status: isDone?'done':'notstarted', creator: selCreator, parts: [...selParts], done: isDone, alarm: isAlarm, progYear: document.getElementById('iProgYear').value, timestamp: new Date().toISOString() };
+  if (!editingId) data.annualKey = 'custom_' + Date.now();
+  if (editingId) db.ref('tasks/' + editingId).update(data); else db.ref('tasks').push(data);
+  closeModal(); if (isAlarm) sendAlarmEmail(title, selParts);
 }
-
-function deleteEditingTask() {
-  if (!editingId) return;
-  if (!confirm('確定要刪除？')) return;
-  db.ref('tasks/' + editingId).update({ deleted: true })
-    .then(() => {
-      const idx = tasks.findIndex(x => x.id === editingId);
-      if (idx >= 0) tasks[idx].deleted = true;
-      closeModal();
-    })
-    .catch(err => {
-      alert('刪除失敗：' + err.message);
-    });
-}
-
-// ── Sidebar / Navigation ──────────────────────────────────────────────────────
-function toggleSidebar() {
-  const sb = document.getElementById('mainSidebar');
-  if (!sb) return;
-  sb.classList.toggle('collapsed');
-}
-
+function deleteEditingTask() { if (editingId && confirm('確定要刪除？')) db.ref('tasks/' + editingId).update({ deleted: true }).then(closeModal); }
+function toggleSidebar() { document.getElementById('mainSidebar').classList.toggle('collapsed'); }
 function switchView(v, el) {
   document.querySelectorAll('.view').forEach(x => x.classList.remove('active'));
-  const target = document.getElementById('view-' + v);
-  if (target) target.classList.add('active');
-  document.querySelectorAll('.sb-item').forEach(x => x.classList.remove('active'));
-  if (el) el.classList.add('active');
-  if (v === 'progress') renderProgContent();
-  else if (v === 'dashboard') { renderCalendar(); renderDashSidebar(); }
+  const target = document.getElementById('view-' + v); if (target) target.classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(x => x.classList.remove('active')); if (el) el.classList.add('active');
+  if (v === 'progress') renderProgContent(); else if (v === 'dashboard') { renderCalendar(); renderDashSidebar(); }
 }
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-initProgTabs();
-renderCalendar();
+initProgTabs(); renderCalendar();
 </script>
 </body>
 </html>
