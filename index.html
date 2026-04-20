@@ -392,7 +392,7 @@ tr[draggable]:active{cursor:grabbing}
   <div class="modal" style="width:340px">
     <div class="modal-hdr">
       <span class="modal-title">編輯成員</span>
-      <button class="close-btn" onclick="closeMemberEdit()">✕</button>
+      <button class="close-btn" onclick="closeMemberEdit()" style="position: absolute; top: 24px; right: 24px;">✕</button>
     </div>
     <input type="hidden" id="memberEditId">
     
@@ -425,10 +425,7 @@ tr[draggable]:active{cursor:grabbing}
     
     <div class="modal-footer" style="justify-content:space-between; border-top:none; padding-top:0; margin-top:0;">
       <button class="btn btn-danger" onclick="confirmDeleteMember()">刪除成員</button>
-      <div style="display:flex;gap:8px">
-        <button class="btn" onclick="closeMemberEdit()">取消</button>
-        <button class="btn btn-primary" onclick="saveMemberEdit()">儲存</button>
-      </div>
+      <button class="btn btn-primary" onclick="saveMemberEdit()">儲存</button>
     </div>
   </div>
 </div>
@@ -462,7 +459,7 @@ let progOrders = {};
 let _detailKey = null;
 let _detailTaskId = null;
 let _dndSrc = null;
-let _dndAction = null; // 用於判斷拖曳行為是「排序」或「子計畫」
+let _dndAction = null; 
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -746,11 +743,11 @@ function sendAlarmEmail(taskTitle, partIds) {
     return;
   }
   
-  if (confirm('是否開啟您的預設郵件軟體，寄送提醒通知給參與成員？\n(受限於網頁安全性，此功能將利用信箱軟體的密件副本發送)')) {
+  if (confirm('即將開啟 Gmail 網頁版來寄送提醒通知給參與成員。\n\n(註：純網頁無法在背景自動寄信，系統會幫您寫好草稿，請您確認後手動點擊送出)')) {
     const subject = encodeURIComponent(`【TIGPS 任務提醒】${taskTitle}`);
     const body = encodeURIComponent(`您好，\n\n這是一封來自 TIGPS 系統的任務提醒。\n\n工作名稱：${taskTitle}\n\n請記得至系統確認詳細進度與期限！\n\n祝 順心`);
-    const mailtoUrl = `mailto:?bcc=${emails.join(',')}&subject=${subject}&body=${body}`;
-    window.location.href = mailtoUrl;
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&bcc=${emails.join(',')}&su=${subject}&body=${body}`;
+    window.open(gmailUrl, '_blank');
   }
 }
 
