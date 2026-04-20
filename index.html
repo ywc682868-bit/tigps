@@ -143,7 +143,6 @@ tr[draggable]:active{cursor:grabbing}
 <body>
 <div class="app">
 
-<!-- SIDEBAR -->
 <div class="sidebar collapsed" id="mainSidebar">
   <div class="sb-logo" onclick="switchView('dashboard',null)">
     <div class="sb-logo-icon">T</div>
@@ -155,17 +154,14 @@ tr[draggable]:active{cursor:grabbing}
   </div>
 </div>
 
-<button id="sidebarToggleBtn" onclick="toggleSidebar()" style="position:fixed;top:12px;left:8px;z-index:201;border:1px solid var(--border);background:var(--bg2);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text2)">☰</button>
+<button id="sidebarToggleBtn" onclick="toggleSidebar()" style="position:fixed;top:12px;left:8px;z-index:201;border:1px solid var(--border);background:var(--bg2);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:left 0.25s;">☰</button>
 
-<!-- MAIN -->
 <div class="main">
   <div class="content">
 
-    <!-- DASHBOARD / CALENDAR -->
     <div class="view active" id="view-dashboard">
       <div class="cal-wrap">
 
-        <!-- Left sidebar -->
         <div class="cal-left">
           <div class="cal-side-section">
             <span class="cal-side-title current">當月代辦</span>
@@ -177,7 +173,6 @@ tr[draggable]:active{cursor:grabbing}
           </div>
         </div>
 
-        <!-- Calendar center -->
         <div class="cal-center">
           <div class="cal-nav">
             <button class="arrow-btn" onclick="changeCalMonth(-1)">‹</button>
@@ -198,7 +193,6 @@ tr[draggable]:active{cursor:grabbing}
           </div>
         </div>
 
-        <!-- Right sidebar -->
         <div class="cal-right">
           <div class="cal-side-section">
             <span class="cal-side-title deadline">重要事項</span>
@@ -211,13 +205,10 @@ tr[draggable]:active{cursor:grabbing}
         </div>
 
       </div>
-    </div><!-- /dashboard -->
-
-    <!-- PROGRESS VIEW -->
-    <div class="view" id="view-progress">
-      <div class="task-toolbar" style="justify-content:space-between;align-items:center">
-        <div style="display:flex;gap:6px;flex-wrap:wrap" id="progYearTabs"></div>
-        <button class="add-round" onclick="openProgNew()" title="新增工作">＋</button>
+    </div><div class="view" id="view-progress">
+      <div class="task-toolbar" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1" id="progYearTabs"></div>
+        <button class="add-round" onclick="openProgNew()" title="新增工作" style="flex-shrink:0;">＋</button>
       </div>
       <div class="prog-bar-wrap" id="progBar"></div>
       <div class="table-wrap">
@@ -236,29 +227,18 @@ tr[draggable]:active{cursor:grabbing}
           <tbody id="progTbody"></tbody>
         </table>
       </div>
-    </div><!-- /progress -->
-
-  </div><!-- /content -->
-</div><!-- /main -->
-</div><!-- /app -->
-
-<!-- ══════════════════════════════════════
-     TASK DETAIL OVERLAY (right panel)
-══════════════════════════════════════ -->
-<div class="detail-overlay" id="taskDetailOverlay" onclick="if(event.target===this)closeTaskDetail()">
+    </div></div></div></div><div class="detail-overlay" id="taskDetailOverlay" onclick="if(event.target===this)closeTaskDetail()">
   <div class="detail-panel-inner">
     <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
       <span id="tdCatBadge" style="font-size:11px;padding:2px 10px;border-radius:4px;font-weight:600"></span>
-      <span id="tdTitle" style="font-size:15px;font-weight:600;flex:1;color:var(--text)"></span>
+      <input type="text" id="tdTitle" style="font-size:15px;font-weight:600;flex:1;color:var(--text);border:none;background:transparent;outline:none;" placeholder="工作名稱">
       <button class="close-btn" onclick="closeTaskDetail()">✕</button>
     </div>
     <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px">
-      <!-- Assignees -->
       <div>
         <div class="flabel">負責人員</div>
         <div id="tdAssignees" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px"></div>
       </div>
-      <!-- Dates -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
           <div class="flabel">日期</div>
@@ -281,12 +261,10 @@ tr[draggable]:active{cursor:grabbing}
           </select>
         </div>
       </div>
-      <!-- Desc -->
       <div>
         <div class="flabel">說明</div>
         <textarea id="tdDesc" style="margin-top:4px;min-height:60px"></textarea>
       </div>
-      <!-- Subtasks -->
       <div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div class="flabel" style="margin-bottom:0">子計畫</div>
@@ -302,9 +280,6 @@ tr[draggable]:active{cursor:grabbing}
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     ADD/EDIT TASK MODAL
-══════════════════════════════════════ -->
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:10px">
@@ -384,9 +359,6 @@ tr[draggable]:active{cursor:grabbing}
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     MEMBER EDIT OVERLAY
-══════════════════════════════════════ -->
 <div class="member-overlay" id="memberEditOverlay" onclick="if(event.target===this)closeMemberEdit()">
   <div class="modal" style="width:340px">
     <div class="modal-hdr">
@@ -423,9 +395,6 @@ tr[draggable]:active{cursor:grabbing}
   </div>
 </div>
 
-<!-- ══════════════════════════════════════
-     JAVASCRIPT
-══════════════════════════════════════ -->
 <script>
 // ── Firebase ──────────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -688,6 +657,8 @@ function renderCalendar() {
   const prevMonth = calMonth === 0 ? 11 : calMonth - 1;
   const prevYear = calMonth === 0 ? calYear - 1 : calYear;
   const prevLastDay = new Date(prevYear, prevMonth + 1, 0).getDate();
+  
+  const activeTasks = tasks.filter(t => !t.deleted);
 
   for (let i = 0; i < startDow; i++) {
     const d = prevLastDay - startDow + i + 1;
@@ -696,8 +667,8 @@ function renderCalendar() {
 
   for (let d = 1; d <= lastDay; d++) {
     const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dt = tasks.filter(t => t.date === ds);
-    const dlTasks = tasks.filter(t => t.deadline === ds && t.date !== ds);
+    const dt = activeTasks.filter(t => t.date === ds);
+    const dlTasks = activeTasks.filter(t => t.deadline === ds && t.date !== ds);
     const allChips = [...dt, ...dlTasks];
     const isT = new Date(calYear, calMonth, d).getTime() === today.getTime();
     const numCls = isT ? 'cal-date-num today' : 'cal-date-num';
@@ -743,10 +714,11 @@ function renderDashSidebar() {
   const curStr = `${curY}-${String(curM+1).padStart(2,'0')}`;
   const nextStr = `${nextY}-${String(nextM+1).padStart(2,'0')}`;
 
-  const cur = tasks.filter(t => t.date && t.date.startsWith(curStr) && !t.done && t.cat !== 'meeting');
-  const nxt = tasks.filter(t => t.date && t.date.startsWith(nextStr) && !t.done && t.cat !== 'meeting');
-  const urgent = tasks.filter(t => t.urgency === 'high' && !t.done).sort((a,b) => (a.date||'').localeCompare(b.date||''));
-  const mtg = tasks.filter(t => t.cat === 'meeting' && t.date && !t.done).sort((a,b) => a.date.localeCompare(b.date));
+  const activeTasks = tasks.filter(t => !t.deleted);
+  const cur = activeTasks.filter(t => t.date && t.date.startsWith(curStr) && !t.done && t.cat !== 'meeting');
+  const nxt = activeTasks.filter(t => t.date && t.date.startsWith(nextStr) && !t.done && t.cat !== 'meeting');
+  const urgent = activeTasks.filter(t => t.urgency === 'high' && !t.done).sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  const mtg = activeTasks.filter(t => t.cat === 'meeting' && t.date && !t.done).sort((a,b) => a.date.localeCompare(b.date));
 
   const renderItem = t => `<div class="cal-side-item" onclick="openEdit('${t.id}')">
     <div class="cal-side-dot" style="background:#8a6b66;margin-top:4px"></div>
@@ -797,13 +769,32 @@ function renderProgContent() {
   const tbody = document.getElementById('progTbody');
   if (!barEl || !tbody) return;
 
-  const yearTasks = ANNUAL_TASKS.map(at => ({ at, t: getProgTask(at.key) }));
+  let yearTasks = [];
+  
+  // 1. 預設的 ANNUAL_TASKS (略過被標示刪除的)
+  ANNUAL_TASKS.forEach(at => {
+    const t = getProgTask(at.key);
+    if (t && t.deleted) return; 
+    yearTasks.push({ at, t });
+  });
+
+  // 2. 自訂的工作 (來自 Firebase 且開頭為 custom_)
+  const customTasks = tasks.filter(t => 
+    (String(t.progYear) === String(progYear) || (t.progYear == null && String(progYear) === '2023')) &&
+    t.annualKey && t.annualKey.startsWith('custom_') &&
+    !t.deleted
+  );
+  customTasks.forEach(t => {
+    yearTasks.push({ at: { key: t.annualKey, label: t.title }, t });
+  });
+
+  const totalCount = yearTasks.length;
   const doneCount = yearTasks.filter(x => x.t && x.t.done).length;
-  const pct = Math.round(doneCount / ANNUAL_TASKS.length * 100);
+  const pct = totalCount === 0 ? 0 : Math.round(doneCount / totalCount * 100);
 
   barEl.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:5px">
     <span>${waveLabel(progYear)} 年度完成進度</span>
-    <span>${doneCount} / ${ANNUAL_TASKS.length}（${pct}%）</span>
+    <span>${doneCount} / ${totalCount}（${pct}%）</span>
   </div>
   <div style="height:8px;background:var(--bg3);border-radius:4px;overflow:hidden">
     <div style="height:100%;background:var(--accent);width:${pct}%;transition:width 0.4s;border-radius:4px"></div>
@@ -886,16 +877,17 @@ function quickDone(atKey) {
     const doneDate = newDone ? new Date().toISOString().split('T')[0] : '';
     db.ref('tasks/' + t.id).update({ done: newDone, status: newDone ? 'done' : 'notstarted', doneDate });
   } else {
-    const at = ANNUAL_TASKS.find(x => x.key === atKey);
+    let at = ANNUAL_TASKS.find(x => x.key === atKey);
     const data = {
       annualKey: atKey,
       progYear: String(progYear),
-      title: at ? at.label : '',
+      title: at ? at.label : '未命名工作',
       done: true,
       status: 'done',
       doneDate: new Date().toISOString().split('T')[0],
       parts: [],
-      subtasks: {}
+      subtasks: {},
+      deleted: false
     };
     db.ref('tasks').push(data);
   }
@@ -903,10 +895,38 @@ function quickDone(atKey) {
 
 // ── Progress: open new task via + button ──────────────────────────────────────
 function openProgNew() {
-  // Pick the first unset task, or prompt user
-  const unset = ANNUAL_TASKS.filter(at => !getProgTask(at.key));
-  if (unset.length === 0) { alert('本年度所有工作均已建立記錄'); return; }
-  openProgDetail(unset[0].key);
+  const newKey = 'custom_' + Date.now();
+  _detailKey = newKey;
+  _detailTaskId = null;
+
+  const badge = document.getElementById('tdCatBadge');
+  badge.textContent = waveLabel(progYear);
+  badge.style.background = 'var(--bg3)';
+  badge.style.color = 'var(--text2)';
+
+  document.getElementById('tdTitle').value = '新增工作';
+  document.getElementById('tdDate').value = '';
+  document.getElementById('tdDeadline').value = '';
+  document.getElementById('tdDoneDate').value = '';
+  document.getElementById('tdStatus').value = 'notstarted';
+  document.getElementById('tdDesc').value = '';
+  
+  const vis = getActiveMembers();
+  document.getElementById('tdAssignees').innerHTML = vis.map(m => {
+    const saved = memberData[m.id] || {};
+    const nm = saved.name || m.name;
+    const ph = saved.photo;
+    const av = ph
+      ? `<img src="${ph}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
+      : `<div style="width:36px;height:36px;border-radius:50%;background:${m.bg};color:#555;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;">${m.initials}</div>`;
+    return `<div id="tda_${m.id}" onclick="detailToggleAssignee('${m.id}')" style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:0.35">
+      ${av}<span style="font-size:9px;color:var(--text2)">${nm}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('tdSubtasks').innerHTML = '<div style="font-size:11px;color:var(--text3)">尚無子計畫</div>';
+
+  document.getElementById('taskDetailOverlay').classList.add('open');
 }
 
 // ── Progress Detail Panel ─────────────────────────────────────────────────────
@@ -922,7 +942,7 @@ function openProgDetail(atKey) {
   badge.style.background = 'var(--bg3)';
   badge.style.color = 'var(--text2)';
 
-  document.getElementById('tdTitle').textContent = at ? at.label : '';
+  document.getElementById('tdTitle').value = at ? at.label : (t ? t.title : '');
   document.getElementById('tdDate').value = t ? (t.date || '') : '';
   document.getElementById('tdDeadline').value = t ? (t.deadline || '') : '';
   document.getElementById('tdDoneDate').value = t ? (t.doneDate || '') : '';
@@ -1084,18 +1104,19 @@ function deleteDetailSub(subKey) {
 }
 
 function saveTaskDetail() {
-  const at = ANNUAL_TASKS.find(x => x.key === _detailKey);
   const status = document.getElementById('tdStatus').value;
+  const titleVal = document.getElementById('tdTitle').value.trim() || '未命名工作';
   const data = {
     annualKey: _detailKey,
     progYear: String(progYear),
-    title: at ? at.label : '',
+    title: titleVal,
     date: document.getElementById('tdDate').value,
     deadline: document.getElementById('tdDeadline').value,
     doneDate: document.getElementById('tdDoneDate').value,
     status,
     desc: document.getElementById('tdDesc').value,
     done: status === 'done',
+    deleted: false // 確保儲存時狀態為未刪除
   };
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
   if (t) {
@@ -1120,32 +1141,41 @@ function saveTaskDetail() {
 
 // ── DELETE current task from detail panel ─────────────────────────────────────
 function deleteCurrentTask() {
-  // Re-fetch in case _detailKey changed
+  // 重新抓取任務以確保 ID 正確
   const fresh = _detailKey ? getProgTask(_detailKey) : null;
   if (fresh) _detailTaskId = fresh.id;
 
+  // 若 Firebase 中尚未有此筆記錄（僅是清單上的空白範本）
   if (!_detailTaskId) {
-    // No Firebase record → nothing to delete
-    closeTaskDetail();
+    if (confirm('確定要從清單中隱藏此預設工作？')) {
+      const at = ANNUAL_TASKS.find(x => x.key === _detailKey);
+      // 寫入一筆 deleted: true 的標記資料，使它不再顯示
+      db.ref('tasks').push({
+        annualKey: _detailKey,
+        progYear: String(progYear),
+        title: at ? at.label : '已隱藏',
+        deleted: true
+      }).then(() => {
+        closeTaskDetail();
+      });
+    }
     return;
   }
+  
   if (!confirm('確定要刪除此工作的所有資料（包含子計畫）？')) return;
 
   const idToDelete = _detailTaskId;
-  const taskRef = db.ref('tasks/' + idToDelete);
-  
-  // Use set(null) to ensure complete removal including nested objects
-  taskRef.set(null)
+  // 改為軟刪除 (標記 deleted: true)，以確保畫面過濾並不再顯示
+  db.ref('tasks/' + idToDelete).update({ deleted: true })
     .then(() => {
-      console.log('Task deleted successfully:', idToDelete);
-      tasks = tasks.filter(x => x.id !== idToDelete);
+      const idx = tasks.findIndex(x => x.id === idToDelete);
+      if (idx >= 0) tasks[idx].deleted = true;
       _detailTaskId = null;
       _detailKey = null;
       closeTaskDetail();
       renderProgContent();
     })
     .catch(err => {
-      console.error('Delete error:', err);
       alert('刪除失敗：' + err.message + '\n請檢查 Firebase 規則設定');
     });
 }
@@ -1156,15 +1186,17 @@ function closeTaskDetail() { document.getElementById('taskDetailOverlay').classL
 function ensureProgTask(atKey, cb) {
   let t = getProgTask(atKey);
   if (t) { cb(t); return; }
+  const titleVal = document.getElementById('tdTitle') ? document.getElementById('tdTitle').value : '';
   const at = ANNUAL_TASKS.find(x => x.key === atKey);
   const data = {
     annualKey: atKey,
     progYear: String(progYear),
-    title: at ? at.label : '',
+    title: at ? at.label : (titleVal || '未命名工作'),
     done: false,
     status: 'notstarted',
     parts: [],
-    subtasks: {}
+    subtasks: {},
+    deleted: false
   };
   db.ref('tasks').push(data).then(ref => {
     const newT = { id: ref.key, ...data };
@@ -1201,12 +1233,14 @@ function dndDrop(ev, targetKey) {
   if (!srcKey || srcKey === targetKey) return;
 
   const srcAt = ANNUAL_TASKS.find(x => x.key === srcKey);
-  const srcLabel = srcAt ? srcAt.label : srcKey;
+  const srcTask = getProgTask(srcKey);
+  
+  let srcLabel = srcKey;
+  if (srcAt) srcLabel = srcAt.label;
+  else if (srcTask) srcLabel = srcTask.title;
+
   if (!confirm(`確定將「${srcLabel}」變成目標工作的子計畫？此操作無法還原。`)) return;
 
-  const srcTask = getProgTask(srcKey);
-
-  // Build subtask object from source task
   const sub = {
     title: srcLabel,
     done: srcTask ? (srcTask.done || false) : false,
@@ -1218,12 +1252,11 @@ function dndDrop(ev, targetKey) {
   };
 
   ensureProgTask(targetKey, targetTask => {
-    // Push sub to target
     db.ref('tasks/' + targetTask.id + '/subtasks').push(sub).then(() => {
-      // Delete source task from Firebase if it existed
       if (srcTask) {
-        db.ref('tasks/' + srcTask.id).set(null).then(() => {
-          tasks = tasks.filter(x => x.id !== srcTask.id);
+        db.ref('tasks/' + srcTask.id).update({deleted: true}).then(() => {
+          const idx = tasks.findIndex(x => x.id === srcTask.id);
+          if (idx >= 0) tasks[idx].deleted = true;
           renderProgContent();
         });
       } else {
@@ -1365,9 +1398,10 @@ function saveTask() {
 function deleteEditingTask() {
   if (!editingId) return;
   if (!confirm('確定要刪除？')) return;
-  db.ref('tasks/' + editingId).set(null)
+  db.ref('tasks/' + editingId).update({ deleted: true })
     .then(() => {
-      tasks = tasks.filter(x => x.id !== editingId);
+      const idx = tasks.findIndex(x => x.id === editingId);
+      if (idx >= 0) tasks[idx].deleted = true;
       closeModal();
     })
     .catch(err => {
@@ -1378,8 +1412,16 @@ function deleteEditingTask() {
 // ── Sidebar / Navigation ──────────────────────────────────────────────────────
 function toggleSidebar() {
   const sb = document.getElementById('mainSidebar');
+  const btn = document.getElementById('sidebarToggleBtn');
   if (!sb) return;
   sb.classList.toggle('collapsed');
+  
+  // 動態調整按鈕位置避免覆蓋內容
+  if (sb.classList.contains('collapsed')) {
+    btn.style.left = '8px';
+  } else {
+    btn.style.left = '200px'; 
+  }
 }
 
 function switchView(v, el) {
