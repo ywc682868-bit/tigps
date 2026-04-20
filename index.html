@@ -147,7 +147,6 @@ textarea{resize:vertical;min-height:60px}
   </div>
   <div class="sb-nav">
     <div class="team-grid" id="sidebarTeam" style="opacity:0;transition:opacity 0.2s"></div>
-    <div class="sb-item active" onclick="switchView('dashboard',this)">📅 行事曆</div>
     <div class="sb-item" onclick="switchView('progress',this)">📊 工作進度</div>
   </div>
 </div>
@@ -235,7 +234,7 @@ textarea{resize:vertical;min-height:60px}
               <th style="min-width:160px">名稱</th>
               <th style="min-width:100px">負責人員</th>
               <th style="min-width:90px">Deadline</th>
-              <th style="min-width:90px">完成日期 <button onclick="openAdd()" style="border:none;background:var(--cat-admin);color:var(--cat-admin-text);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-weight:600;margin-left:4px">＋</button></th>
+              <th style="min-width:90px">完成日期 <button onclick="openAdd()" style="border:none;background:var(--bg3);color:var(--text2);border-radius:4px;padding:1px 7px;cursor:pointer;font-size:11px;font-weight:600;margin-left:4px">＋</button></th>
               <th style="width:36px"></th>
             </tr>
           </thead>
@@ -311,6 +310,10 @@ textarea{resize:vertical;min-height:60px}
   <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:10px">
     <div id="creatorChips" style="display:flex;gap:6px;align-items:center;flex-shrink:0"></div>
     <div class="fg" style="flex:0 0 auto;margin-bottom:0">
+      <label class="flabel">年度</label>
+      <select id="iProgYear" style="padding:7px 5px;width:84px"></select>
+    </div>
+    <div class="fg" style="flex:0 0 auto;margin-bottom:0">
       <label class="flabel">類型</label>
       <select id="iCat" style="padding:7px 6px;width:88px" onchange="updateCatColor(this)">
         <option value="data">📋 資料</option>
@@ -345,7 +348,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="fg" style="margin-bottom:0">
         <label class="flabel">時間</label>
         <div style="display:flex;gap:3px">
-          <select id="iTimeH" style="flex:1;padding:7px 4px;text-align:center">${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select>
+          <select id="iTimeH" style="flex:1;padding:7px 4px;text-align:center"><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select>
           <span style="display:flex;align-items:center;color:var(--text2)">:</span>
           <select id="iTimeM" style="flex:1;padding:7px 4px;text-align:center"><option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
         </div>
@@ -359,7 +362,7 @@ textarea{resize:vertical;min-height:60px}
       <div class="fg" style="margin-bottom:0">
         <label class="flabel">Deadline 時間</label>
         <div style="display:flex;gap:3px">
-          <select id="iDeadlineH" style="flex:1;padding:7px 4px;text-align:center">${Array.from({length:24},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('')}</select>
+          <select id="iDeadlineH" style="flex:1;padding:7px 4px;text-align:center"><option value="00">00</option><option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option><option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option><option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option></select>
           <span style="display:flex;align-items:center;color:var(--text2)">:</span>
           <select id="iDeadlineM" style="flex:1;padding:7px 4px;text-align:center"><option value="00">00</option><option value="10">10</option><option value="20">20</option><option value="30">30</option><option value="40">40</option><option value="50">50</option></select>
         </div>
@@ -376,7 +379,8 @@ textarea{resize:vertical;min-height:60px}
     <label class="flabel">參與成員</label>
     <div id="partChips" style="display:flex;gap:10px;flex-wrap:wrap"></div>
   </div>
-  <div class="modal-footer" style="margin-top:14px">
+  <div class="modal-footer" style="margin-top:14px;display:flex;justify-content:space-between">
+    <button id="modalDeleteBtn" class="btn" style="color:#c97070;border-color:#e0d0c5;display:none" onclick="if(editingId&&confirm('確定要刪除？')){{deleteTask(editingId);closeModal();}}">刪除</button>
     <button class="btn btn-primary" onclick="saveTask()">新增</button>
   </div>
 </div>
@@ -642,8 +646,18 @@ function renderCalendar(){
   const prevMonth=calMonth===0?11:calMonth-1,prevYear=calMonth===0?calYear-1:calYear,prevLastDay=new Date(prevYear,prevMonth+1,0).getDate();
   for(let i=0;i<startDow;i++){const prevD=prevLastDay-startDow+i+1;cells+=`<div class="cal-cell other-month"><div class="cal-date-num">${prevD}</div></div>`;}
   for(let d=1;d<=lastDay;d++){
-    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,dt=monthTasks.filter(t=>t.date===ds),isT=new Date(calYear,calMonth,d).getTime()===today.getTime(),numCls=isT?'cal-date-num today':'cal-date-num',cellCls=(new Date(ds).getDay()===0||new Date(ds).getDay()===6)?'weekend':'',holidayName=TW_HOLIDAYS[ds]||'',holidayCls=holidayName?'holiday':'',todayCls=isT?'is-today':'',holidayLabel=holidayName?`<div style="font-size:8px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`:'',chips=dt.slice(0,3).map(t=>`<div class="cal-chip chip-${t.cat||'data'}" onclick="openEdit('${t.id}');event.stopPropagation()">${t.title}</div>`).join(''),more=dt.length>3?`<div style="font-size:9px;color:var(--text3);padding:1px">+${dt.length-3}</div>`:'';
-    cells+=`<div class="cal-cell ${cellCls} ${holidayCls} ${todayCls}"><div class="${numCls}">${d}</div>${holidayLabel}${chips}${more}</div>`;
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dt=monthTasks.filter(t=>t.date===ds);
+    const dlTasks=tasks.filter(t=>t.deadline===ds&&!(t.date===ds));// deadline tasks not already shown
+    const allChipTasks=[...dt,...dlTasks];
+    const isT=new Date(calYear,calMonth,d).getTime()===today.getTime(),numCls=isT?'cal-date-num today':'cal-date-num',cellCls=(new Date(ds).getDay()===0||new Date(ds).getDay()===6)?'weekend':'',holidayName=TW_HOLIDAYS[ds]||'',holidayCls=holidayName?'holiday':'',todayCls=isT?'is-today':'',holidayLabel=holidayName?`<div style="font-size:8px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`:'';
+    const chips=allChipTasks.slice(0,3).map(t=>{
+      const isDL=!t.date||t.date!==ds;
+      const border=isDL?'border-left:2px solid #c97070;':'';
+      return `<div class="cal-chip chip-${t.cat||'data'}" style="${border}" onclick="openEdit('${t.id}');event.stopPropagation()">${isDL?'⏰ ':''}${t.title}</div>`;
+    }).join('');
+    const more=allChipTasks.length>3?`<div style="font-size:9px;color:var(--text3);padding:1px">+${allChipTasks.length-3}</div>`:'';
+    cells+=`<div class="cal-cell ${cellCls} ${holidayCls} ${todayCls}" onclick="openAddOnDate('${ds}')"><div class="${numCls}">${d}</div>${holidayLabel}${chips}${more}</div>`;
   }
   const total=startDow+lastDay,rem=(7-total%7)%7;
   for(let i=0;i<rem;i++){cells+=`<div class="cal-cell other-month"><div class="cal-date-num">${i+1}</div></div>`;}
@@ -813,23 +827,37 @@ function renderProgContent(){
       .map(m=>`<span style="display:flex;flex-direction:column;align-items:center;gap:2px">${getMemberAvatar(m,24)}<span style="font-size:8px;color:var(--text3)">${(memberData[m.id]&&memberData[m.id].name)||m.name}</span></span>`).join(''):'';
     const subtasks=t&&t.subtasks?Object.values(t.subtasks):[];
     const subDone=subtasks.filter(s=>s.done).length;
-    const subBadge=subtasks.length?`<span style="font-size:9px;color:var(--text3);margin-left:6px">${subDone}/${subtasks.length}</span>`:'';
+    const hasSub=subtasks.length>0;
+    const subBadge=hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:6px">${subDone}/${subtasks.length}</span>`:'';
+    const collapseId=`sub_${at.key.replace(/[^a-z0-9]/gi,'_')}`;
+    const toggleBtn=hasSub?`<button onclick="event.stopPropagation();toggleSubRows('${collapseId}')" style="border:none;background:transparent;cursor:pointer;color:var(--text2);font-size:11px;padding:0 4px" id="tbtn_${collapseId}">▾</button>`:'';
     return `<tr class="${done?'done-row':''}" id="progrow_${at.key}" style="cursor:pointer" onclick="openProgTaskDetail('${at.key}')">
       <td onclick="event.stopPropagation();toggleProgDirect('${at.key}')"><div class="check ${done?'done':''}">${done?'✓':''}</div></td>
       <td style="white-space:nowrap;font-size:11px">${t&&t.date?t.date:''}</td>
-      <td style="font-weight:${done?'400':'500'};color:var(--accent)">${at.label}${subBadge}</td>
+      <td style="font-weight:${done?'400':'500'};color:var(--accent)">${at.label}${subBadge}${toggleBtn}</td>
       <td><div style="display:flex;gap:4px;flex-wrap:wrap">${assignees}</div></td>
       <td style="font-size:11px;white-space:nowrap">${t&&t.deadline?t.deadline:''}</td>
       <td style="font-size:11px;white-space:nowrap">${t&&t.doneDate?t.doneDate:''}</td>
       <td><button onclick="event.stopPropagation();openProgTaskDetail('${at.key}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:14px">›</button></td>
     </tr>
-    ${subtasks.map((s,si)=>`<tr style="background:var(--bg2)">
+    ${subtasks.map((s,si)=>`<tr class="subrow-${collapseId}" style="background:var(--bg2)">
       <td style="padding-left:20px"><div class="check ${s.done?'done':''}" onclick="toggleSubtask('${at.key}',${si})">${s.done?'✓':''}</div></td>
-      <td></td>
-      <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}" colspan="4">↳ ${s.title}</td>
-      <td></td>
+      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.date||''}</td>
+      <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}" >↳ ${s.title}</td>
+      <td><div style="display:flex;gap:4px;flex-wrap:wrap">${s.parts?MEMBERS.filter(m=>s.parts.includes(m.id)).map(m=>getMemberAvatar(m,18)).join(''):''}</div></td>
+      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.deadline||''}</td>
+      <td style="font-size:10px;white-space:nowrap;color:var(--text3)">${s.doneDate||''}</td>
+      <td><button onclick="event.stopPropagation();openSubtaskDetail('${at.key}',${si})" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:12px">›</button></td>
     </tr>`).join('')}`;
   }).join('');
+}
+
+function toggleSubRows(collapseId){
+  const rows=document.querySelectorAll('.subrow-'+collapseId);
+  const btn=document.getElementById('tbtn_'+collapseId);
+  const hidden=rows.length&&rows[0].style.display==='none';
+  rows.forEach(r=>r.style.display=hidden?'':'none');
+  if(btn)btn.textContent=hidden?'▾':'▸';
 }
 
 let currentProgKey=null;
@@ -1024,6 +1052,17 @@ function closeTaskDetail(){document.getElementById('taskDetailOverlay').classLis
 
 
 // ── 新增/編輯彈窗 ──
+function renderProgYearSelect(selectedYear){
+  const sel=document.getElementById('iProgYear');
+  if(!sel)return;
+  sel.innerHTML=progYears.map(y=>`<option value="${y}"${String(y)===String(selectedYear)?'selected':''}>${WAVE_LABELS[y]||y}</option>`).join('');
+}
+
+function openAddOnDate(ds){
+  openAdd();
+  document.getElementById('iDate').value=ds;
+}
+
 function openAdd(){
   editingId=null;
   selCreator=MEMBERS.filter(m=>!(memberData[m.id]&&memberData[m.id].deleted))[0]?.id||'m1';
@@ -1038,7 +1077,9 @@ function openAdd(){
   document.getElementById('iDeadlineM').value='00';
   document.getElementById('iUrgency').value='low';
   const cat=document.getElementById('iCat');cat.value='data';updateCatColor(cat);
-  document.querySelector('.modal-footer button').textContent='新增';
+  document.querySelector('.modal-footer .btn-primary').textContent='新增';
+  const delBtn=document.getElementById('modalDeleteBtn');if(delBtn)delBtn.style.display='none';
+  renderProgYearSelect(progYear);
   renderModalMembers();
   document.getElementById('modalOverlay').classList.add('open');
 }
@@ -1064,7 +1105,10 @@ function openEdit(id){
   document.getElementById('iDeadlineM').value=String(Math.round(dm/10)*10).padStart(2,'0').replace('60','00');
   document.getElementById('iUrgency').value=t.urgency||'low';
   const cat=document.getElementById('iCat');cat.value=t.cat||'data';updateCatColor(cat);
-  document.querySelector('.modal-footer button').textContent='儲存';
+  document.querySelector('.modal-footer button.btn-primary').textContent='儲存';
+  const delBtn=document.getElementById('modalDeleteBtn');
+  if(delBtn)delBtn.style.display='';
+  renderProgYearSelect(t.progYear||progYear);
   renderModalMembers();
   document.getElementById('modalOverlay').classList.add('open');
 }
@@ -1106,6 +1150,7 @@ function saveTask(){
   const m=document.getElementById('iTimeM').value;
   const dh=document.getElementById('iDeadlineH').value;
   const dm=document.getElementById('iDeadlineM').value;
+  const selProgYear=document.getElementById('iProgYear')?.value||String(progYear);
   const data={
     title,
     desc:document.getElementById('iDesc').value,
@@ -1120,6 +1165,7 @@ function saveTask(){
     parts:[...selParts],
     notes:editingId?(tasks.find(x=>x.id===editingId)?.notes||''):'',
     done:editingId?(tasks.find(x=>x.id===editingId)?.done||false):false,
+    progYear:selProgYear,
     timestamp:new Date().toISOString()
   };
   if(editingId){db.ref('tasks/'+editingId).update(data);}
