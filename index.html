@@ -433,7 +433,7 @@ let progOrders = {};
 let _detailKey = null;
 let _detailTaskId = null;
 let _dndSrc = null;
-let _dndAction = null; // 用於判斷拖曳行為是「排序」或「子計畫」
+let _dndAction = null; 
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
@@ -739,7 +739,10 @@ function renderCalendar() {
     const chips = allChips.slice(0, 3).map(e => {
       const isDL = e.deadline === ds && e.date !== ds;
       const border = isDL ? 'border-left:2px solid #c97070;' : '';
-      const clickAction = e.annualKey ? `openProgDetail('${e.annualKey}')` : `openEdit('${e.id}')`;
+      
+      // 無論是否為進度工作，只要在行事曆上點擊，一律開啟置中 Calendar Modal
+      const clickAction = `openEdit('${e.id}')`;
+      
       return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="${clickAction};event.stopPropagation()">${e.title}</div>`;
     }).join('');
     const more = allChips.length > 3 ? `<div style="font-size:9px;color:var(--text3);padding:1px">+${allChips.length-3}</div>` : '';
@@ -778,7 +781,8 @@ function renderDashSidebar() {
   const mtg = allEvts.filter(e => e.cat === 'meeting' && e.date && !e.done).sort((a,b) => a.date.localeCompare(b.date));
 
   const renderItem = e => {
-    const clickAction = e.annualKey ? `openProgDetail('${e.annualKey}')` : `openEdit('${e.id}')`;
+    // 側邊欄點擊亦一律開啟 Calendar Modal
+    const clickAction = `openEdit('${e.id}')`;
     return `<div class="cal-side-item" onclick="${clickAction}">
       <div class="cal-side-dot" style="background:#8a6b66;margin-top:4px"></div>
       <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
@@ -791,7 +795,7 @@ function renderDashSidebar() {
   document.getElementById('dashDeadlines').innerHTML = urgent.length ? urgent.map(renderItem).join('') : empty;
   
   document.getElementById('dashMeetings').innerHTML = mtg.length ? mtg.map(e => {
-    const clickAction = e.annualKey ? `openProgDetail('${e.annualKey}')` : `openEdit('${e.id}')`;
+    const clickAction = `openEdit('${e.id}')`;
     return `<div class="cal-side-item" onclick="${clickAction}">
       <div class="cal-side-dot" style="background:var(--cat-meeting-text);margin-top:4px"></div>
       <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
