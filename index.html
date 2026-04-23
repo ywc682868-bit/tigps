@@ -459,14 +459,31 @@ const db = firebase.database();
 // ── Auth 登入與資料保護 ───────────────────────────────────────────────────────
 let isDataLoaded = false;
 
+// ★ 新增：允許登入的信箱白名單
+const ALLOWED_EMAILS = [
+  'ywc682868@gmail.com',
+  'anneyuo@gmail.com',
+  'anneyuo@gate.sinica.edu.tw'
+];
+
 // 監聽登入狀態
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
-    // 已登入：隱藏登入介面
-    document.getElementById('login-screen').style.display = 'none';
-    if (!isDataLoaded) {
-      isDataLoaded = true;
-      initDataListeners(); // 登入成功後才開始向 Firebase 請求資料
+    // 核對信箱是否在白名單內
+    if (ALLOWED_EMAILS.includes(user.email)) {
+      // 已登入且信箱核准：隱藏登入介面
+      document.getElementById('login-screen').style.display = 'none';
+      if (!isDataLoaded) {
+        isDataLoaded = true;
+        initDataListeners(); // 登入成功後才開始向 Firebase 請求資料
+      }
+    } else {
+      // 登入的信箱不在名單內，強制登出並顯示錯誤
+      firebase.auth().signOut();
+      const errEl = document.getElementById('login-error');
+      errEl.textContent = '登入失敗：該信箱無系統存取權限';
+      errEl.style.display = 'block';
+      document.getElementById('login-screen').style.display = 'flex';
     }
   } else {
     // 未登入：顯示登入介面
@@ -486,8 +503,15 @@ function handleLogin() {
   }
 
   firebase.auth().signInWithEmailAndPassword(email, pwd)
-    .then(() => {
-      errEl.style.display = 'none';
+    .then((userCredential) => {
+      // 判斷權限（onAuthStateChanged 也會做二次檢查，在此處先處理 UI）
+      if (!ALLOWED_EMAILS.includes(userCredential.user.email)) {
+        firebase.auth().signOut();
+        errEl.textContent = '登入失敗：該信箱無系統存取權限';
+        errEl.style.display = 'block';
+      } else {
+        errEl.style.display = 'none';
+      }
     })
     .catch(err => {
       errEl.textContent = '登入失敗：信箱或密碼錯誤';
