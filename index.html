@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TIGPS</title>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#faf9f7;--bg2:#f1ede8;--bg3:#e8e3db;--text:#5a5651;--text2:#8b8580;--text3:#b4ada5;--border:#e3dcd4;--border2:#d4ccc2;--accent:#6b7171;--radius:8px;
@@ -137,6 +139,16 @@ tr[draggable]:active{cursor:grabbing}
 </style>
 </head>
 <body>
+
+<div id="login-screen" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;">
+  <div style="background:var(--bg2);padding:40px;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,0.1);width:320px;display:flex;flex-direction:column;gap:16px;">
+    <div style="text-align:center;font-size:20px;font-weight:600;color:var(--text);margin-bottom:8px;">TIGPS 系統登入</div>
+    <input type="email" id="login-email" placeholder="信箱 (Email)" style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:8px;outline:none;">
+    <input type="password" id="login-password" placeholder="密碼 (Password)" style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:8px;outline:none;" onkeydown="if(event.key==='Enter') handleLogin()">
+    <div id="login-error" style="color:#c97070;font-size:12px;display:none;text-align:center;"></div>
+    <button onclick="handleLogin()" style="width:100%;padding:12px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;cursor:pointer;font-weight:600;margin-top:8px;">登入</button>
+  </div>
+</div>
 
 <div class="page-container">
   
@@ -444,6 +456,45 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// ── Auth 登入與資料保護 ───────────────────────────────────────────────────────
+let isDataLoaded = false;
+
+// 監聽登入狀態
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    // 已登入：隱藏登入介面
+    document.getElementById('login-screen').style.display = 'none';
+    if (!isDataLoaded) {
+      isDataLoaded = true;
+      initDataListeners(); // 登入成功後才開始向 Firebase 請求資料
+    }
+  } else {
+    // 未登入：顯示登入介面
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+});
+
+function handleLogin() {
+  const email = document.getElementById('login-email').value;
+  const pwd = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  
+  if (!email || !pwd) {
+    errEl.textContent = '請填寫信箱與密碼';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  firebase.auth().signInWithEmailAndPassword(email, pwd)
+    .then(() => {
+      errEl.style.display = 'none';
+    })
+    .catch(err => {
+      errEl.textContent = '登入失敗：信箱或密碼錯誤';
+      errEl.style.display = 'block';
+    });
+}
+
 // ── State ─────────────────────────────────────────────────────────────────────
 let tasks = [];
 let memberData = {};
@@ -586,31 +637,33 @@ function getAllCalendarEvents() {
 }
 
 // ── Firebase listeners ────────────────────────────────────────────────────────
-db.ref('members').on('value', snapshot => {
-  memberData = {};
-  snapshot.forEach(child => { memberData[child.key] = { ...child.val() }; });
-  MEMBERS = getActiveMembers();
-  renderTeam();
-});
+function initDataListeners() {
+  db.ref('members').on('value', snapshot => {
+    memberData = {};
+    snapshot.forEach(child => { memberData[child.key] = { ...child.val() }; });
+    MEMBERS = getActiveMembers();
+    renderTeam();
+  });
 
-db.ref('progOrders').on('value', snapshot => {
-  progOrders = snapshot.val() || {};
-  renderProgContent();
-});
+  db.ref('progOrders').on('value', snapshot => {
+    progOrders = snapshot.val() || {};
+    renderProgContent();
+  });
 
-db.ref('tasks').on('value', snapshot => {
-  tasks = [];
-  snapshot.forEach(child => { tasks.push({ id: child.key, ...child.val() }); });
-  renderCalendar();
-  renderDashSidebar();
-  renderProgContent();
-  
-  if (_detailKey && document.getElementById('taskDetailOverlay').classList.contains('open')) {
-    const freshTask = getProgTask(_detailKey);
-    _detailTaskId = freshTask ? freshTask.id : null;
-    renderDetailSubs(freshTask);
-  }
-});
+  db.ref('tasks').on('value', snapshot => {
+    tasks = [];
+    snapshot.forEach(child => { tasks.push({ id: child.key, ...child.val() }); });
+    renderCalendar();
+    renderDashSidebar();
+    renderProgContent();
+    
+    if (_detailKey && document.getElementById('taskDetailOverlay').classList.contains('open')) {
+      const freshTask = getProgTask(_detailKey);
+      _detailTaskId = freshTask ? freshTask.id : null;
+      renderDetailSubs(freshTask);
+    }
+  });
+}
 
 // ── Members ───────────────────────────────────────────────────────────────────
 function renderTeam() {
@@ -859,7 +912,7 @@ function initProgTabs() {
     return `<button class="filter-chip ${active}" 
       onclick="switchProgYear(${y},this)"
       ondragover="yearTabDragOver(event)"
-      ondragleave="yearTabDragLeave(event)"
+      ondragave="yearTabDragLeave(event)"
       ondrop="yearTabDrop(event, ${y})"
       style="transition: all 0.2s;"
       >${waveLabel(y)}</button>`;
@@ -944,7 +997,7 @@ function renderProgContent() {
       subs.forEach(([subKey, s], si) => {
         if (!s) return;
         const sAssignees = Array.isArray(s.parts)
-          ? vis.filter(m => s.parts.includes(m.id)).map(m => getMemberAvatar(m, 18)).join('')
+          ? getActiveMembers().filter(m => s.parts.includes(m.id)).map(m => getMemberAvatar(m, 18)).join('')
           : '';
         html += `<tr class="sub-row subrow_${at.key}" style="display:none">
           <td style="padding-left:16px">
