@@ -143,8 +143,8 @@ tr[draggable]:active{cursor:grabbing}
 .ledger-card-label{font-size:10px;color:var(--text2);font-weight:600}
 .ledger-card-val{font-size:18px;font-weight:700}
 .cleared-row{background:#fbeee9 !important;}
-.text-income{color:#2e7d32;font-weight:600;}
-.text-expense{color:#c62828;font-weight:600;}
+.text-income{color:#2e7d32 !important;font-weight:600;}
+.text-expense{color:#c62828 !important;font-weight:600;}
 </style>
 </head>
 <body>
@@ -480,32 +480,37 @@ tr[draggable]:active{cursor:grabbing}
     </div>
     <input type="hidden" id="ledgerEditingId">
     
+    <!-- 第一列：日期 -->
     <div class="fg">
-      <label class="flabel">項目名稱</label>
+      <label class="flabel">日期</label>
+      <input type="date" id="lDate" required>
+    </div>
+
+    <!-- 第二列：名稱 -->
+    <div class="fg">
+      <label class="flabel">名稱</label>
       <input type="text" id="lTitle" required>
     </div>
 
-    <!-- 四欄水平排開佈局 -->
-    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:16px;">
+    <!-- 第三列：收入與支出 (高亮色彩渲染) -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:14px;">
       <div class="fg" style="margin-bottom:0;">
-        <label class="flabel">日期</label>
-        <input type="date" id="lDate" style="padding:8px 6px;" required>
+        <label class="flabel" style="color:#2e7d32;">收入</label>
+        <input type="number" id="lIncome" min="0" style="color:#2e7d32; border-color:#c8e6c9;">
       </div>
       <div class="fg" style="margin-bottom:0;">
-        <label class="flabel">收入</label>
-        <input type="number" id="lIncome" min="0" style="padding:8px 6px;">
-      </div>
-      <div class="fg" style="margin-bottom:0;">
-        <label class="flabel">支出</label>
-        <input type="number" id="lExpense" min="0" style="padding:8px 6px;">
-      </div>
-      <div class="fg" style="margin-bottom:0;">
-        <label class="flabel">說明</label>
-        <input type="text" id="lClearedInfo" style="padding:8px 6px;">
+        <label class="flabel" style="color:#c62828;">支出</label>
+        <input type="number" id="lExpense" min="0" style="color:#c62828; border-color:#ffcdd2;">
       </div>
     </div>
 
-    <!-- 負責人以成員頭貼與名字晶片橫向排列 -->
+    <!-- 第四列：說明 (文字域，設定 4 列顯示空間) -->
+    <div class="fg">
+      <label class="flabel">說明</label>
+      <textarea id="lClearedInfo" rows="4" style="min-height:92px; resize:vertical; font-family:inherit;"></textarea>
+    </div>
+
+    <!-- 第五列：負責人 -->
     <div class="fg">
       <label class="flabel">負責人</label>
       <div id="ledgerResponsibleChips" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;"></div>
@@ -1346,31 +1351,6 @@ function deleteDetailSub(subKey) {
   db.ref(`tasks/${t.id}/subtasks/${subKey}`).remove().then(() => { delete t.subtasks[subKey]; renderDetailSubs(t); renderProgContent(); });
 }
 
-function saveTaskDetail() {
-  const status = document.getElementById('tdStatus').value;
-  const data = { annualKey: _detailKey, progYear: String(progYear), title: document.getElementById('tdTitle').value.trim() || '未命名工作', date: document.getElementById('tdDate').value, deadline: document.getElementById('tdDeadline').value, doneDate: document.getElementById('tdDoneDate').value, status, desc: document.getElementById('tdDesc').value, done: status === 'done', deleted: false };
-  const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
-  if (t) {
-    data.parts = t.parts || []; data.subtasks = t.subtasks || {};
-    db.ref('tasks/' + _detailTaskId).update(data).then(() => { Object.assign(t, data); renderProgContent(); closeTaskDetail(); });
-  } else {
-    data.parts = []; data.subtasks = {};
-    db.ref('tasks').push(data).then(ref => { tasks.push({ id: ref.key, ...data }); renderProgContent(); closeTaskDetail(); });
-  }
-}
-
-function copyCurrentTask() {
-  const fresh = _detailKey ? getProgTask(_detailKey) : null;
-  if (fresh) _detailTaskId = fresh.id;
-  if (!_detailTaskId) { alert('請先點擊「儲存」後再進行複製！'); return; }
-  const t = tasks.find(x => x.id === _detailTaskId);
-  if (!t || !confirm('確定要完整複製此工作（包含所有子計畫與負責人）嗎？')) return;
-  const newKey = 'custom_' + Date.now();
-  const newData = { ...t, annualKey: newKey, title: t.title + ' (複製)', createdAt: new Date().toISOString() };
-  delete newData.id;
-  db.ref('tasks').push(newData).then(() => { openProgDetail(newKey); renderProgContent(); });
-}
-
 // ── Drag & Drop Reordering Logic ──
 function dndStart(ev, atKey) { _dndSrc = atKey; _dndAction = null; ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', atKey); }
 function dndOver(ev, atKey) {
@@ -1637,7 +1617,6 @@ function renderLedger() {
 }
 
 initProgTabs(); 
-// 初始預設進入工作進度視圖，確保選單高亮與狀態一致
 switchView('progress', document.querySelectorAll('.sb-item')[0]);
 </script>
 </body>
