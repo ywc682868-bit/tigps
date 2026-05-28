@@ -234,23 +234,21 @@ tr[draggable]:active{cursor:grabbing}
           </div>
           <div class="prog-bar-wrap" id="progBar"></div>
           <div class="table-wrap">
-            <table class="data-table" id="progTable">
-              <thead>
-                <tr>
-                  <th style="width:28px"></th>
-                  <th style="min-width:90px">日期</th>
-                  <th style="min-width:160px">名稱</th>
-                  <th style="min-width:110px">負責人員</th>
-                  <th style="min-width:90px">Deadline</th>
-                  <th style="min-width:90px">完成日期</th>
-                  <th style="width:36px; text-align:center; padding-left:0; padding-right:0;">
-                    <button onclick="openProgNew()" style="border:none;background:transparent;cursor:pointer;font-size:18px;color:var(--text2);" title="新增工作">＋</button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="progTbody"></tbody>
-            </table>
-          </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:100px;">日期</th>
+        <th style="min-width:180px;">項目</th>
+        <th style="width:90px;text-align:right;">進帳</th>
+        <th style="width:90px;text-align:right;">支出</th>
+        <th style="width:110px;text-align:right;">可用餘額</th>
+        <th style="width:90px;">負責人</th>
+        <th style="width:50px;text-align:center;">操作</th>
+      </tr>
+    </thead>
+    <tbody id="ledgerTbody"></tbody>
+  </table>
+</div>
         </div>
 
         <!-- 零用金記帳視圖 -->
@@ -1639,56 +1637,55 @@ function renderLedger() {
   const tbody = document.getElementById('ledgerTbody');
   if (!tbody) return;
 
-  initLedgerFilters(); // 確保選單已更新
-
+  initLedgerFilters();
   const filterYear = document.getElementById('ledgerYearFilter').value;
   const filterMonth = document.getElementById('ledgerMonthFilter').value;
 
   let currentBalance = 0;
-  let totalIncome = 0;
-  let totalExpense = 0;
-  let cashTotal = 0;
+  let annualIncome = 0;
+  let annualExpense = 0;
   let html = '';
 
   ledgerEntries.forEach(e => {
-    // 若有代墊人且未支付，則不計入餘額與總支出
     const isPending = e.payer && e.payer.trim() !== '' && !e.isPaid;
     
+    // 只有在已支付的情況下才計入餘額與總額
     if (!isPending) {
       currentBalance = currentBalance + (e.income || 0) - (e.expense || 0);
-      totalIncome += (e.income || 0);
-      totalExpense += (e.expense || 0);
     }
 
     const eDate = new Date(e.date);
     const eYear = eDate.getFullYear().toString();
     const eMonth = (eDate.getMonth() + 1).toString();
 
-    const matchYear = (eYear === filterYear);
-    const matchMonth = (filterMonth === 'all' || eMonth === filterMonth);
-
-    if (matchYear && matchMonth) {
-      // 樣式處理：代墊未支付則灰色顯示
+    if (eYear === filterYear && (filterMonth === 'all' || eMonth === filterMonth)) {
+      annualIncome += (e.income || 0);
+      annualExpense += (e.expense || 0);
+      
       const rowStyle = isPending ? 'style="color: #aaa; font-style: italic;"' : '';
-      const isClearedRow = e.title.includes('清算') ? 'class="cleared-row"' : '';
-
-      html += `<tr ${isClearedRow} ${rowStyle} onclick="openLedgerEdit('${e.id}')">
+      
+      html += `<tr ${rowStyle} onclick="openLedgerEdit('${e.id}')" style="cursor:pointer;">
         <td>${e.date}</td>
-        <td>${e.title} ${isPending ? ' (待支付)' : ''}</td>
-        <td style="text-align:right;" class="${e.income > 0 ? 'text-income' : ''}">${e.income > 0 ? e.income : ''}</td>
-        <td style="text-align:right;" class="${e.expense > 0 ? 'text-expense' : ''}">${e.expense > 0 ? e.expense : ''}</td>
+        <td>${e.title} ${isPending ? '(待支付)' : ''}</td>
+        <td style="text-align:right;" class="text-income">${e.income > 0 ? e.income : ''}</td>
+        <td style="text-align:right;" class="text-expense">${e.expense > 0 ? e.expense : ''}</td>
         <td style="text-align:right;font-weight:600;">${isPending ? '--' : currentBalance}</td>
-        <td>${e.clearedInfo || ''}</td>
         <td>${e.responsible || ''}</td>
-        <td style="text-align:center;"><button onclick="event.stopPropagation();openLedgerEdit('${e.id}')" style="border:none;background:transparent;cursor:pointer;color:var(--text2);">✏️</button></td>
+        <td style="text-align:center;">編輯</td>
       </tr>`;
     }
   });
 
-  tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:var(--text3);">本期無收支紀錄</td></tr>';
-  document.getElementById('ledgerSumBalance').textContent = currentBalance;
-  document.getElementById('ledgerSumIncome').textContent = totalIncome;
-  document.getElementById('ledgerSumExpense').textContent = totalExpense;
+  // 年度統計列
+  html += `<tr style="background:#f1ede8; font-weight:700;">
+    <td colspan="2" style="text-align:right;">年度合計：</td>
+    <td style="text-align:right;" class="text-income">${annualIncome}</td>
+    <td style="text-align:right;" class="text-expense">${annualExpense}</td>
+    <td style="text-align:right;">${annualIncome - annualExpense}</td>
+    <td colspan="2"></td>
+  </tr>`;
+
+  tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">無收支紀錄</td></tr>';
 }
 
 initProgTabs(); 
