@@ -253,44 +253,37 @@ tr[draggable]:active{cursor:grabbing}
 
         <!-- 零用金記帳視圖 -->
         <div class="view" id="view-ledger">
-          <div class="task-toolbar">
-            <div style="display:flex;gap:8px;align-items:center;">
-              <select id="ledgerYearFilter" style="width:90px;" onchange="renderLedger()"></select>
-              <select id="ledgerMonthFilter" style="width:80px;" onchange="renderLedger()">
-                <option value="all">月份</option>
-                <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
-                <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
-                <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
-                <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
-              </select>
-              <button class="btn btn-primary" onclick="openLedgerAdd()" style="padding:6px 12px;height:32px;">＋ 新增</button>
-            </div>
-          </div>
-          <div class="ledger-summary-box">
-            <div class="ledger-card"><span class="ledger-card-label">累計可用餘額</span><span class="ledger-card-val" id="ledgerSumBalance">0</span></div>
-            <div class="ledger-card"><span class="ledger-card-label">總進帳金額</span><span class="ledger-card-val text-income" id="ledgerSumIncome">0</span></div>
-            <div class="ledger-card"><span class="ledger-card-label">總支出金額</span><span class="ledger-card-val text-expense" id="ledgerSumExpense">0</span></div>
-            <div class="ledger-card"><span class="ledger-card-label">固定點收現金總額</span><span class="ledger-card-val" id="ledgerSumCash">0</span></div>
-          </div>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th style="width:100px;">日期</th>
-                  <th style="min-width:180px;">項目</th>
-                  <th style="width:90px;text-align:right;">進帳</th>
-                  <th style="width:90px;text-align:right;">支出</th>
-                  <th style="width:110px;text-align:right;">可用餘額</th>
-                  <th style="width:140px;">固定點收</th>
-                  <th style="width:90px;">負責人</th>
-                  <th style="width:50px;text-align:center;">操作</th>
-                </tr>
-              </thead>
-              <tbody id="ledgerTbody"></tbody>
-            </table>
-          </div>
-        </div>
-
+  <div class="task-toolbar">
+    <div style="display:flex;gap:8px;align-items:center;">
+      <select id="ledgerYearFilter" style="width:90px;" onchange="renderLedger()"></select>
+      <select id="ledgerMonthFilter" style="width:80px;" onchange="renderLedger()">
+        <option value="all">月份</option>
+        <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+        <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+        <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+        <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+      </select>
+      <button class="btn btn-primary" onclick="openLedgerAdd()" style="padding:6px 12px;height:32px;">＋ 新增</button>
+    </div>
+  </div>
+  
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:100px;">日期</th>
+          <th style="min-width:180px;">項目</th>
+          <th style="width:90px;text-align:right;">進帳</th>
+          <th style="width:90px;text-align:right;">支出</th>
+          <th style="width:110px;text-align:right;">可用餘額</th>
+          <th style="width:90px;">負責人</th>
+          <th style="width:60px;text-align:center;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="ledgerTbody"></tbody>
+    </table>
+  </div>
+</div>
       </div>
     </div>
   </div>
@@ -1637,7 +1630,9 @@ function renderLedger() {
   const tbody = document.getElementById('ledgerTbody');
   if (!tbody) return;
 
+  // 1. 初始化年份選單
   initLedgerFilters();
+
   const filterYear = document.getElementById('ledgerYearFilter').value;
   const filterMonth = document.getElementById('ledgerMonthFilter').value;
 
@@ -1646,38 +1641,46 @@ function renderLedger() {
   let annualExpense = 0;
   let html = '';
 
+  // 2. 確保 ledgerEntries 有資料
+  if (!ledgerEntries || ledgerEntries.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text3);">目前無資料</td></tr>';
+    return;
+  }
+
   ledgerEntries.forEach(e => {
+    // 判斷是否為待支付項目
     const isPending = e.payer && e.payer.trim() !== '' && !e.isPaid;
     
-    // 只有在已支付的情況下才計入餘額與總額
+    // 計算邏輯
     if (!isPending) {
-      currentBalance = currentBalance + (e.income || 0) - (e.expense || 0);
+      currentBalance = currentBalance + (Number(e.income) || 0) - (Number(e.expense) || 0);
     }
 
     const eDate = new Date(e.date);
     const eYear = eDate.getFullYear().toString();
     const eMonth = (eDate.getMonth() + 1).toString();
 
+    // 篩選邏輯：檢查年份與月份
     if (eYear === filterYear && (filterMonth === 'all' || eMonth === filterMonth)) {
-      annualIncome += (e.income || 0);
-      annualExpense += (e.expense || 0);
+      annualIncome += (Number(e.income) || 0);
+      annualExpense += (Number(e.expense) || 0);
       
       const rowStyle = isPending ? 'style="color: #aaa; font-style: italic;"' : '';
       
       html += `<tr ${rowStyle} onclick="openLedgerEdit('${e.id}')" style="cursor:pointer;">
         <td>${e.date}</td>
-        <td>${e.title} ${isPending ? '(待支付)' : ''}</td>
+        <td>${e.title}${isPending ? ' <span style="font-size:10px;">(待支付)</span>' : ''}</td>
         <td style="text-align:right;" class="text-income">${e.income > 0 ? e.income : ''}</td>
         <td style="text-align:right;" class="text-expense">${e.expense > 0 ? e.expense : ''}</td>
         <td style="text-align:right;font-weight:600;">${isPending ? '--' : currentBalance}</td>
         <td>${e.responsible || ''}</td>
-        <td style="text-align:center;">編輯</td>
+        <td style="text-align:center; color: var(--accent);">編輯</td>
       </tr>`;
     }
   });
 
-  // 年度統計列
-  html += `<tr style="background:#f1ede8; font-weight:700;">
+  // 3. 加入年度合計列
+  html += `<tr style="background:#f8f7f5; font-weight:700; border-top:2px solid var(--border);">
     <td colspan="2" style="text-align:right;">年度合計：</td>
     <td style="text-align:right;" class="text-income">${annualIncome}</td>
     <td style="text-align:right;" class="text-expense">${annualExpense}</td>
@@ -1685,7 +1688,7 @@ function renderLedger() {
     <td colspan="2"></td>
   </tr>`;
 
-  tbody.innerHTML = html || '<tr><td colspan="7" style="text-align:center;">無收支紀錄</td></tr>';
+  tbody.innerHTML = html;
 }
 
 initProgTabs(); 
