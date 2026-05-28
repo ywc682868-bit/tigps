@@ -253,6 +253,7 @@ tr[draggable]:active{cursor:grabbing}
           </div>
         </div>
 
+        <!-- 零用金記帳視圖 -->
         <div class="view" id="view-ledger">
           <div class="task-toolbar">
             <div style="display:flex;gap:8px;align-items:center;">
@@ -443,6 +444,7 @@ tr[draggable]:active{cursor:grabbing}
       </div>
     </div>
 
+    <!-- 重複行程配置選項 -->
     <div class="fg" style="margin-bottom:16px">
       <label class="flabel">重複週期</label>
       <select id="iRecurrence" style="width:100%">
@@ -470,6 +472,7 @@ tr[draggable]:active{cursor:grabbing}
   </div>
 </div>
 
+<!-- 零用金記帳新增/編輯 Modal -->
 <div class="modal-overlay" id="ledgerModalOverlay" onclick="if(event.target===this)closeLedgerModal()">
   <div class="modal" style="width:400px;">
     <button class="close-btn" onclick="closeLedgerModal()" style="position: absolute; top: 24px; right: 28px; z-index: 10;">✕</button>
@@ -640,13 +643,14 @@ function handleLogin() {
 let tasks = [];
 let memberData = {};
 let MEMBERS = [];
-let ledgerEntries = []; // 記帳明細陣列
+let ledgerEntries = [];
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 let editingId = null;
 let selCreator = '';
 let selParts = [];
 let progYear = 2023;
+// 提示：若未來需支援 2027 等新年度，可直接在下方陣列內追加元素，例如: [2023, 2024, 2025, 2026, 2027]
 let progYears = [2023, 2024, 2025, 2026];
 let progOrders = {}; 
 let _detailKey = null;
@@ -741,11 +745,9 @@ function waveLabel(y) {
   return idx >= 0 ? `W${idx+1} ${y}` : `W? ${y}`;
 }
 
-// 核心修改：計算行事曆中的重複行程
 function getAllCalendarEvents() {
   let events = [];
   tasks.filter(t => !t.deleted).forEach(t => {
-    // 既有基礎行程資料收集
     if (t.date || t.deadline) {
       events.push({
         id: t.id,
@@ -760,10 +762,8 @@ function getAllCalendarEvents() {
         recurrence: t.recurrence || 'none'
       });
       
-      // 動態衍生處理週期重複選項
       if (t.recurrence && t.recurrence !== 'none' && t.date) {
         const start = new Date(t.date);
-        // 設定衍生範圍：目前顯示月的前後一年，以確保切換時能順暢呈現在行事曆
         const endLimit = new Date(calYear + 1, calMonth + 12, 31);
         let nextDate = new Date(start);
 
@@ -791,7 +791,7 @@ function getAllCalendarEvents() {
             done: t.done,
             urgency: t.urgency,
             isSub: false,
-            isRecurInstance: true // 註記為衍生出的重複事件
+            isRecurInstance: true
           });
         }
       }
@@ -847,13 +847,11 @@ function initDataListeners() {
     }
   });
 
-  // 監聽零用金記帳路徑
   db.ref('ledger').on('value', snapshot => {
     ledgerEntries = [];
     snapshot.forEach(child => {
       ledgerEntries.push({ id: child.key, ...child.val() });
     });
-    // 依據日期由舊到新排序，以便正確滾動計算可用餘額
     ledgerEntries.sort((a, b) => a.date.localeCompare(b.date));
     renderLedger();
   });
@@ -1036,6 +1034,8 @@ function renderCalendar() {
     const chips = allChips.slice(0, 3).map(e => {
       const isDL = e.deadline === ds && e.date !== ds;
       const border = isDL ? 'border-left:2px solid #c97070;' : '';
+      
+      // 核心修正：點擊晶片標籤時，直接依據任務 ID 開啟對應行事曆的編輯彈出視窗
       const clickAction = `openEdit('${e.id}')`;
       return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="${clickAction};event.stopPropagation()">${e.title}</div>`;
     }).join('');
@@ -1176,14 +1176,18 @@ function renderProgContent() {
     const subs = t && t.subtasks ? Object.entries(t.subtasks) : [];
     const hasSub = subs.length > 0;
     const subDone = subs.filter(([k,s]) => s && s.done).length;
-    html += `<tr id="dndrow_${at.key}" onclick="openProgDetail('${at.key}')" draggable="true" ondragstart="dndStart(event,'${at.key}')" ondragover="dndOver(event,'${at.key}')" ondragleave="dndLeave(event,'${at.key}')" ondrop="dndDrop(event,'${at.key}')" style="cursor:pointer${isDone?';opacity:0.5':''}">
+    
+    // 核心修正：點擊計畫名稱那一列，直接調用行事曆的編輯視窗，省去原先複雜的右側側邊視窗與跳轉按鈕
+    const clickRowAction = t ? `openEdit('${t.id}')` : `openProgDetail('${at.key}')`;
+
+    html += `<tr id="dndrow_${at.key}" onclick="${clickRowAction}" draggable="true" ondragstart="dndStart(event,'${at.key}')" ondragover="dndOver(event,'${at.key}')" ondragleave="dndLeave(event,'${at.key}')" ondrop="dndDrop(event,'${at.key}')" style="cursor:pointer${isDone?';opacity:0.5':''}">
       <td onclick="event.stopPropagation();quickDone('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
       <td style="font-size:11px;">${t&&t.date?t.date:''}</td>
       <td style="font-weight:${isDone?'400':'500'}">${at.label}${hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:4px">${subDone}/${subs.length}</span>`:''}</td>
       <td><div style="display:flex;gap:3px;flex-wrap:wrap">${assignees}</div></td>
       <td style="font-size:11px;">${t&&t.deadline?t.deadline:''}</td>
       <td style="font-size:11px;">${t&&t.doneDate?t.doneDate:''}</td>
-      <td><button onclick="event.stopPropagation();openProgDetail('${at.key}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px;">›</button></td>
+      <td><button onclick="event.stopPropagation();${clickRowAction}" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px;">›</button></td>
     </tr>`;
 
     if (hasSub) {
@@ -1441,7 +1445,7 @@ function openAdd() {
   document.getElementById('iTimeH').value = ''; document.getElementById('iTimeM').value = '';
   document.getElementById('iDeadlineH').value = ''; document.getElementById('iDeadlineM').value = '';
   document.getElementById('iUrgency').value = 'low';
-  document.getElementById('iRecurrence').value = 'none'; // 重置週期欄位
+  document.getElementById('iRecurrence').value = 'none'; 
   document.getElementById('iDoneCheckbox').checked = false; document.getElementById('iAlarmCheckbox').checked = false;
   updateCatColor(document.getElementById('iCat'));
   document.querySelector('#modalOverlay .btn-primary').textContent = '新增';
@@ -1458,7 +1462,7 @@ function openEdit(id) {
   const tp = t.time ? t.time.split(':') : []; document.getElementById('iTimeH').value = tp[0] || ''; document.getElementById('iTimeM').value = tp[1] || '';
   const dp = t.deadlineTime ? t.deadlineTime.split(':') : []; document.getElementById('iDeadlineH').value = dp[0] || ''; document.getElementById('iDeadlineM').value = dp[1] || '';
   document.getElementById('iUrgency').value = t.urgency || 'low';
-  document.getElementById('iRecurrence').value = t.recurrence || 'none'; // 載入週期欄位
+  document.getElementById('iRecurrence').value = t.recurrence || 'none'; 
   document.getElementById('iDoneCheckbox').checked = t.done || false;
   document.getElementById('iAlarmCheckbox').checked = t.alarm || false;
   const cat = document.getElementById('iCat'); cat.value = t.cat || 'data'; updateCatColor(cat);
@@ -1502,11 +1506,19 @@ function switchView(v, el) {
 // ── 零用金記帳邏輯模組 (Pocket Money Ledger Module) ───────────────────────────────────
 function initLedgerFilters() {
   const yearFilter = document.getElementById('ledgerYearFilter');
-  if (yearFilter && yearFilter.options.length === 0) {
-    progYears.forEach(yr => {
+  if (yearFilter) {
+    yearFilter.innerHTML = '';
+    // 核心修正：將記帳選擇器篩選年份限定為 2026 年開始
+    const currentYear = new Date().getFullYear();
+    const ledgerAvailableYears = [];
+    for (let y = 2026; y <= Math.max(2026, currentYear); y++) {
+      ledgerAvailableYears.push(y);
+    }
+    
+    ledgerAvailableYears.forEach(yr => {
       const opt = document.createElement('option');
       opt.value = yr; opt.textContent = yr + ' 年';
-      if (yr === new Date().getFullYear()) opt.selected = true;
+      if (yr === currentYear) opt.selected = true;
       yearFilter.appendChild(opt);
     });
   }
@@ -1596,11 +1608,9 @@ function renderLedger() {
   let cashTotal = 0;
   let html = '';
 
-  // 遍歷所有全域明細進行可用餘額的累積滾動計算
   ledgerEntries.forEach(e => {
     currentBalance = currentBalance + e.income - e.expense;
 
-    // 解析日期以便進行條件篩選
     const eDate = new Date(e.date);
     const eYear = eDate.getFullYear().toString();
     const eMonth = (eDate.getMonth() + 1).toString();
@@ -1612,13 +1622,11 @@ function renderLedger() {
       totalIncome += e.income;
       totalExpense += e.expense;
       
-      // 計算固定點收現金部分
       if (e.clearedInfo && e.clearedInfo.includes('現金')) {
         const cashMatch = e.clearedInfo.match(/(\d+)\s*\(現金\)/);
         if (cashMatch) cashTotal = parseInt(cashMatch[1]);
       }
 
-      // 檢查是否為清算橫列(套用特定淺粉色底色)
       const isClearedRow = e.title.includes('清算') ? 'class="cleared-row"' : '';
 
       html += `<tr ${isClearedRow} onclick="openLedgerEdit('${e.id}')">
@@ -1636,7 +1644,6 @@ function renderLedger() {
 
   tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:var(--text3);">本期無收支紀錄</td></tr>';
   
-  // 更新主面板統計數值
   document.getElementById('ledgerSumBalance').textContent = currentBalance;
   document.getElementById('ledgerSumIncome').textContent = totalIncome;
   document.getElementById('ledgerSumExpense').textContent = totalExpense;
