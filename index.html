@@ -173,7 +173,7 @@ tr[draggable]:active{cursor:grabbing}
     <div class="sidebar collapsed" id="mainSidebar">
       <div class="sb-nav">
         <div class="team-grid" id="sidebarTeam"></div>
-        <div class="sb-item active" id="sb-dashboard" onclick="switchView('dashboard',this)">📅 行事曆首頁</div>
+        <!-- 核心修改：徹底移除了「行事曆首頁」按鈕，僅保留工作進度與零用金記帳 -->
         <div class="sb-item" id="sb-progress" onclick="switchView('progress',this)">📊 工作進度</div>
         <div class="sb-item" id="sb-ledger" onclick="switchView('ledger',this)">💰 零用金記帳</div>
       </div>
@@ -182,6 +182,7 @@ tr[draggable]:active{cursor:grabbing}
     <div class="main">
       <div class="content">
 
+        <!-- 行事曆主頁面（保留作為初始化預設首頁，點擊計畫名稱或頂部 LOGO 仍可返回此處） -->
         <div class="view active" id="view-dashboard">
           <div class="cal-wrap">
             <div class="cal-left">
@@ -1253,122 +1254,6 @@ function quickDone(atKey) {
 }
 
 // ── Progress Detail Logic ──
-function openProgDetail(atKey) {
-  _detailKey = atKey;
-  const t = getProgTask(atKey);
-  _detailTaskId = t ? t.id : null;
-  const at = ANNUAL_TASKS.find(x => x.key === atKey);
-  document.getElementById('tdCatBadge').textContent = waveLabel(progYear);
-  const titleInput = document.getElementById('tdTitle');
-  titleInput.value = at ? at.label : (t ? t.title : '');
-  titleInput.readOnly = !(_detailKey && _detailKey.startsWith('custom_'));
-  document.getElementById('tdDate').value = t ? (t.date || '') : '';
-  document.getElementById('tdDeadline').value = t ? (t.deadline || '') : '';
-  document.getElementById('tdDoneDate').value = t ? (t.doneDate || '') : '';
-  document.getElementById('tdStatus').value = t ? (t.status || 'notstarted') : 'notstarted';
-  document.getElementById('tdDesc').value = t ? (t.desc || '') : '';
-  const vis = getActiveMembers();
-  const selP = t ? (t.parts || []) : [];
-  document.getElementById('tdAssignees').innerHTML = vis.map(m => {
-    const sel = selP.includes(m.id);
-    const ring = sel ? 'box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--accent);' : '';
-    return `<div id="tda_${m.id}" onclick="detailToggleAssignee('${m.id}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;opacity:${sel?1:0.4};transition:opacity 0.2s">
-      ${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`:`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`}
-      <span class="td-assignee-name" style="font-size:11px;color:${sel?'#8b8580':'#b4ada5'};white-space:nowrap">${m.name}</span>
-    </div>`;
-  }).join('');
-  renderDetailSubs(t);
-  document.getElementById('taskDetailOverlay').classList.add('open');
-}
-
-function renderDetailSubs(task) {
-  const el = document.getElementById('tdSubtasks');
-  if (!el) return;
-  const subs = task && task.subtasks ? Object.entries(task.subtasks) : [];
-  if (!subs.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text3);margin-top:8px;">尚無子計畫</div>'; return; }
-  
-  el.innerHTML = subs.map(([subKey, s]) => `
-    <div style="padding:16px;border-radius:8px;background:var(--bg);border:1px solid var(--border2);margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-        <div class="check ${s.done?'done':''}" onclick="progSubToggle('${_detailKey}','${subKey}');renderDetailSubs(getProgTask('${_detailKey}'))">${s.done?'✓':''}</div>
-        <input type="text" value="${s.title||''}" placeholder="請輸入子計畫名稱" onchange="updateSubField('${subKey}','title',this.value)" style="flex:1;font-size:14px;font-weight:600;color:var(--text);border:none;background:transparent;outline:none;${s.done?'text-decoration:line-through;color:var(--text3)':''}">
-        <button onclick="deleteDetailSub('${subKey}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px">✕</button>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div><div class="flabel">日期</div><input type="date" value="${s.date||''}" onchange="updateSubField('${subKey}','date',this.value)"></div>
-        <div><div class="flabel">DEADLINE</div><input type="date" value="${s.deadline||''}" onchange="updateSubField('${subKey}','deadline',this.value)"></div>
-        <div><div class="flabel">完成日期</div><input type="date" value="${s.doneDate||''}" onchange="updateSubField('${subKey}','doneDate',this.value)"></div>
-        <div><div class="flabel">負責人</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${getActiveMembers().map(m => `<span onclick="toggleSubMember('${subKey}','${m.id}')" style="cursor:pointer;opacity:${s.parts&&s.parts.includes(m.id)?1:0.35}">${getMemberAvatar(m, 28)}</span>`).join('')}</div></div>
-      </div>
-    </div>`).join('');
-}
-
-function updateSubField(subKey, field, val) {
-  const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
-  if (t && t.subtasks[subKey]) { t.subtasks[subKey][field] = val; db.ref(`tasks/${t.id}/subtasks/${subKey}/${field}`).set(val); }
-}
-
-function toggleSubMember(subKey, mid) {
-  const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
-  if (!t) return;
-  const sub = t.subtasks[subKey];
-  let parts = [...(sub.parts || [])];
-  const idx = parts.indexOf(mid);
-  if (idx >= 0) parts.splice(idx, 1); else parts.push(mid);
-  sub.parts = parts;
-  db.ref(`tasks/${t.id}/subtasks/${subKey}/parts`).set(parts).then(() => renderDetailSubs(t));
-}
-
-function addSubtask() {
-  const newSub = { title: '', done: false, date: '', deadline: '', doneDate: '', parts: [], createdAt: new Date().toISOString() };
-  ensureProgTask(_detailKey, t => {
-    db.ref(`tasks/${t.id}/subtasks`).push(newSub).then(() => {
-      db.ref(`tasks/${t.id}`).once('value', snap => {
-        const updated = { id: t.id, ...snap.val() };
-        const idx = tasks.findIndex(x => x.id === t.id);
-        if (idx >= 0) tasks[idx] = updated; else tasks.push(updated);
-        _detailTaskId = t.id;
-        renderDetailSubs(updated);
-        renderProgContent();
-      });
-    });
-  });
-}
-
-function progSubToggle(atKey, subKey) {
-  const t = getProgTask(atKey);
-  if (!t || !t.subtasks || !t.subtasks[subKey]) return;
-  const cur = t.subtasks[subKey].done;
-  db.ref(`tasks/${t.id}/subtasks/${subKey}/done`).set(!cur).then(() => {
-    t.subtasks[subKey].done = !cur;
-    renderDetailSubs(t); renderProgContent();
-  });
-}
-
-function quickDone(atKey) {
-  const t = getProgTask(atKey);
-  if (t) {
-    const newDone = !t.done;
-    const doneDate = newDone ? new Date().toISOString().split('T')[0] : '';
-    db.ref('tasks/' + t.id).update({ done: newDone, status: newDone ? 'done' : 'notstarted', doneDate });
-  } else {
-    let at = ANNUAL_TASKS.find(x => x.key === atKey);
-    const data = {
-      annualKey: atKey,
-      progYear: String(progYear),
-      title: at ? at.label : '未命名工作',
-      done: true,
-      status: 'done',
-      doneDate: new Date().toISOString().split('T')[0],
-      parts: [],
-      subtasks: {},
-      deleted: false
-    };
-    db.ref('tasks').push(data);
-  }
-}
-
-// ── Progress Detail Logic ──
 function copyCurrentTask() {
   const fresh = _detailKey ? getProgTask(_detailKey) : null;
   if (fresh) _detailTaskId = fresh.id;
@@ -1584,6 +1469,30 @@ function saveLedgerEntry() {
   }
 }
 
+// ── Progress Detail Logic ──
+function quickDone(atKey) {
+  const t = getProgTask(atKey);
+  if (t) {
+    const newDone = !t.done;
+    const doneDate = newDone ? new Date().toISOString().split('T')[0] : '';
+    db.ref('tasks/' + t.id).update({ done: newDone, status: newDone ? 'done' : 'notstarted', doneDate });
+  } else {
+    let at = ANNUAL_TASKS.find(x => x.key === atKey);
+    const data = {
+      annualKey: atKey,
+      progYear: String(progYear),
+      title: at ? at.label : '未命名工作',
+      done: true,
+      status: 'done',
+      doneDate: new Date().toISOString().split('T')[0],
+      parts: [],
+      subtasks: {},
+      deleted: false
+    };
+    db.ref('tasks').push(data);
+  }
+}
+
 function deleteLedgerEntry() {
   const id = document.getElementById('ledgerEditingId').value;
   if (id && confirm('確定要刪除此筆記帳明細嗎？')) {
@@ -1647,8 +1556,8 @@ function renderLedger() {
 }
 
 initProgTabs(); 
-// 修正：預設載入並顯示行事曆首頁視圖，同時確保側邊欄結構正確高亮
-switchView('dashboard', document.getElementById('sb-dashboard'));
+// 核心修正：系統初始載入直接開啟 dashboard（行事曆視圖），但傳入 null 不高亮任何側邊欄按鈕
+switchView('dashboard', null);
 </script>
 </body>
 </html>
