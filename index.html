@@ -259,13 +259,13 @@ tr[draggable]:active{cursor:grabbing}
             <div style="display:flex;gap:8px;align-items:center;">
               <select id="ledgerYearFilter" style="width:90px;" onchange="renderLedger()"></select>
               <select id="ledgerMonthFilter" style="width:80px;" onchange="renderLedger()">
-                <option value="all">全部月份</option>
+                <option value="all">月份</option>
                 <option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
                 <option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
                 <option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
                 <option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
               </select>
-              <button class="btn btn-primary" onclick="openLedgerAdd()" style="padding:6px 12px;height:32px;">＋ 新增收支</button>
+              <button class="btn btn-primary" onclick="openLedgerAdd()" style="padding:6px 12px;height:32px;">＋ 新增</button>
             </div>
           </div>
           <div class="ledger-summary-box">
@@ -474,7 +474,7 @@ tr[draggable]:active{cursor:grabbing}
 
 <!-- 零用金記帳新增/編輯 Modal -->
 <div class="modal-overlay" id="ledgerModalOverlay" onclick="if(event.target===this)closeLedgerModal()">
-  <div class="modal" style="width:400px;">
+  <div class="modal" style="width:460px;">
     <button class="close-btn" onclick="closeLedgerModal()" style="position: absolute; top: 24px; right: 28px; z-index: 10;">✕</button>
     <div class="modal-hdr">
       <span class="modal-title" id="ledgerModalTitle">新增收支紀錄</span>
@@ -482,30 +482,34 @@ tr[draggable]:active{cursor:grabbing}
     <input type="hidden" id="ledgerEditingId">
     
     <div class="fg">
-      <label class="flabel">日期</label>
-      <input type="date" id="lDate" required>
-    </div>
-    <div class="fg">
       <label class="flabel">項目名稱</label>
-      <input type="text" id="lTitle" placeholder="例如: 郵寄加拿大、飲料" required>
+      <input type="text" id="lTitle" required>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+
+    <!-- 四欄水平排開佈局 -->
+    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin-bottom:16px;">
       <div class="fg" style="margin-bottom:0;">
-        <label class="flabel">進帳金額</label>
-        <input type="number" id="lIncome" placeholder="0" min="0">
+        <label class="flabel">日期</label>
+        <input type="date" id="lDate" style="padding:8px 6px;" required>
       </div>
       <div class="fg" style="margin-bottom:0;">
-        <label class="flabel">支出金額</label>
-        <input type="number" id="lExpense" placeholder="0" min="0">
+        <label class="flabel">收入</label>
+        <input type="number" id="lIncome" min="0" style="padding:8px 6px;">
+      </div>
+      <div class="fg" style="margin-bottom:0;">
+        <label class="flabel">支出</label>
+        <input type="number" id="lExpense" min="0" style="padding:8px 6px;">
+      </div>
+      <div class="fg" style="margin-bottom:0;">
+        <label class="flabel">說明</label>
+        <input type="text" id="lClearedInfo" style="padding:8px 6px;">
       </div>
     </div>
-    <div class="fg">
-      <label class="flabel">固定點收清算說明 (非必填)</label>
-      <input type="text" id="lClearedInfo" placeholder="例如: 16:00清算、本子裡的錢/現金">
-    </div>
+
+    <!-- 負責人改為成員頭貼與名字晶片橫向排列 -->
     <div class="fg">
       <label class="flabel">負責人</label>
-      <select id="lResponsible"></select>
+      <div id="ledgerResponsibleChips" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;"></div>
     </div>
     
     <div class="modal-footer" style="display:flex;justify-content:space-between">
@@ -644,13 +648,13 @@ let tasks = [];
 let memberData = {};
 let MEMBERS = [];
 let ledgerEntries = [];
+let selLedgerResponsible = ''; // 記帳模組當前選定的負責人名字
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 let editingId = null;
 let selCreator = '';
 let selParts = [];
 let progYear = 2023;
-// 提示：若未來需支援 2027 等新年度，可直接在下方陣列內追加元素，例如: [2023, 2024, 2025, 2026, 2027]
 let progYears = [2023, 2024, 2025, 2026];
 let progOrders = {}; 
 let _detailKey = null;
@@ -825,7 +829,6 @@ function initDataListeners() {
     snapshot.forEach(child => { memberData[child.key] = { ...child.val() }; });
     MEMBERS = getActiveMembers();
     renderTeam();
-    populateLedgerResponsibleDropdown();
   });
 
   db.ref('progOrders').on('value', snapshot => {
@@ -1035,7 +1038,6 @@ function renderCalendar() {
       const isDL = e.deadline === ds && e.date !== ds;
       const border = isDL ? 'border-left:2px solid #c97070;' : '';
       
-      // 核心修正：點擊晶片標籤時，直接依據任務 ID 開啟對應行事曆的編輯彈出視窗
       const clickAction = `openEdit('${e.id}')`;
       return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="${clickAction};event.stopPropagation()">${e.title}</div>`;
     }).join('');
@@ -1177,7 +1179,6 @@ function renderProgContent() {
     const hasSub = subs.length > 0;
     const subDone = subs.filter(([k,s]) => s && s.done).length;
     
-    // 核心修正：點擊計畫名稱那一列，直接調用行事曆的編輯視窗，省去原先複雜的右側側邊視窗與跳轉按鈕
     const clickRowAction = t ? `openEdit('${t.id}')` : `openProgDetail('${at.key}')`;
 
     html += `<tr id="dndrow_${at.key}" onclick="${clickRowAction}" draggable="true" ondragstart="dndStart(event,'${at.key}')" ondragover="dndOver(event,'${at.key}')" ondragleave="dndLeave(event,'${at.key}')" ondrop="dndDrop(event,'${at.key}')" style="cursor:pointer${isDone?';opacity:0.5':''}">
@@ -1508,7 +1509,6 @@ function initLedgerFilters() {
   const yearFilter = document.getElementById('ledgerYearFilter');
   if (yearFilter) {
     yearFilter.innerHTML = '';
-    // 核心修正：將記帳選擇器篩選年份限定為 2026 年開始
     const currentYear = new Date().getFullYear();
     const ledgerAvailableYears = [];
     for (let y = 2026; y <= Math.max(2026, currentYear); y++) {
@@ -1524,13 +1524,20 @@ function initLedgerFilters() {
   }
 }
 
-function populateLedgerResponsibleDropdown() {
-  const select = document.getElementById('lResponsible');
-  if (!select) return;
-  select.innerHTML = '<option value="">-- 選擇負責人 --</option>';
-  getActiveMembers().forEach(m => {
-    select.innerHTML += `<option value="${m.name}">${m.name}</option>`;
-  });
+// 渲染記帳 Modal 內的負責人頭貼與晶片选择器
+function renderLedgerResponsibleChips() {
+  const vis = getActiveMembers();
+  const container = document.getElementById('ledgerResponsibleChips');
+  if (!container) return;
+  
+  container.innerHTML = vis.map(m => {
+    const isSelected = (m.name === selLedgerResponsible);
+    const ring = isSelected ? 'box-shadow:0 0 0 2.5px var(--accent);' : '';
+    return `<div onclick="selLedgerResponsible='${m.name}';renderLedgerResponsibleChips()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${isSelected?1:0.4}">
+      ${m.photo ? `<img src="${m.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;${ring}">` : `<div style="width:36px;height:36px;border-radius:50%;background:${m.bg};color:#555;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`}
+      <span style="font-size:9px;color:var(--text2);">${m.name}</span>
+    </div>`;
+  }).join('');
 }
 
 function openLedgerAdd() {
@@ -1541,7 +1548,8 @@ function openLedgerAdd() {
   document.getElementById('lIncome').value = '';
   document.getElementById('lExpense').value = '';
   document.getElementById('lClearedInfo').value = '';
-  document.getElementById('lResponsible').value = '';
+  selLedgerResponsible = ''; // 清空選擇狀態
+  renderLedgerResponsibleChips();
   document.getElementById('ledgerModalDeleteBtn').style.display = 'none';
   document.getElementById('ledgerModalOverlay').classList.add('open');
 }
@@ -1556,7 +1564,8 @@ function openLedgerEdit(id) {
   document.getElementById('lIncome').value = entry.income || '';
   document.getElementById('lExpense').value = entry.expense || '';
   document.getElementById('lClearedInfo').value = entry.clearedInfo || '';
-  document.getElementById('lResponsible').value = entry.responsible || '';
+  selLedgerResponsible = entry.responsible || ''; // 載入儲存的負責人
+  renderLedgerResponsibleChips();
   document.getElementById('ledgerModalDeleteBtn').style.display = 'inline-block';
   document.getElementById('ledgerModalOverlay').classList.add('open');
 }
@@ -1572,7 +1581,7 @@ function saveLedgerEntry() {
   const income = parseInt(document.getElementById('lIncome').value) || 0;
   const expense = parseInt(document.getElementById('lExpense').value) || 0;
   const clearedInfo = document.getElementById('lClearedInfo').value.trim();
-  const responsible = document.getElementById('lResponsible').value;
+  const responsible = selLedgerResponsible; // 從晶片狀態讀取數據
 
   if (!date || !title) {
     alert('請填寫日期與項目名稱');
