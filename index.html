@@ -537,11 +537,11 @@ tr[draggable]:active{cursor:grabbing}
   </div>
 </div>
 
-<!-- 成員編輯視窗 -->
+<!-- 成員編輯/新增視窗 -->
 <div class="member-overlay" id="memberEditOverlay" onclick="if(event.target===this)closeMemberEdit()">
   <div class="modal" style="width:340px">
     <div class="modal-hdr">
-      <span class="modal-title">編輯成員</span>
+      <span class="modal-title" id="memberModalTitle">編輯成員</span>
       <button class="close-btn" onclick="closeMemberEdit()" style="position: absolute; top: 24px; right: 24px;">✕</button>
     </div>
     <input type="hidden" id="memberEditId">
@@ -574,7 +574,7 @@ tr[draggable]:active{cursor:grabbing}
     <hr style="border:none; border-top:1px solid var(--border); margin: 20px 0;">
     
     <div class="modal-footer" style="justify-content:space-between; border-top:none; padding-top:0; margin-top:0;">
-      <button class="btn btn-danger" onclick="confirmDeleteMember()">刪除成員</button>
+      <button class="btn btn-danger" id="memberDeleteBtn" onclick="confirmDeleteMember()">刪除成員</button>
       <button class="btn btn-primary" onclick="saveMemberEdit()">儲存</button>
     </div>
   </div>
@@ -656,7 +656,7 @@ function handleLogin() {
       } else if (err.code === 'auth/invalid-api-key') {
         errEl.textContent = '系統設定錯誤：API Key 無效';
       } else {
-        errEl.textContent = '開關登入失敗：' + err.message;
+        errEl.textContent = '變更登入失敗：' + err.message;
       }
       errEl.style.display = 'block';
     });
@@ -866,11 +866,12 @@ function initDataListeners() {
   });
 }
 
-// ── Members ───────────────────────────────────────────────────────────────────
+// ── Members Core Logic ───────────────────────────────────────────────────────
 function renderTeam() {
   const teamEl = document.getElementById('sidebarTeam');
   const vis = getActiveMembers();
-  teamEl.innerHTML = vis.map(m => {
+  
+  let html = vis.map(m => {
     const saved = memberData[m.id] || {};
     const name = saved.name || m.name;
     const photo = saved.photo;
@@ -882,14 +883,33 @@ function renderTeam() {
       <div style="font-size:9px;color:var(--text2);text-align:center;line-height:1.2;margin-top:2px;max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
     </div>`;
   }).join('');
+
+  html += `<div class="member-cell" onclick="openMemberAdd()">
+    <div class="avatar" style="background:var(--bg3); color:var(--text2); font-size:18px; font-weight:400; border:1.5px dashed var(--border2); cursor:pointer;">＋</div>
+    <div style="font-size:9px;color:var(--text3);text-align:center;line-height:1.2;margin-top:2px;">新增</div>
+  </div>`;
+
+  teamEl.innerHTML = html;
+}
+
+function openMemberAdd() {
+  document.getElementById('memberEditOverlay').classList.add('open');
+  document.getElementById('memberModalTitle').textContent = '新增成員';
+  document.getElementById('memberEditId').value = 'user_' + Date.now();
+  document.getElementById('memberEditName').value = '';
+  document.getElementById('memberEditEmail').value = '';
+  document.getElementById('memberDeleteBtn').style.display = 'none';
+  refreshPhotoUI(null);
 }
 
 function openMemberEdit(id) {
   const saved = memberData[id] || {};
   document.getElementById('memberEditOverlay').classList.add('open');
+  document.getElementById('memberModalTitle').textContent = '編輯成員';
   document.getElementById('memberEditId').value = id;
   document.getElementById('memberEditName').value = saved.name || '';
   document.getElementById('memberEditEmail').value = saved.email || '';
+  document.getElementById('memberDeleteBtn').style.display = 'inline-block';
   refreshPhotoUI(saved.photo || null);
 }
 
@@ -1229,6 +1249,29 @@ function progToggleSub(safeKey) {
   if (btn) btn.textContent = isHidden ? `▾ ${btn.textContent.split(' ')[1]}` : `▸ ${btn.textContent.split(' ')[1]}`;
 }
 
+function quickDone(atKey) {
+  const t = getProgTask(atKey);
+  if (t) {
+    const newDone = !t.done;
+    const doneDate = newDone ? new Date().toISOString().split('T')[0] : '';
+    db.ref('tasks/' + t.id).update({ done: newDone, status: newDone ? 'done' : 'notstarted', doneDate });
+  } else {
+    let at = ANNUAL_TASKS.find(x => x.key === atKey);
+    const data = {
+      annualKey: atKey,
+      progYear: String(progYear),
+      title: at ? at.label : '未命名工作',
+      done: true,
+      status: 'done',
+      doneDate: new Date().toISOString().split('T')[0],
+      parts: [],
+      subtasks: {},
+      deleted: false
+    };
+    db.ref('tasks').push(data);
+  }
+}
+
 // ── Progress Detail Logic ──
 function openProgDetail(atKey) {
   _detailKey = atKey;
@@ -1388,8 +1431,6 @@ function deleteCurrentTask() {
   });
 }
 
-function closeTaskDetail() { document.getElementById('taskDetailOverlay').classList.remove('open'); }
-
 function ensureProgTask(atKey, cb) {
   let t = getProgTask(atKey);
   if (t) { cb(t); return; }
@@ -1399,47 +1440,14 @@ function ensureProgTask(atKey, cb) {
 }
 
 // ── Drag & Drop Reordering Logic ──
-function dndStart(ev, atKey) { _dndSrc = atKey; _dndAction = null; ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', atKey); }
-function dndOver(ev, atKey) {
-  if (atKey === _dndSrc) return;
-  ev.preventDefault();
-  const row = document.getElementById('dndrow_' + atKey); if (!row) return;
-  const rect = row.getBoundingClientRect(); const y = ev.clientY - rect.top;
-  row.style.borderTop = ''; row.style.borderBottom = ''; row.style.backgroundColor = ''; row.style.outline = '';
-  if (y < rect.height * 0.3) { row.style.borderTop = '2px solid var(--accent)'; _dndAction = 'above'; }
-  else if (y > rect.height * 0.7) { row.style.borderBottom = '2px solid var(--accent)'; _dndAction = 'below'; }
-  else { row.style.backgroundColor = 'var(--bg3)'; row.style.outline = '2px dashed var(--accent)'; _dndAction = 'subtask'; }
-}
-function dndLeave(ev, atKey) { const row = document.getElementById('dndrow_' + atKey); if (row) { row.style.borderTop = ''; row.style.borderBottom = ''; row.style.backgroundColor = ''; row.style.outline = ''; } }
-function dndDrop(ev, targetKey) {
-  ev.preventDefault();
-  document.querySelectorAll('.data-table tr').forEach(r => { r.style.borderTop = ''; r.style.borderBottom = ''; r.style.backgroundColor = ''; r.style.outline = ''; });
-  const srcKey = _dndSrc; const action = _dndAction; _dndSrc = null; _dndAction = null;
-  if (!srcKey || srcKey === targetKey) return;
-  if (action === 'subtask') {
-    const srcTask = getProgTask(srcKey); if (!confirm(`確定將其變為子計畫？此操作無法還原。`)) return;
-    const sub = { title: srcTask?srcTask.title:srcKey, done: srcTask?srcTask.done:false, date: srcTask?srcTask.date:'', deadline: srcTask?srcTask.deadline:'', doneDate: srcTask?srcTask.doneDate:'', parts: srcTask?srcTask.parts:[], createdAt: new Date().toISOString() };
-    ensureProgTask(targetKey, targetTask => {
-      db.ref('tasks/' + targetTask.id + '/subtasks').push(sub).then(() => {
-        if (srcTask) db.ref('tasks/' + srcTask.id).update({deleted: true});
-      });
-    });
-    return;
-  }
-  let yearTasks = [];
-  ANNUAL_TASKS.forEach(at => { const t = getProgTask(at.key); if (!(t && t.deleted)) yearTasks.push({ at, t }); });
-  const customTasks = tasks.filter(t => (String(t.progYear) === String(progYear) || (t.progYear == null && String(progYear) === '2023')) && t.annualKey && t.annualKey.startsWith('custom_') && !t.deleted);
-  customTasks.forEach(t => yearTasks.push({ at: { key: t.annualKey, label: t.title }, t }));
-  let yearOrder = progOrders[progYear] || [];
-  yearTasks.sort((a,b) => (a.t&&a.t.done?1:0)-(b.t&&b.t.done?1:0) || (yearOrder.indexOf(a.at.key)-yearOrder.indexOf(b.at.key)));
-  let currentKeys = yearTasks.map(x => x.at.key);
-  const srcIdx = currentKeys.indexOf(srcKey); const tgtIdx = currentKeys.indexOf(targetKey);
-  if (srcIdx > -1 && tgtIdx > -1) {
-    currentKeys.splice(srcIdx, 1);
-    let newTgtIdx = currentKeys.indexOf(targetKey);
-    if (action === 'below') newTgtIdx += 1;
-    currentKeys.splice(newTgtIdx, 0, srcKey);
-    db.ref('progOrders/' + progYear).set(currentKeys);
+function yearTabDragOver(ev) { ev.preventDefault(); ev.dataTransfer.dropEffect = 'move'; ev.currentTarget.style.transform = 'scale(1.1)'; ev.currentTarget.style.boxShadow = '0 0 0 2px var(--accent)'; }
+function yearTabDragLeave(ev) { ev.currentTarget.style.transform = 'none'; ev.currentTarget.style.boxShadow = 'none'; }
+function yearTabDrop(ev, targetYear) {
+  ev.preventDefault(); ev.currentTarget.style.transform = 'none'; ev.currentTarget.style.boxShadow = 'none';
+  const srcKey = _dndSrc; _dndSrc = null; if (!srcKey) return;
+  const t = getProgTask(srcKey); if (!t || String(t.progYear) === String(targetYear)) return;
+  if (confirm(`確定將整筆工作移至 ${targetYear} 年度嗎？`)) {
+    db.ref('tasks/' + t.id).update({ progYear: String(targetYear) }).then(() => renderProgContent());
   }
 }
 
@@ -1513,17 +1521,35 @@ function switchView(v, el) {
 function initLedgerFilters() {
   const yearFilter = document.getElementById('ledgerYearFilter');
   if (yearFilter) {
+    const savedSelectedYear = yearFilter.value;
     yearFilter.innerHTML = '';
+    
     const currentYear = new Date().getFullYear();
+    let maxYear = 2026; 
+    
+    ledgerEntries.forEach(e => {
+      if (e.date) {
+        const y = new Date(e.date).getFullYear();
+        if (y > maxYear) maxYear = y;
+      }
+    });
+    
+    if (currentYear > maxYear) maxYear = currentYear;
+
     const ledgerAvailableYears = [];
-    for (let y = 2026; y <= Math.max(2026, currentYear); y++) {
+    for (let y = 2026; y <= maxYear; y++) {
       ledgerAvailableYears.push(y);
     }
     
     ledgerAvailableYears.forEach(yr => {
       const opt = document.createElement('option');
       opt.value = yr; opt.textContent = yr + ' 年';
-      if (yr === currentYear) opt.selected = true;
+      
+      if (savedSelectedYear) {
+        if (yr.toString() === savedSelectedYear) opt.selected = true;
+      } else {
+        if (yr === currentYear) opt.selected = true;
+      }
       yearFilter.appendChild(opt);
     });
   }
@@ -1601,9 +1627,13 @@ function saveLedgerEntry() {
   const data = { date, title, income, expense, clearedInfo, payer, isPaid, responsible };
 
   if (id) {
-    db.ref('ledger/' + id).update(data).then(closeLedgerModal);
+    db.ref('ledger/' + id).update(data).then(() => {
+      closeLedgerModal();
+    });
   } else {
-    db.ref('ledger').push(data).then(closeLedgerModal);
+    db.ref('ledger').push(data).then(() => {
+      closeLedgerModal();
+    });
   }
 }
 
@@ -1617,6 +1647,8 @@ function deleteLedgerEntry() {
 function renderLedger() {
   const tbody = document.getElementById('ledgerTbody');
   if (!tbody) return;
+
+  initLedgerFilters();
 
   const filterYear = document.getElementById('ledgerYearFilter').value;
   const filterMonth = document.getElementById('ledgerMonthFilter').value;
