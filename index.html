@@ -173,7 +173,7 @@ tr[draggable]:active{cursor:grabbing}
     <div class="sidebar collapsed" id="mainSidebar">
       <div class="sb-nav">
         <div class="team-grid" id="sidebarTeam"></div>
-        <div class="sb-item active" id="sb-progress" onclick="switchView('progress',this)">📊 工作進度</div>
+        <div class="sb-item" id="sb-progress" onclick="switchView('progress',this)">📊 工作進度</div>
         <div class="sb-item" id="sb-ledger" onclick="switchView('ledger',this)">💰 零用金記帳</div>
       </div>
     </div>
@@ -505,7 +505,7 @@ tr[draggable]:active{cursor:grabbing}
       </div>
     </div>
 
-    <!-- 核心修改：在收入支出下方新增一列，包含代墊人文字輸入欄位與以支付勾選按鈕 -->
+    <!-- 支出收入下顯示一列：代墊人文字與以支付勾選框 -->
     <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:14px; align-items: flex-end;">
       <div class="fg" style="margin-bottom:0;">
         <label class="flabel">代墊人</label>
@@ -753,6 +753,79 @@ function getMemberAvatar(m, size = 24) {
   const bg = m.bg || '#e0ddd8';
   if (photo) return `<img src="${photo}" title="${name}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:1.5px solid var(--bg)">`;
   return `<div title="${name}" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};color:#555;font-size:${Math.max(9,Math.round(size*0.38))}px;font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bg)">${initials}</div>`;
+}
+
+function getAllCalendarEvents() {
+  let events = [];
+  tasks.filter(t => !t.deleted).forEach(t => {
+    if (t.date || t.deadline) {
+      events.push({
+        id: t.id,
+        annualKey: t.annualKey,
+        title: t.title,
+        date: t.date,
+        deadline: t.deadline,
+        cat: t.cat || 'data',
+        done: t.done,
+        urgency: t.urgency,
+        isSub: false,
+        recurrence: t.recurrence || 'none'
+      });
+      
+      if (t.recurrence && t.recurrence !== 'none' && t.date) {
+        const start = new Date(t.date);
+        const endLimit = new Date(calYear + 1, calMonth + 12, 31);
+        let nextDate = new Date(start);
+
+        while (true) {
+          if (t.recurrence === 'weekly') {
+            nextDate.setDate(nextDate.getDate() + 7);
+          } else if (t.recurrence === 'monthly') {
+            nextDate.setMonth(nextDate.getMonth() + 1);
+          } else if (t.recurrence === 'quarterly') {
+            nextDate.setMonth(nextDate.getMonth() + 3);
+          } else if (t.recurrence === 'yearly') {
+            nextDate.setFullYear(nextDate.getFullYear() + 1);
+          }
+
+          if (nextDate > endLimit) break;
+
+          const ds = nextDate.toISOString().split('T')[0];
+          events.push({
+            id: t.id,
+            annualKey: t.annualKey,
+            title: `🔄 ${t.title}`,
+            date: ds,
+            deadline: '',
+            cat: t.cat || 'data',
+            done: t.done,
+            urgency: t.urgency,
+            isSub: false,
+            isRecurInstance: true
+          });
+        }
+      }
+    }
+    
+    if (t.subtasks) {
+      Object.entries(t.subtasks).forEach(([sKey, s]) => {
+        if (s.date || s.deadline) {
+          events.push({
+            id: t.id,
+            annualKey: t.annualKey, 
+            title: `↳ ${s.title || '子計畫'}`,
+            date: s.date,
+            deadline: s.deadline,
+            cat: t.cat || 'data',
+            done: s.done,
+            urgency: t.urgency,
+            isSub: true
+          });
+        }
+      });
+    }
+  });
+  return events;
 }
 
 // ── Firebase listeners ────────────────────────────────────────────────────────
@@ -1156,29 +1229,6 @@ function progToggleSub(safeKey) {
   if (btn) btn.textContent = isHidden ? `▾ ${btn.textContent.split(' ')[1]}` : `▸ ${btn.textContent.split(' ')[1]}`;
 }
 
-function quickDone(atKey) {
-  const t = getProgTask(atKey);
-  if (t) {
-    const newDone = !t.done;
-    const doneDate = newDone ? new Date().toISOString().split('T')[0] : '';
-    db.ref('tasks/' + t.id).update({ done: newDone, status: newDone ? 'done' : 'notstarted', doneDate });
-  } else {
-    let at = ANNUAL_TASKS.find(x => x.key === atKey);
-    const data = {
-      annualKey: atKey,
-      progYear: String(progYear),
-      title: at ? at.label : '未命名工作',
-      done: true,
-      status: 'done',
-      doneDate: new Date().toISOString().split('T')[0],
-      parts: [],
-      subtasks: {},
-      deleted: false
-    };
-    db.ref('tasks').push(data);
-  }
-}
-
 // ── Progress Detail Logic ──
 function openProgDetail(atKey) {
   _detailKey = atKey;
@@ -1245,7 +1295,6 @@ function updateSubField(subKey, field, val) {
   if (t && t.subtasks[subKey]) { t.subtasks[subKey][field] = val; db.ref(`tasks/${t.id}/subtasks/${subKey}/${field}`).set(val); }
 }
 
-// 修正：補齊之前遺漏的 toggleSubMember 控制項，確保子計畫負責人點擊可正常加選
 function toggleSubMember(subKey, mid) {
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
   if (!t) return;
@@ -1503,7 +1552,6 @@ function openLedgerAdd() {
   document.getElementById('lIncome').value = '';
   document.getElementById('lExpense').value = '';
   document.getElementById('lClearedInfo').value = '';
-  // 修正：新增欄位初始化歸零與清空
   document.getElementById('lPayer').value = '';
   document.getElementById('lIsPaid').checked = false;
   selLedgerResponsible = ''; 
@@ -1522,7 +1570,6 @@ function openLedgerEdit(id) {
   document.getElementById('lIncome').value = entry.income || '';
   document.getElementById('lExpense').value = entry.expense || '';
   document.getElementById('lClearedInfo').value = entry.clearedInfo || '';
-  // 修正：加載並復原資料庫中儲存的代墊人資料與勾選狀態
   document.getElementById('lPayer').value = entry.payer || '';
   document.getElementById('lIsPaid').checked = !!entry.isPaid;
   selLedgerResponsible = entry.responsible || ''; 
@@ -1542,7 +1589,6 @@ function saveLedgerEntry() {
   const income = parseInt(document.getElementById('lIncome').value) || 0;
   const expense = parseInt(document.getElementById('lExpense').value) || 0;
   const clearedInfo = document.getElementById('lClearedInfo').value.trim();
-  // 修正：收集新增元件的值
   const payer = document.getElementById('lPayer').value.trim();
   const isPaid = document.getElementById('lIsPaid').checked;
   const responsible = selLedgerResponsible; 
@@ -1552,7 +1598,6 @@ function saveLedgerEntry() {
     return;
   }
 
-  // 修正：組裝完整資料物件
   const data = { date, title, income, expense, clearedInfo, payer, isPaid, responsible };
 
   if (id) {
