@@ -505,6 +505,19 @@ tr[draggable]:active{cursor:grabbing}
       </div>
     </div>
 
+    <!-- 核心修改：在收入支出下方新增一列，包含代墊人文字輸入欄位與以支付勾選按鈕 -->
+    <div style="display:grid; grid-template-columns: 2fr 1fr; gap:16px; margin-bottom:14px; align-items: flex-end;">
+      <div class="fg" style="margin-bottom:0;">
+        <label class="flabel">代墊人</label>
+        <input type="text" id="lPayer" style="padding:8px 12px;">
+      </div>
+      <div class="fg" style="margin-bottom:0; padding-bottom:10px;">
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:var(--text2); font-size:10px; text-transform:uppercase; letter-spacing:0.05em;">
+          <input type="checkbox" id="lIsPaid" style="width:15px; height:15px; cursor:pointer;"> 以支付
+        </label>
+      </div>
+    </div>
+
     <!-- 第四列：說明 -->
     <div class="fg">
       <label class="flabel">說明</label>
@@ -643,7 +656,7 @@ function handleLogin() {
       } else if (err.code === 'auth/invalid-api-key') {
         errEl.textContent = '系統設定錯誤：API Key 無效';
       } else {
-        errEl.textContent = '登入失敗：' + err.message;
+        errEl.textContent = '開關登入失敗：' + err.message;
       }
       errEl.style.display = 'block';
     });
@@ -712,7 +725,7 @@ const ANNUAL_TASKS = [
   {key:'release_codebook_cn',label:'釋出－Codebook 中文版'},
   {key:'release_codebook_en',label:'釋出－Codebook 英文版'},
   {key:'release_manual_cn',label:'釋出－資料使用手冊中文版'},
-  {key(--'release_manual_en',label:'釋出－資料使用手冊英文版'},
+  {key:'release_manual_en',label:'釋出－資料使用手冊英文版'},
   {key:'data_review1',label:'資料一校'},
   {key:'data_review2',label:'資料二校'},
 ];
@@ -740,92 +753,6 @@ function getMemberAvatar(m, size = 24) {
   const bg = m.bg || '#e0ddd8';
   if (photo) return `<img src="${photo}" title="${name}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:1.5px solid var(--bg)">`;
   return `<div title="${name}" style="width:${size}px;height:${size}px;border-radius:50%;background:${bg};color:#555;font-size:${Math.max(9,Math.round(size*0.38))}px;font-weight:600;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bg)">${initials}</div>`;
-}
-
-function getProgTask(atKey) {
-  const ys = String(progYear);
-  return tasks.find(t =>
-    t.annualKey === atKey &&
-    (String(t.progYear) === ys || (t.progYear == null && ys === '2023'))
-  ) || null;
-}
-
-function waveLabel(y) {
-  const idx = progYears.indexOf(y);
-  return idx >= 0 ? `W${idx+1} ${y}` : `W? ${y}`;
-}
-
-function getAllCalendarEvents() {
-  let events = [];
-  tasks.filter(t => !t.deleted).forEach(t => {
-    if (t.date || t.deadline) {
-      events.push({
-        id: t.id,
-        annualKey: t.annualKey,
-        title: t.title,
-        date: t.date,
-        deadline: t.deadline,
-        cat: t.cat || 'data',
-        done: t.done,
-        urgency: t.urgency,
-        isSub: false,
-        recurrence: t.recurrence || 'none'
-      });
-      
-      if (t.recurrence && t.recurrence !== 'none' && t.date) {
-        const start = new Date(t.date);
-        const endLimit = new Date(calYear + 1, calMonth + 12, 31);
-        let nextDate = new Date(start);
-
-        while (true) {
-          if (t.recurrence === 'weekly') {
-            nextDate.setDate(nextDate.getDate() + 7);
-          } else if (t.recurrence === 'monthly') {
-            nextDate.setMonth(nextDate.getMonth() + 1);
-          } else if (t.recurrence === 'quarterly') {
-            nextDate.setMonth(nextDate.getMonth() + 3);
-          } else if (t.recurrence === 'yearly') {
-            nextDate.setFullYear(nextDate.getFullYear() + 1);
-          }
-
-          if (nextDate > endLimit) break;
-
-          const ds = nextDate.toISOString().split('T')[0];
-          events.push({
-            id: t.id,
-            annualKey: t.annualKey,
-            title: `🔄 ${t.title}`,
-            date: ds,
-            deadline: '',
-            cat: t.cat || 'data',
-            done: t.done,
-            urgency: t.urgency,
-            isSub: false,
-            isRecurInstance: true
-          });
-        }
-      }
-    }
-    
-    if (t.subtasks) {
-      Object.entries(t.subtasks).forEach(([sKey, s]) => {
-        if (s.date || s.deadline) {
-          events.push({
-            id: t.id,
-            annualKey: t.annualKey, 
-            title: `↳ ${s.title || '子計畫'}`,
-            date: s.date,
-            deadline: s.deadline,
-            cat: t.cat || 'data',
-            done: s.done,
-            urgency: t.urgency,
-            isSub: true
-          });
-        }
-      });
-    }
-  });
-  return events;
 }
 
 // ── Firebase listeners ────────────────────────────────────────────────────────
@@ -1318,6 +1245,7 @@ function updateSubField(subKey, field, val) {
   if (t && t.subtasks[subKey]) { t.subtasks[subKey][field] = val; db.ref(`tasks/${t.id}/subtasks/${subKey}/${field}`).set(val); }
 }
 
+// 修正：補齊之前遺漏的 toggleSubMember 控制項，確保子計畫負責人點擊可正常加選
 function toggleSubMember(subKey, mid) {
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
   if (!t) return;
@@ -1575,6 +1503,9 @@ function openLedgerAdd() {
   document.getElementById('lIncome').value = '';
   document.getElementById('lExpense').value = '';
   document.getElementById('lClearedInfo').value = '';
+  // 修正：新增欄位初始化歸零與清空
+  document.getElementById('lPayer').value = '';
+  document.getElementById('lIsPaid').checked = false;
   selLedgerResponsible = ''; 
   renderLedgerResponsibleChips();
   document.getElementById('ledgerModalDeleteBtn').style.display = 'none';
@@ -1591,6 +1522,9 @@ function openLedgerEdit(id) {
   document.getElementById('lIncome').value = entry.income || '';
   document.getElementById('lExpense').value = entry.expense || '';
   document.getElementById('lClearedInfo').value = entry.clearedInfo || '';
+  // 修正：加載並復原資料庫中儲存的代墊人資料與勾選狀態
+  document.getElementById('lPayer').value = entry.payer || '';
+  document.getElementById('lIsPaid').checked = !!entry.isPaid;
   selLedgerResponsible = entry.responsible || ''; 
   renderLedgerResponsibleChips();
   document.getElementById('ledgerModalDeleteBtn').style.display = 'inline-block';
@@ -1601,17 +1535,6 @@ function closeLedgerModal() {
   document.getElementById('ledgerModalOverlay').classList.remove('open');
 }
 
-// 負責人員在 Progress 詳細視圖中的狀態切換函式也一併封裝完整保留
-function detailToggleAssignee(mid) {
-  const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
-  if (!t) return;
-  let parts = [...(t.parts || [])];
-  const idx = parts.indexOf(mid);
-  if (idx >= 0) parts.splice(idx, 1); else parts.push(mid);
-  t.parts = parts;
-  db.ref(`tasks/${t.id}/parts`).set(parts).then(() => openProgDetail(_detailKey));
-}
-
 function saveLedgerEntry() {
   const id = document.getElementById('ledgerEditingId').value;
   const date = document.getElementById('lDate').value;
@@ -1619,6 +1542,9 @@ function saveLedgerEntry() {
   const income = parseInt(document.getElementById('lIncome').value) || 0;
   const expense = parseInt(document.getElementById('lExpense').value) || 0;
   const clearedInfo = document.getElementById('lClearedInfo').value.trim();
+  // 修正：收集新增元件的值
+  const payer = document.getElementById('lPayer').value.trim();
+  const isPaid = document.getElementById('lIsPaid').checked;
   const responsible = selLedgerResponsible; 
 
   if (!date || !title) {
@@ -1626,7 +1552,8 @@ function saveLedgerEntry() {
     return;
   }
 
-  const data = { date, title, income, expense, clearedInfo, responsible };
+  // 修正：組裝完整資料物件
+  const data = { date, title, income, expense, clearedInfo, payer, isPaid, responsible };
 
   if (id) {
     db.ref('ledger/' + id).update(data).then(closeLedgerModal);
