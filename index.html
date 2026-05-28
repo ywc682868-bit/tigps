@@ -173,8 +173,7 @@ tr[draggable]:active{cursor:grabbing}
     <div class="sidebar collapsed" id="mainSidebar">
       <div class="sb-nav">
         <div class="team-grid" id="sidebarTeam"></div>
-        <div class="sb-item active" onclick="switchView('dashboard',this)">📅 行事曆首頁</div>
-        <div class="sb-item" onclick="switchView('progress',this)">📊 工作進度</div>
+        <div class="sb-item active" onclick="switchView('dashboard',this)">📊 工作進度</div>
         <div class="sb-item" onclick="switchView('ledger',this)">💰 零用金記帳</div>
       </div>
     </div>
@@ -182,7 +181,7 @@ tr[draggable]:active{cursor:grabbing}
     <div class="main">
       <div class="content">
 
-        <div class="view active" id="view-dashboard">
+        <div class="view" id="view-dashboard">
           <div class="cal-wrap">
             <div class="cal-left">
               <div class="cal-side-section">
@@ -228,7 +227,7 @@ tr[draggable]:active{cursor:grabbing}
           </div>
         </div>
 
-        <div class="view" id="view-progress">
+        <div class="view active" id="view-progress">
           <div class="task-toolbar" style="display:flex; justify-content:space-between; align-items:center;">
             <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1" id="progYearTabs"></div>
           </div>
@@ -506,7 +505,7 @@ tr[draggable]:active{cursor:grabbing}
       </div>
     </div>
 
-    <!-- 負責人改為成員頭貼與名字晶片橫向排列 -->
+    <!-- 負責人以成員頭貼與名字晶片橫向排列 -->
     <div class="fg">
       <label class="flabel">負責人</label>
       <div id="ledgerResponsibleChips" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:8px;"></div>
@@ -648,7 +647,7 @@ let tasks = [];
 let memberData = {};
 let MEMBERS = [];
 let ledgerEntries = [];
-let selLedgerResponsible = ''; // 記帳模組當前選定的負責人名字
+let selLedgerResponsible = ''; 
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
 let editingId = null;
@@ -1214,13 +1213,14 @@ function renderProgContent() {
   tbody.innerHTML = html;
 }
 
-function progToggleSub(safeKey) {
-  const rows = document.querySelectorAll('.subrow_' + safeKey);
-  const btn = document.getElementById('stbtn_' + safeKey);
-  if (!rows.length) return;
-  const isHidden = rows[0].style.display === 'none';
-  rows.forEach(r => { r.style.display = isHidden ? '' : 'none'; });
-  if (btn) btn.textContent = isHidden ? '▾' : '▸';
+function progSubToggle(atKey, subKey) {
+  const t = getProgTask(atKey);
+  if (!t || !t.subtasks || !t.subtasks[subKey]) return;
+  const cur = t.subtasks[subKey].done;
+  db.ref(`tasks/${t.id}/subtasks/${subKey}/done`).set(!cur).then(() => {
+    t.subtasks[subKey].done = !cur;
+    renderDetailSubs(t); renderProgContent();
+  });
 }
 
 function quickDone(atKey) {
@@ -1371,28 +1371,6 @@ function copyCurrentTask() {
   db.ref('tasks').push(newData).then(() => { openProgDetail(newKey); renderProgContent(); });
 }
 
-function deleteCurrentTask() {
-  const fresh = _detailKey ? getProgTask(_detailKey) : null;
-  if (fresh) _detailTaskId = fresh.id;
-  if (!_detailTaskId) { closeTaskDetail(); return; }
-  if (!confirm('確定要刪除此工作的所有資料（包含子計畫）？')) return;
-  db.ref('tasks/' + _detailTaskId).update({ deleted: true }).then(() => {
-    const idx = tasks.findIndex(x => x.id === _detailTaskId);
-    if (idx >= 0) tasks[idx].deleted = true;
-    _detailTaskId = null; _detailKey = null; closeTaskDetail(); renderProgContent();
-  });
-}
-
-function closeTaskDetail() { document.getElementById('taskDetailOverlay').classList.remove('open'); }
-
-function ensureProgTask(atKey, cb) {
-  let t = getProgTask(atKey);
-  if (t) { cb(t); return; }
-  const at = ANNUAL_TASKS.find(x => x.key === atKey);
-  const data = { annualKey: atKey, progYear: String(progYear), title: at ? at.label : (document.getElementById('tdTitle')?.value || '未命名工作'), done: false, status: 'notstarted', parts: [], subtasks: {}, deleted: false };
-  db.ref('tasks').push(data).then(ref => { const newT = { id: ref.key, ...data }; tasks.push(newT); cb(newT); });
-}
-
 // ── Drag & Drop Reordering Logic ──
 function dndStart(ev, atKey) { _dndSrc = atKey; _dndAction = null; ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', atKey); }
 function dndOver(ev, atKey) {
@@ -1524,7 +1502,6 @@ function initLedgerFilters() {
   }
 }
 
-// 渲染記帳 Modal 內的負責人頭貼與晶片选择器
 function renderLedgerResponsibleChips() {
   const vis = getActiveMembers();
   const container = document.getElementById('ledgerResponsibleChips');
@@ -1548,7 +1525,7 @@ function openLedgerAdd() {
   document.getElementById('lIncome').value = '';
   document.getElementById('lExpense').value = '';
   document.getElementById('lClearedInfo').value = '';
-  selLedgerResponsible = ''; // 清空選擇狀態
+  selLedgerResponsible = ''; 
   renderLedgerResponsibleChips();
   document.getElementById('ledgerModalDeleteBtn').style.display = 'none';
   document.getElementById('ledgerModalOverlay').classList.add('open');
@@ -1564,7 +1541,7 @@ function openLedgerEdit(id) {
   document.getElementById('lIncome').value = entry.income || '';
   document.getElementById('lExpense').value = entry.expense || '';
   document.getElementById('lClearedInfo').value = entry.clearedInfo || '';
-  selLedgerResponsible = entry.responsible || ''; // 載入儲存的負責人
+  selLedgerResponsible = entry.responsible || ''; 
   renderLedgerResponsibleChips();
   document.getElementById('ledgerModalDeleteBtn').style.display = 'inline-block';
   document.getElementById('ledgerModalOverlay').classList.add('open');
@@ -1581,7 +1558,7 @@ function saveLedgerEntry() {
   const income = parseInt(document.getElementById('lIncome').value) || 0;
   const expense = parseInt(document.getElementById('lExpense').value) || 0;
   const clearedInfo = document.getElementById('lClearedInfo').value.trim();
-  const responsible = selLedgerResponsible; // 從晶片狀態讀取數據
+  const responsible = selLedgerResponsible; 
 
   if (!date || !title) {
     alert('請填寫日期與項目名稱');
@@ -1659,7 +1636,9 @@ function renderLedger() {
   document.getElementById('ledgerSumCash').textContent = cashTotal > 0 ? cashTotal : '--';
 }
 
-initProgTabs(); renderCalendar();
+initProgTabs(); 
+// 初始預設進入工作進度視圖，確保選單高亮與狀態一致
+switchView('progress', document.querySelectorAll('.sb-item')[0]);
 </script>
 </body>
 </html>
