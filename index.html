@@ -1520,41 +1520,32 @@ function switchView(v, el) {
 // ── 零用金記帳邏輯模組 (Pocket Money Ledger Module) ───────────────────────────────────
 function initLedgerFilters() {
   const yearFilter = document.getElementById('ledgerYearFilter');
-  if (yearFilter) {
-    const savedSelectedYear = yearFilter.value;
-    yearFilter.innerHTML = '';
-    
-    const currentYear = new Date().getFullYear();
-    let maxYear = 2026; 
-    
-    ledgerEntries.forEach(e => {
-      if (e.date) {
-        const y = new Date(e.date).getFullYear();
-        if (y > maxYear) maxYear = y;
-      }
-    });
-    
-    if (currentYear > maxYear) maxYear = currentYear;
+  if (!yearFilter) return;
 
-    const ledgerAvailableYears = [];
-    for (let y = 2026; y <= maxYear; y++) {
-      ledgerAvailableYears.push(y);
-    }
-    
-    ledgerAvailableYears.forEach(yr => {
-      const opt = document.createElement('option');
-      opt.value = yr; opt.textContent = yr + ' 年';
-      
-      if (savedSelectedYear) {
-        if (yr.toString() === savedSelectedYear) opt.selected = true;
-      } else {
-        if (yr === currentYear) opt.selected = true;
-      }
-      yearFilter.appendChild(opt);
-    });
+  const currentVal = yearFilter.value;
+  // 取得所有資料中的年份
+  const years = new Set([2026]); // 強制包含 2026
+  ledgerEntries.forEach(e => {
+    if (e.date) years.add(new Date(e.date).getFullYear());
+  });
+
+  const sortedYears = Array.from(years).sort((a, b) => b - a);
+  
+  yearFilter.innerHTML = '';
+  sortedYears.forEach(yr => {
+    const opt = document.createElement('option');
+    opt.value = yr;
+    opt.textContent = yr + ' 年';
+    yearFilter.appendChild(opt);
+  });
+
+  // 若原有選項存在則維持，否則預設選 2026
+  if (currentVal && sortedYears.includes(parseInt(currentVal))) {
+    yearFilter.value = currentVal;
+  } else {
+    yearFilter.value = '2026';
   }
 }
-
 function renderLedgerResponsibleChips() {
   const vis = getActiveMembers();
   const container = document.getElementById('ledgerResponsibleChips');
@@ -1648,7 +1639,7 @@ function renderLedger() {
   const tbody = document.getElementById('ledgerTbody');
   if (!tbody) return;
 
-  initLedgerFilters();
+  initLedgerFilters(); // 確保選單已更新
 
   const filterYear = document.getElementById('ledgerYearFilter').value;
   const filterMonth = document.getElementById('ledgerMonthFilter').value;
@@ -1660,7 +1651,14 @@ function renderLedger() {
   let html = '';
 
   ledgerEntries.forEach(e => {
-    currentBalance = currentBalance + e.income - e.expense;
+    // 若有代墊人且未支付，則不計入餘額與總支出
+    const isPending = e.payer && e.payer.trim() !== '' && !e.isPaid;
+    
+    if (!isPending) {
+      currentBalance = currentBalance + (e.income || 0) - (e.expense || 0);
+      totalIncome += (e.income || 0);
+      totalExpense += (e.expense || 0);
+    }
 
     const eDate = new Date(e.date);
     const eYear = eDate.getFullYear().toString();
@@ -1670,22 +1668,16 @@ function renderLedger() {
     const matchMonth = (filterMonth === 'all' || eMonth === filterMonth);
 
     if (matchYear && matchMonth) {
-      totalIncome += e.income;
-      totalExpense += e.expense;
-      
-      if (e.clearedInfo && e.clearedInfo.includes('現金')) {
-        const cashMatch = e.clearedInfo.match(/(\d+)\s*\(現金\)/);
-        if (cashMatch) cashTotal = parseInt(cashMatch[1]);
-      }
-
+      // 樣式處理：代墊未支付則灰色顯示
+      const rowStyle = isPending ? 'style="color: #aaa; font-style: italic;"' : '';
       const isClearedRow = e.title.includes('清算') ? 'class="cleared-row"' : '';
 
-      html += `<tr ${isClearedRow} onclick="openLedgerEdit('${e.id}')">
+      html += `<tr ${isClearedRow} ${rowStyle} onclick="openLedgerEdit('${e.id}')">
         <td>${e.date}</td>
-        <td>${e.title}</td>
+        <td>${e.title} ${isPending ? ' (待支付)' : ''}</td>
         <td style="text-align:right;" class="${e.income > 0 ? 'text-income' : ''}">${e.income > 0 ? e.income : ''}</td>
         <td style="text-align:right;" class="${e.expense > 0 ? 'text-expense' : ''}">${e.expense > 0 ? e.expense : ''}</td>
-        <td style="text-align:right;font-weight:600;">${currentBalance}</td>
+        <td style="text-align:right;font-weight:600;">${isPending ? '--' : currentBalance}</td>
         <td>${e.clearedInfo || ''}</td>
         <td>${e.responsible || ''}</td>
         <td style="text-align:center;"><button onclick="event.stopPropagation();openLedgerEdit('${e.id}')" style="border:none;background:transparent;cursor:pointer;color:var(--text2);">✏️</button></td>
@@ -1694,11 +1686,9 @@ function renderLedger() {
   });
 
   tbody.innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:var(--text3);">本期無收支紀錄</td></tr>';
-  
   document.getElementById('ledgerSumBalance').textContent = currentBalance;
   document.getElementById('ledgerSumIncome').textContent = totalIncome;
   document.getElementById('ledgerSumExpense').textContent = totalExpense;
-  document.getElementById('ledgerSumCash').textContent = cashTotal > 0 ? cashTotal : '--';
 }
 
 initProgTabs(); 
