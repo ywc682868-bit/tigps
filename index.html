@@ -1705,16 +1705,21 @@ function renderLedger() {
 
     // 篩選顯示：這裡才開始過濾
     if (eYear === filterYear && (filterMonth === 'all' || eMonth === filterMonth)) {
-      annualIncome += (Number(e.income) || 0);
-      annualExpense += (Number(e.expense) || 0);
+      // 合計運算：排除待支付
+      if (!isPending) {
+        annualIncome += (Number(e.income) || 0);
+        annualExpense += (Number(e.expense) || 0);
+      }
       
       const rowStyle = isPending ? 'style="color: #aaa; font-style: italic;"' : '';
+      const incClass = isPending ? '' : 'text-income';
+      const expClass = isPending ? '' : 'text-expense';
       
       html += `<tr ${rowStyle} onclick="openLedgerEdit('${e.id}')" style="cursor:pointer;">
         <td>${e.date}</td>
         <td>${e.title}${isPending ? ' <span style="font-size:10px;">(待支付)</span>' : ''}</td>
-        <td style="text-align:right;" class="text-income">${e.income > 0 ? e.income : ''}</td>
-        <td style="text-align:right;" class="text-expense">${e.expense > 0 ? e.expense : ''}</td>
+        <td style="text-align:right;" class="${incClass}">${e.income > 0 ? e.income : ''}</td>
+        <td style="text-align:right;" class="${expClass}">${e.expense > 0 ? e.expense : ''}</td>
         <td style="text-align:right;font-weight:600;">${isPending ? '--' : currentBalance}</td>
         <td>${e.responsible || ''}</td>
         <td style="text-align:center; color: var(--accent); font-size:14px;">✎</td>
