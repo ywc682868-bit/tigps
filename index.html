@@ -303,7 +303,8 @@ tr[draggable]:active{cursor:grabbing}
                   <th style="min-width:180px;">項目</th>
                   <th style="width:100px;">代墊人</th>
                   <th style="width:90px;text-align:right;">報支(支出)金額</th>
-                  <th style="width:180px;text-align:center;">匯入狀態</th>
+                  <th style="width:120px;text-align:center;">匯入狀態</th>
+                  <th style="width:120px;text-align:center;">匯入日期</th>
                 </tr>
               </thead>
               <tbody id="ledgerRemitTbody"></tbody>
@@ -1649,21 +1650,25 @@ function renderRemitList() {
     const isRemitted = !!(e.remitDate && e.remitDate.trim() !== '');
     const chkId = `remit_chk_${e.id}`;
     
+    // 設定文字顏色
+    const statusColor = isRemitted ? '#2e7d32' : '#c62828'; 
+    
     html += `<tr style="${isRemitted ? 'background:#f8f7f5;' : ''}">
       <td style="color:var(--text2);">${e.reimburseDate}</td>
       <td style="font-weight:500;">${e.title}</td>
       <td>${e.payer || '-'}</td>
       <td style="text-align:right;" class="text-expense">${e.expense || 0}</td>
       <td style="text-align:center;">
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:6px; transition:all 0.2s; ${isRemitted ? 'background:#e5e8e3; color:#6f8070; border:1px solid #d2ddd4;' : 'background:var(--bg2); color:var(--text2); border:1px solid var(--border2);'}">
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:6px; background:var(--bg); border:1px solid var(--border2); transition:all 0.2s;">
           <input type="checkbox" id="${chkId}" ${isRemitted ? 'checked' : ''} onclick="toggleRemitStatus('${e.id}', this.checked)" style="width:16px; height:16px; cursor:pointer;">
-          <span style="font-size:12px; font-weight:600;">${isRemitted ? `已匯入 (${e.remitDate})` : '未匯入'}</span>
+          <span style="font-size:12px; font-weight:700; color:${statusColor};">${isRemitted ? '已匯入' : '未匯入'}</span>
         </label>
       </td>
+      <td style="text-align:center; color:var(--text2); font-weight:500;">${isRemitted ? e.remitDate : '-'}</td>
     </tr>`;
   });
   
-  tbody.innerHTML = html || '<tr><td colspan="5" style="text-align:center; padding: 24px; color: var(--text3);">尚無包含報支日期的項目，因此無待匯入資料。</td></tr>';
+  tbody.innerHTML = html || '<tr><td colspan="6" style="text-align:center; padding: 24px; color: var(--text3);">尚無包含報支日期的項目，因此無待匯入資料。</td></tr>';
 }
 
 function toggleRemitStatus(id, isChecked) {
