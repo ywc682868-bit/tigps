@@ -21,7 +21,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .topbar{height:60px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 12px;flex-shrink:0;z-index:200;}
 .app{display:flex;flex:1;overflow:hidden;}
 
-.sidebar{width:240px;min-width:240px;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;padding:16px 12px;overflow:hidden;transition:width 0.25s,min-width(0.25s),padding 0.25s,border 0.25s}
+.sidebar{width:240px;min-width:240px;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column;padding:16px 12px;overflow:hidden;transition:width 0.25s,min-width 0.25s,padding 0.25s,border 0.25s}
 .sidebar.collapsed{width:0;min-width:0;padding:0;border-right:none}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 
@@ -1466,6 +1466,27 @@ function copyCurrentTask() {
   db.ref('tasks').push(newData).then(() => { openProgDetail(newKey); renderProgContent(); });
 }
 
+function deleteCurrentTask() {
+  const fresh = _detailKey ? getProgTask(_detailKey) : null;
+  if (fresh) _detailTaskId = fresh.id;
+  if (!_detailTaskId) { closeTaskDetail(); return; }
+  if (!confirm('確定要刪除此工作的所有資料（包含子計畫）？')) return;
+  db.ref('tasks/' + _detailTaskId).update({ deleted: true }).then(() => {
+    const idx = tasks.findIndex(x => x.id === _detailTaskId);
+    if (idx >= 0) tasks[idx].deleted = true;
+    _detailTaskId = null; _detailKey = null; closeTaskDetail(); renderProgContent();
+  });
+}
+
+function ensureProgTask(atKey, cb) {
+  let t = getProgTask(atKey);
+  if (t) { cb(t); return; }
+  const at = ANNUAL_TASKS.find(x => x.key === atKey);
+  const data = { annualKey: atKey, progYear: String(progYear), title: at ? at.label : (document.getElementById('tdTitle')?.value || '未命名工作'), done: false, status: 'notstarted', parts: [], subtasks: {}, deleted: false };
+  db.ref('tasks').push(data).then(ref => { const newT = { id: ref.key, ...data }; tasks.push(newT); cb(newT); });
+}
+
+
 // ── Calendar Modal Logic ──
 function openAdd() {
   editingId = null; selCreator = getActiveMembers()[0]?.id || ''; selParts = [];
@@ -1637,7 +1658,8 @@ function saveLedgerEntry() {
     return;
   }
 
-  // 完全移除強制調換進帳/支出欄位的邏輯，保留使用者在介面上輸入的真實原始狀態。
+  // 移除了強制將進帳搬遷到支出的邏輯
+  // 保持使用者的真實輸入，由系統在算數時自動處理還款邏輯
   const data = { date, title, income, expense, clearedInfo, payer, isPaid, responsible, reimburseDate, remitDate };
 
   if (id) {
@@ -1670,11 +1692,39 @@ function renderLedger() {
   let annualExpense = 0;
   let html = '';
 
-  // 必須先按照日期排序，確保計算餘額正確
-  const sortedEntries = [...ledgerEntries].sort((a, b) => a.date.localeCompare(b.date));
+  // 第一階段：先建立一個擴充過的明細陣列，包含系統自動產生的「還款紀錄」
+  let expandedEntries = [];
+  ledgerEntries.forEach(e => {
+    expandedEntries.push({...e}); // 推入使用者手寫的原始紀錄
 
+    // 判斷：如果有代墊人、有填進帳、且已經打勾支付，系統自動產生一筆還款支出
+    if (e.payer && e.payer.trim() !== '' && Number(e.income) > 0 && e.isPaid) {
+      // 還款日期優先抓「匯入日期」，若無則抓「報支日期」，再沒有就預設和原紀錄同一天
+      const repayDate = e.remitDate || e.reimburseDate || e.date;
+      expandedEntries.push({
+        id: e.id + '_repay',
+        isVirtual: true,        // 標記這是系統產生的虛擬紀錄
+        originalId: e.id,       // 點擊這筆紀錄時，會開啟原紀錄的編輯視窗
+        date: repayDate,
+        title: `還款：${e.payer}代墊 (${e.title})`,
+        income: 0,
+        expense: e.income,      // 把當初借進來的進帳轉作這裡的支出扣掉
+        payer: '',              // 還款紀錄本身不再掛代墊狀態
+        isPaid: true,
+        responsible: e.responsible
+      });
+    }
+  });
+
+  // 第二階段：將包含虛擬還款紀錄在內的所有明細，按照日期重新排序
+  const sortedEntries = expandedEntries.sort((a, b) => a.date.localeCompare(b.date));
+
+  // 第三階段：計算餘額並渲染畫面
   sortedEntries.forEach(e => {
-    // 修正：無論是否為代墊或待支付，所有紀錄均應依資料庫欄位直接參與可用餘額計算
+    // 只有使用者手動填寫且「未支付」的，才算 Pending
+    const isPending = e.payer && e.payer.trim() !== '' && !e.isPaid && !e.isVirtual;
+    
+    // 無論是不是代墊，只要有出現在列表裡，就必定參與可用餘額的累加與扣除
     currentBalance = currentBalance + (Number(e.income) || 0) - (Number(e.expense) || 0);
 
     const eDate = new Date(e.date);
@@ -1684,19 +1734,28 @@ function renderLedger() {
     // 篩選顯示
     if (eYear === filterYear && (filterMonth === 'all' || eMonth === filterMonth)) {
       
-      // 修正：年度合計應依欄位原始數據進行正確加總
+      // 將過濾後顯示的進帳/支出加總到下方年度合計
       annualIncome += (Number(e.income) || 0);
       annualExpense += (Number(e.expense) || 0);
       
-      const isPending = e.payer && e.payer.trim() !== '' && !e.isPaid;
-      const rowStyle = isPending ? 'style="font-style: italic;"' : '';
-      const textGray = isPending ? 'color: #b4ada5;' : ''; 
+      // 處理視覺樣式
+      const rowStyle = isPending ? 'style="font-style: italic;"' : (e.isVirtual ? 'style="background: #fdf5f0;"' : '');
+      const textGray = isPending ? 'color: #b4ada5;' : (e.isVirtual ? 'color: #8a6b66;' : '');
+      const dynamicColorClass = isPending ? 'text-income' : 'text-expense';
       
-      html += `<tr ${rowStyle} onclick="openLedgerEdit('${e.id}')" style="cursor:pointer;">
+      // 若為虛擬還款紀錄，標題加上個小箭頭提示
+      const titleDisplay = e.isVirtual 
+        ? `<span style="font-size:11px; color:#8a6b66;">↳ ${e.title}</span>` 
+        : `${e.title}${isPending ? ' <span style="font-size:10px; color:#8b8580; font-style:normal;">(待支付)</span>' : ''}`;
+
+      // 若為虛擬紀錄，點擊時開啟原 ID
+      const clickId = e.isVirtual ? e.originalId : e.id;
+
+      html += `<tr ${rowStyle} onclick="openLedgerEdit('${clickId}')" style="cursor:pointer;">
         <td style="${textGray}">${e.date}</td>
-        <td style="${textGray}">${e.title}${isPending ? ' <span style="font-size:10px; color:#8b8580; font-style:normal;">(待支付)</span>' : ''}</td>
-        <td style="text-align:right;" class="text-income">${e.income > 0 ? e.income : ''}</td>
-        <td style="text-align:right;" class="text-expense">${e.expense > 0 ? e.expense : ''}</td>
+        <td style="${textGray}">${titleDisplay}</td>
+        <td style="text-align:right;" class="${e.income > 0 ? 'text-income' : ''}">${e.income > 0 ? e.income : ''}</td>
+        <td style="text-align:right;" class="${e.expense > 0 ? dynamicColorClass : ''}">${e.expense > 0 ? e.expense : ''}</td>
         <td style="text-align:right;font-weight:600; ${textGray}">${currentBalance}</td>
         <td style="${textGray}">${e.responsible || ''}</td>
         <td style="text-align:center; color: var(--accent); font-size:14px;">✎</td>
