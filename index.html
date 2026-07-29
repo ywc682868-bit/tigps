@@ -14,7 +14,7 @@
   --cat-data-text:#4a5a70;--cat-meeting-text:#704a4a;--cat-admin-text:#4a7055;--cat-questionnaire-text:#706040;--cat-platform-text:#604870;
 }
 html,body{height:100%;overflow:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);font-size:15px}
 
 /* Page Structure */
 .page-container{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
@@ -28,7 +28,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .sb-nav{flex:1;overflow-y:auto;padding:12px 0;margin-top:0px}
 .team-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)}
 .member-cell{display:flex;flex-direction:column;align-items:center;gap:3px}
-.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
 .sb-item{padding:8px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);margin-bottom:2px;user-select:none}
 .sb-item:hover{background:var(--bg3);color:var(--text)}
 .sb-item.active{background:var(--border);color:var(--text);font-weight:500}
@@ -42,25 +42,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .cal-center{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-height:0}
 .cal-right{width:190px;min-width:190px;border-left:1px solid var(--border);padding:16px 12px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:16px}
 .cal-side-section{display:flex;flex-direction:column;gap:8px}
-.cal-side-title{font-size:10px;font-weight:700;padding:4px 8px;border-radius:4px;display:inline-block;text-transform:uppercase;letter-spacing:0.05em}
+.cal-side-title{font-size:12px;font-weight:700;padding:4px 8px;border-radius:4px;display:inline-block;text-transform:uppercase;letter-spacing:0.05em}
 .cal-side-title.current{background:#e5e7e6;color:#6b7171}
 .cal-side-title.next{background:#e8e0d8;color:#8a7460}
 .cal-side-title.deadline{background:#e8e0dd;color:#8a6b66}
 .cal-side-title.meeting{background:var(--cat-meeting);color:var(--cat-meeting-text)}
-.cal-side-item{font-size:11px;padding:5px 7px;border-radius:4px;color:var(--text2);cursor:pointer;display:flex;gap:4px;align-items:flex-start}
+.cal-side-item{font-size:13px;padding:5px 7px;border-radius:4px;color:var(--text2);cursor:pointer;display:flex;gap:4px;align-items:flex-start}
 .cal-side-item:hover{background:var(--border);color:var(--text)}
 .cal-side-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:3px}
 .cal-nav{display:flex;align-items:center;justify-content:center;gap:16px;padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
 .cal-month-year{text-align:center;flex:1}
-.cal-nav-title{font-size:20px;font-weight:600;color:var(--text)}
-.cal-nav-year{font-size:13px;color:var(--text2);margin-top:2px}
-.arrow-btn,.cal-today-btn,.add-round{border:1.5px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.2s}
-.add-round{width:32px;height:32px;font-size:18px;line-height:1}
-.cal-today-btn{border-radius:var(--radius);width:auto;padding:0 12px;font-size:11px;font-weight:500}
+.cal-nav-title{font-size:22px;font-weight:600;color:var(--text)}
+.cal-nav-year{font-size:15px;color:var(--text2);margin-top:2px}
+.arrow-btn,.cal-today-btn,.add-round{border:1.5px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all 0.2s}
+.add-round{width:32px;height:32px;font-size:20px;line-height:1}
+.cal-today-btn{border-radius:var(--radius);width:auto;padding:0 12px;font-size:13px;font-weight:500}
 .arrow-btn:hover,.cal-today-btn:hover,.add-round:hover{background:var(--bg2);color:var(--text)}
 .cal-grid{padding:10px;display:flex;flex-direction:column;gap:0;flex:1}
 .cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);margin-bottom:1px}
-.cal-dow{font-size:10px;color:var(--text3);text-align:center;font-weight:600;padding:6px 0;background:var(--bg)}
+.cal-dow{font-size:12px;color:var(--text3);text-align:center;font-weight:600;padding:6px 0;background:var(--bg)}
 .cal-body{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)}
 .cal-cell{min-height:90px;padding:5px;background:var(--bg);cursor:pointer;overflow:hidden;display:flex;flex-direction:column;vertical-align:top}
 .cal-cell:hover{background:var(--bg2)}
@@ -69,10 +69,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .cal-cell.holiday .cal-date-num{color:#c97070;font-weight:600}
 .cal-cell.other-month{background:#faf9f7!important}
 .cal-cell.other-month .cal-date-num{color:var(--text3)}
-.cal-date-num{font-size:11px;color:var(--text2);margin-bottom:2px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:500}
+.cal-date-num{font-size:13px;color:var(--text2);margin-bottom:2px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-weight:500}
 .cal-date-num.today{font-weight:700;color:var(--text)}
 .cal-cell.is-today{background:#ede8e0}
-.cal-chip{font-size:9px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.3}
+.cal-chip{font-size:11px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.3}
 .cal-chip:hover{opacity:0.8}
 .cal-chip.chip-data{background:var(--cat-data);color:var(--cat-data-text)}
 .cal-chip.chip-meeting{background:var(--cat-meeting);color:var(--cat-meeting-text)}
@@ -82,18 +82,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 
 /* Tasks table */
 .task-toolbar{display:flex;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;align-items:center}
-.filter-chip{padding:4px 12px;font-size:11px;border-radius:12px;border:1px solid var(--border2);background:var(--bg);cursor:pointer;color:var(--text2);transition:all 0.2s;font-weight:500}
+.filter-chip{padding:4px 12px;font-size:13px;border-radius:12px;border:1px solid var(--border2);background:var(--bg);cursor:pointer;color:var(--text2);transition:all 0.2s;font-weight:500}
 .filter-chip:hover{background:var(--bg2)}
 .filter-chip.active{border-color:var(--accent);background:#e5e7e6;color:#6b7171}
 .table-wrap{flex:1;overflow:auto}
-.data-table{width:100%;border-collapse:collapse;font-size:12px}
-.data-table th{padding:8px 12px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:2;white-space:nowrap}
+.data-table{width:100%;border-collapse:collapse;font-size:14px}
+.data-table th{padding:8px 12px;text-align:left;font-size:13px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:2;white-space:nowrap}
 .data-table td{padding:7px 12px;border-bottom:1px solid var(--border);vertical-align:middle;transition:background 0.2s;}
 .data-table tr:hover td{background:var(--bg2)}
 .data-table tr.done-row td{opacity:0.4}
-.check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;background:transparent}
+.check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;background:transparent}
 .check.done{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-.status{display:inline-flex;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:500}
+.status{display:inline-flex;padding:2px 8px;border-radius:10px;font-size:12px;font-weight:500}
 .st-done{background:#e5e8e3;color:#6f8070}
 .st-inprogress{background:#e5e7e6;color:#6b7171}
 .st-notstarted{background:var(--bg3);color:var(--text2)}
@@ -103,16 +103,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .modal-overlay.open{display:flex}
 .modal{position:relative;background:var(--bg);border-radius:12px;border:1px solid var(--border);width:540px;max-height:90vh;overflow-y:auto;padding:24px 28px;box-shadow:0 8px 32px rgba(0,0,0,0.12)}
 .modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.modal-title{font-size:16px;font-weight:600}
-.close-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+.modal-title{font-size:18px;font-weight:600}
+.close-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text2);font-size:16px;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
 .close-btn:hover{background:var(--bg2)}
 .fg{margin-bottom:14px}
-.flabel{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
-input[type="text"], input[type="date"], input[type="email"], select, textarea, input[type="number"]{width:100%;padding:8px 12px;font-size:13px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;transition:border-color 0.2s;}
+.flabel{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.05em}
+input[type="text"], input[type="date"], input[type="email"], select, textarea, input[type="number"]{width:100%;padding:8px 12px;font-size:15px;border:1px solid var(--border2);border-radius:8px;background:var(--bg);color:var(--text);outline:none;font-family:inherit;transition:border-color 0.2s;}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);background:var(--bg2)}
 textarea{resize:vertical;min-height:80px}
 .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
-.btn{padding:8px 18px;font-size:12px;font-weight:500;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:5px;transition:all 0.2s}
+.btn{padding:8px 18px;font-size:14px;font-weight:500;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:5px;transition:all 0.2s}
 .btn:hover{background:var(--bg2)}
 .btn-primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 .btn-primary:hover{background:#5a6161}
@@ -135,34 +135,103 @@ tr[draggable]:active{cursor:grabbing}
 
 /* Sub rows */
 .sub-row{background:var(--bg2)}
-.sub-row td{font-size:11px;color:var(--text2)}
+.sub-row td{font-size:13px;color:var(--text2)}
 
 /* Ledger specific styles */
 .ledger-summary-box{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
 .ledger-card{background:var(--bg);padding:12px;border-radius:var(--radius);border:1px solid var(--border2);display:flex;flex-direction:column;gap:4px}
-.ledger-card-label{font-size:10px;color:var(--text2);font-weight:600}
-.ledger-card-val{font-size:18px;font-weight:700}
+.ledger-card-label{font-size:12px;color:var(--text2);font-weight:600}
+.ledger-card-val{font-size:20px;font-weight:700}
 .cleared-row{background:#fbeee9 !important;}
 .text-income{color:#2e7d32 !important;font-weight:600;}
 .text-expense{color:#c62828 !important;font-weight:600;}
 
 /* Manual (使用手冊) */
 .manual-bar{padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--bg2)}
-.manual-bar-title{font-size:12px;font-weight:600;color:var(--text)}
-.manual-bar-link{margin-left:auto;font-size:11px;color:var(--text2);text-decoration:none;border:1px solid var(--border2);padding:4px 10px;border-radius:6px;background:var(--bg)}
+.manual-bar-title{font-size:14px;font-weight:600;color:var(--text)}
+.manual-bar-link{margin-left:auto;font-size:13px;color:var(--text2);text-decoration:none;border:1px solid var(--border2);padding:4px 10px;border-radius:6px;background:var(--bg)}
 .manual-bar-link:hover{background:var(--bg3);color:var(--text)}
 .manual-frame-wrap{flex:1;overflow:hidden}
 #manualFrame{width:100%;height:100%;border:none;display:block;background:#F5F3EE}
+
+/* ═══════════ 手機 / 平板版面 ═══════════ */
+@media (max-width: 900px){
+  /* 行事曆改為直向堆疊，日曆優先 */
+  .cal-wrap{flex-direction:column;overflow-y:auto}
+  .cal-center{order:-1;overflow:visible;min-height:auto}
+  .cal-left,.cal-right{
+    width:auto;min-width:0;border-left:0;border-right:0;
+    border-top:1px solid var(--border);flex-direction:row;flex-wrap:wrap;gap:14px;
+  }
+  .cal-left .cal-side-section,.cal-right .cal-side-section{flex:1 1 240px;min-width:0}
+}
+
+@media (max-width: 768px){
+  /* 側邊欄改為覆蓋式抽屜，不再壓縮內容 */
+  .sidebar{
+    position:fixed;top:60px;left:0;bottom:0;
+    width:min(78vw,300px);min-width:0;z-index:150;
+    box-shadow:6px 0 22px rgba(0,0,0,.16);
+  }
+  .sidebar.collapsed{width:0;min-width:0;box-shadow:none}
+  .sb-item{padding:12px 14px}
+  .team-grid{grid-template-columns:repeat(4,1fr);gap:10px}
+
+  /* 頂部 LOGO 縮小，避免溢出 */
+  .topbar > img{height:130px !important}
+  .topbar > div[title]{width:220px !important}
+
+  /* 日曆格子壓縮 */
+  .cal-grid{padding:5px}
+  .cal-cell{min-height:64px;padding:3px}
+  .cal-nav{gap:8px;padding:10px}
+  .cal-nav-title{font-size:20px}
+
+  /* 表格改為橫向捲動，不硬擠 */
+  .table-wrap{-webkit-overflow-scrolling:touch}
+  .data-table{min-width:700px}
+  .data-table th,.data-table td{padding:10px 12px}
+
+  /* 工具列換行 */
+  .task-toolbar{padding:10px;gap:8px}
+  .filter-chip{padding:6px 12px}
+
+  /* 彈窗與側滑面板貼合螢幕 */
+  .modal-overlay{padding:12px}
+  .modal{width:auto;max-width:100%;padding:20px 18px;max-height:86vh}
+  .detail-panel-inner{width:100vw}
+  .modal [style*="1fr 1fr"],
+  .detail-panel-inner [style*="1fr 1fr"]{grid-template-columns:1fr !important}
+
+  /* 零用金摘要卡兩欄 */
+  .ledger-summary-box{grid-template-columns:1fr 1fr;padding:12px;gap:10px}
+
+  /* iOS 聚焦時不自動放大 */
+  input[type="text"],input[type="date"],input[type="email"],
+  input[type="password"],input[type="number"],select,textarea{font-size:16px}
+
+  /* 點擊目標放大 */
+  .btn{padding:10px 18px}
+  .check{width:18px;height:18px}
+}
+
+@media (max-width: 480px){
+  .topbar > img{height:104px !important}
+  .team-grid{grid-template-columns:repeat(3,1fr)}
+  .cal-cell{min-height:56px}
+  .cal-dow{padding:4px 0}
+  .ledger-summary-box{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
 <div id="login-screen" style="position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;">
   <div style="background:var(--bg2);padding:40px;border-radius:12px;border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,0.1);width:320px;display:flex;flex-direction:column;gap:16px;">
-    <div style="text-align:center;font-size:20px;font-weight:600;color:var(--text);margin-bottom:8px;">TIGPS 系統登入</div>
+    <div style="text-align:center;font-size:22px;font-weight:600;color:var(--text);margin-bottom:8px;">TIGPS 系統登入</div>
     <input type="email" id="login-email" placeholder="信箱 (Email)" style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:8px;outline:none;">
     <input type="password" id="login-password" placeholder="密碼 (Password)" style="width:100%;padding:10px 12px;border:1px solid var(--border2);border-radius:8px;outline:none;" onkeydown="if(event.key==='Enter') handleLogin()">
-    <div id="login-error" style="color:#c97070;font-size:12px;display:none;text-align:center;"></div>
+    <div id="login-error" style="color:#c97070;font-size:14px;display:none;text-align:center;"></div>
     <button onclick="handleLogin()" style="width:100%;padding:12px;background:var(--accent);color:var(--bg);border:none;border-radius:8px;cursor:pointer;font-weight:600;margin-top:8px;">登入</button>
   </div>
 </div>
@@ -170,7 +239,7 @@ tr[draggable]:active{cursor:grabbing}
 <div class="page-container">
   
   <div class="topbar" style="position: relative;">
-    <button id="sidebarToggleBtn" onclick="toggleSidebar()" style="border:none;background:transparent;width:36px;height:36px;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;color:var(--text);margin-right:12px;">☰</button>
+    <button id="sidebarToggleBtn" onclick="toggleSidebar()" style="border:none;background:transparent;width:36px;height:36px;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;color:var(--text);margin-right:12px;">☰</button>
     
     <img src="logo.png" alt="TIGPS LOGO" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); height: 280px; width: auto; object-fit: contain; pointer-events: none;">
     
@@ -298,13 +367,13 @@ tr[draggable]:active{cursor:grabbing}
 
           <div class="table-wrap" id="ledgerRemitWrap" style="display:none; padding:16px;">
             <div style="margin-bottom: 24px; padding: 16px; background: var(--bg2); border-radius: 8px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--border);">
-              <span style="font-weight: 600; font-size: 14px; color: var(--text);">🏦 戶頭目前餘額：</span>
-              <input type="number" id="bankBalanceInput" style="width: 160px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border2); font-size: 16px; font-weight: 700; color: var(--text);" placeholder="輸入目前金額">
+              <span style="font-weight: 600; font-size: 16px; color: var(--text);">🏦 戶頭目前餘額：</span>
+              <input type="number" id="bankBalanceInput" style="width: 160px; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border2); font-size: 18px; font-weight: 700; color: var(--text);" placeholder="輸入目前金額">
               <button class="btn btn-primary" onclick="saveBankBalance()">儲存紀錄</button>
-              <span id="bankBalanceLastUpdate" style="font-size: 12px; color: var(--text3); margin-left: auto;"></span>
+              <span id="bankBalanceLastUpdate" style="font-size: 14px; color: var(--text3); margin-left: auto;"></span>
             </div>
             
-            <h3 style="font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--border);">📋 待匯入 / 已匯入名單 (包含報支日期之項目)</h3>
+            <h3 style="font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--border);">📋 待匯入 / 已匯入名單 (包含報支日期之項目)</h3>
             <table class="data-table">
               <thead>
                 <tr>
@@ -339,32 +408,32 @@ tr[draggable]:active{cursor:grabbing}
 <div class="detail-overlay" id="taskDetailOverlay" onclick="if(event.target===this)closeTaskDetail()">
   <div class="detail-panel-inner">
     <div style="padding: 24px 24px 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; flex-shrink: 0; background: var(--bg);">
-      <span id="tdCatBadge" style="font-size: 13px; padding: 4px 12px; border-radius: 4px; font-weight: 600; background: #e8e3db; color: #8b8580;"></span>
-      <input type="text" id="tdTitle" style="font-size: 22px; font-weight: 700; flex: 1; color: #5a5651; border: none; background: transparent; outline: none; font-family: inherit;" placeholder="新增工作">
+      <span id="tdCatBadge" style="font-size: 15px; padding: 4px 12px; border-radius: 4px; font-weight: 600; background: #e8e3db; color: #8b8580;"></span>
+      <input type="text" id="tdTitle" style="font-size: 24px; font-weight: 700; flex: 1; color: #5a5651; border: none; background: transparent; outline: none; font-family: inherit;" placeholder="新增工作">
       <button class="close-btn" onclick="closeTaskDetail()" style="border: 1px solid var(--border2); background: #fff; width: 36px; height: 36px; border-radius: 50%;">✕</button>
     </div>
     
     <div style="flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; background: var(--bg);">
       <div>
-        <div style="color: #8b8580; font-size: 12px; font-weight: 700; margin-bottom: 12px;">負責人員</div>
+        <div style="color: #8b8580; font-size: 14px; font-weight: 700; margin-bottom: 12px;">負責人員</div>
         <div id="tdAssignees" style="display: flex; gap: 16px; flex-wrap: wrap;"></div>
       </div>
       
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
         <div>
-          <div style="color: #8b8580; font-size: 12px; font-weight: 700; margin-bottom: 8px;">日期</div>
+          <div style="color: #8b8580; font-size: 14px; font-weight: 700; margin-bottom: 8px;">日期</div>
           <input type="date" id="tdDate" style="height: 40px; border: 1px solid #d4ccc2; border-radius: 8px; padding: 0 12px; background: #fff;">
         </div>
         <div>
-          <div style="color: #8b8580; font-size: 12px; font-weight: 700; margin-bottom: 8px;">DEADLINE</div>
+          <div style="color: #8b8580; font-size: 14px; font-weight: 700; margin-bottom: 8px;">DEADLINE</div>
           <input type="date" id="tdDeadline" style="height: 40px; border: 1px solid #d4ccc2; border-radius: 8px; padding: 0 12px; background: #fff;">
         </div>
         <div>
-          <div style="color: #8b8580; font-size: 12px; font-weight: 700; margin-bottom: 8px;">完成日期</div>
+          <div style="color: #8b8580; font-size: 14px; font-weight: 700; margin-bottom: 8px;">完成日期</div>
           <input type="date" id="tdDoneDate" style="height: 40px; border: 1px solid #d4ccc2; border-radius: 8px; padding: 0 12px; background: #fff;">
         </div>
         <div>
-          <div style="color: #8b8580; font-size: 12px; font-weight: 700; margin-bottom: 8px;">狀態</div>
+          <div style="color: #8b8580; font-size: 14px; font-weight: 700; margin-bottom: 8px;">狀態</div>
           <select id="tdStatus" style="height: 40px; border: 1px solid #d4ccc2; border-radius: 8px; padding: 0 12px; background: #fff;">
             <option value="notstarted">未開始</option>
             <option value="inprogress">進行中</option>
@@ -374,14 +443,14 @@ tr[draggable]:active{cursor:grabbing}
       </div>
 
       <div>
-        <div style="color: #8b8580; font-size: 12px; font-weight: 700; margin-bottom: 8px;">說明</div>
+        <div style="color: #8b8580; font-size: 14px; font-weight: 700; margin-bottom: 8px;">說明</div>
         <textarea id="tdDesc" style="min-height: 100px; border: 1px solid #d4ccc2; border-radius: 8px; padding: 12px; background: #fff;"></textarea>
       </div>
 
       <div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div style="color: #8b8580; font-size: 13px; font-weight: 700; margin-bottom: 0;">子計畫</div>
-          <button onclick="addSubtask()" style="font-size: 13px; padding: 6px 16px; border: 1px solid #d4ccc2; border-radius: 6px; background: #fff; cursor: pointer; color: #8b8580;">＋ 新增</button>
+          <div style="color: #8b8580; font-size: 15px; font-weight: 700; margin-bottom: 0;">子計畫</div>
+          <button onclick="addSubtask()" style="font-size: 15px; padding: 6px 16px; border: 1px solid #d4ccc2; border-radius: 6px; background: #fff; cursor: pointer; color: #8b8580;">＋ 新增</button>
         </div>
         <div id="tdSubtasks"></div>
       </div>
@@ -430,17 +499,17 @@ tr[draggable]:active{cursor:grabbing}
       </div>
 
       <div style="display:flex; align-items:center; gap:12px; margin-bottom:8px; margin-left: 6px;">
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text2); font-weight: 500;">
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px; font-size:14px; color:var(--text2); font-weight: 500;">
           <input type="checkbox" id="iDoneCheckbox" style="width:14px; height:14px;"> 完成
         </label>
-        <label style="cursor:pointer; display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text2); font-weight: 500;" title="寄信通知參與成員">
+        <label style="cursor:pointer; display:flex; align-items:center; gap:4px; font-size:14px; color:var(--text2); font-weight: 500;" title="寄信通知參與成員">
           <input type="checkbox" id="iAlarmCheckbox" style="width:14px; height:14px;"> ⏰
         </label>
       </div>
     </div>
 
     <div style="margin-bottom:18px; padding-bottom: 8px; border-bottom: 1px solid var(--border);">
-      <input type="text" id="iTitle" placeholder="輸入名稱..." style="width:100%;font-size:18px;font-weight:600;border:none;border-radius:0;padding:0;background:transparent;outline:none;">
+      <input type="text" id="iTitle" placeholder="輸入名稱..." style="width:100%;font-size:20px;font-weight:600;border:none;border-radius:0;padding:0;background:transparent;outline:none;">
     </div>
 
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px">
@@ -542,7 +611,7 @@ tr[draggable]:active{cursor:grabbing}
         <input type="text" id="lPayer" style="padding:8px 12px;">
       </div>
       <div class="fg" style="margin-bottom:0; padding-bottom:10px;">
-        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:var(--text2); font-size:10px; text-transform:uppercase; letter-spacing:0.05em;">
+        <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-weight:700; color:var(--text2); font-size:12px; text-transform:uppercase; letter-spacing:0.05em;">
           <input type="checkbox" id="lIsPaid" style="width:15px; height:15px; cursor:pointer;"> 已支付
         </label>
       </div>
@@ -586,8 +655,8 @@ tr[draggable]:active{cursor:grabbing}
     
     <div class="fg" style="text-align:center;margin-bottom:16px">
       <div style="position:relative;display:inline-block">
-        <label id="photoUploadLabel" style="display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:50%;border:1.5px dashed var(--border2);background:var(--bg2);cursor:pointer;color:var(--text2);font-size:11px;flex-direction:column;gap:2px">
-          <span style="font-size:20px;color:var(--text3)">＋</span>
+        <label id="photoUploadLabel" style="display:inline-flex;align-items:center;justify-content:center;width:80px;height:80px;border-radius:50%;border:1.5px dashed var(--border2);background:var(--bg2);cursor:pointer;color:var(--text2);font-size:13px;flex-direction:column;gap:2px">
+          <span style="font-size:22px;color:var(--text3)">＋</span>
           <span>照片</span>
           <input type="file" accept="image/*" onchange="onPhotoChange(event)" id="photoInput" style="display:none">
         </label>
@@ -595,9 +664,9 @@ tr[draggable]:active{cursor:grabbing}
           <img id="memberEditPreview" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border2);display:block; margin: 0 auto;">
           <input type="file" accept="image/*" onchange="onPhotoChange(event)" style="display:none">
         </label>
-        <button id="memberDeletePhotoBtn" onclick="deleteMemberPhoto()" title="移除照片" style="display:none;position:absolute;top:-2px;right:-2px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg);cursor:pointer;font-size:11px;color:var(--text2);align-items:center;justify-content:center">✕</button>
+        <button id="memberDeletePhotoBtn" onclick="deleteMemberPhoto()" title="移除照片" style="display:none;position:absolute;top:-2px;right:-2px;width:22px;height:22px;border-radius:50%;border:1.5px solid var(--border2);background:var(--bg);cursor:pointer;font-size:13px;color:var(--text2);align-items:center;justify-content:center">✕</button>
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-top:6px">點擊照片可更換</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:6px">點擊照片可更換</div>
     </div>
     
     <div class="fg">
@@ -968,13 +1037,13 @@ function renderTeam() {
       : `<div class="avatar" style="background:${m.bg};color:#555;cursor:pointer">${m.initials}</div>`;
     return `<div class="member-cell" onclick="openMemberEdit('${m.id}')">
       ${av}
-      <div style="font-size:9px;color:var(--text2);text-align:center;line-height:1.2;margin-top:2px;max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+      <div style="font-size:11px;color:var(--text2);text-align:center;line-height:1.2;margin-top:2px;max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
     </div>`;
   }).join('');
 
   html += `<div class="member-cell" onclick="openMemberAdd()">
-    <div class="avatar" style="background:var(--bg3); color:var(--text2); font-size:18px; font-weight:400; border:1.5px dashed var(--border2); cursor:pointer;">＋</div>
-    <div style="font-size:9px;color:var(--text3);text-align:center;line-height:1.2;margin-top:2px;">新增</div>
+    <div class="avatar" style="background:var(--bg3); color:var(--text2); font-size:20px; font-weight:400; border:1.5px dashed var(--border2); cursor:pointer;">＋</div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;line-height:1.2;margin-top:2px;">新增</div>
   </div>`;
 
   teamEl.innerHTML = html;
@@ -1146,7 +1215,7 @@ function renderCalendar() {
     const holidayCls = holidayName ? 'holiday' : '';
     const todayCls = isT ? 'is-today' : '';
     const holidayLabel = holidayName
-      ? `<div style="font-size:8px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`
+      ? `<div style="font-size:10px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`
       : '';
     const chips = allChips.slice(0, 3).map(e => {
       const isDL = e.deadline === ds && e.date !== ds;
@@ -1155,7 +1224,7 @@ function renderCalendar() {
       const clickAction = `openEdit('${e.id}')`;
       return `<div class="cal-chip chip-${e.cat||'data'}" style="${border}" onclick="${clickAction};event.stopPropagation()">${e.title}</div>`;
     }).join('');
-    const more = allChips.length > 3 ? `<div style="font-size:9px;color:var(--text3);padding:1px">+${allChips.length-3}</div>` : '';
+    const more = allChips.length > 3 ? `<div style="font-size:11px;color:var(--text3);padding:1px">+${allChips.length-3}</div>` : '';
     cells += `<div class="cal-cell ${weekendCls} ${holidayCls} ${todayCls}" onclick="openAddOnDate('${ds}')">
       <div class="${numCls}">${d}</div>${holidayLabel}${chips}${more}
     </div>`;
@@ -1195,11 +1264,11 @@ function renderDashSidebar() {
     const clickAction = `openEdit('${e.id}')`;
     return `<div class="cal-side-item" onclick="${clickAction}">
       <div class="cal-side-dot" style="background:#8a6b66;margin-top:4px"></div>
-      <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
+      <div><div style="font-size:13px;line-height:1.3">${e.title}</div><div style="font-size:12px;color:var(--text3)">${e.date||''}</div></div>
     </div>`;
   };
 
-  const empty = '<div style="font-size:11px;color:var(--text3)">無</div>';
+  const empty = '<div style="font-size:13px;color:var(--text3)">無</div>';
   document.getElementById('dashCurrentMonth').innerHTML = cur.length ? cur.map(renderItem).join('') : empty;
   document.getElementById('dashNextMonth').innerHTML = nxt.length ? nxt.map(renderItem).join('') : empty;
   document.getElementById('dashDeadlines').innerHTML = urgent.length ? urgent.map(renderItem).join('') : empty;
@@ -1208,7 +1277,7 @@ function renderDashSidebar() {
     const clickAction = `openEdit('${e.id}')`;
     return `<div class="cal-side-item" onclick="${clickAction}">
       <div class="cal-side-dot" style="background:var(--cat-meeting-text);margin-top:4px"></div>
-      <div><div style="font-size:11px;line-height:1.3">${e.title}</div><div style="font-size:10px;color:var(--text3)">${e.date||''}</div></div>
+      <div><div style="font-size:13px;line-height:1.3">${e.title}</div><div style="font-size:12px;color:var(--text3)">${e.date||''}</div></div>
     </div>`;
   }).join('') : empty;
 }
@@ -1321,7 +1390,7 @@ function renderProgContent() {
   });
   const doneCount = yearTasks.filter(x => x.t && x.t.done).length;
   const pct = yearTasks.length === 0 ? 0 : Math.round(doneCount / yearTasks.length * 100);
-  barEl.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:5px">
+  barEl.innerHTML = `<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:5px">
     <span>${waveLabel(progYear)} 年度完成進度</span>
     <span>${doneCount} / ${yearTasks.length}（${pct}%）</span>
   </div>
@@ -1334,7 +1403,7 @@ function renderProgContent() {
     const parts = t && Array.isArray(t.parts) ? t.parts : [];
     const assignees = getActiveMembers().filter(m => parts.includes(m.id)).map(m => `<span style="display:flex;flex-direction:column;align-items:center;gap:2px">
         ${getMemberAvatar(m, 22)}
-        <span style="font-size:8px;color:var(--text3)">${m.name}</span>
+        <span style="font-size:10px;color:var(--text3)">${m.name}</span>
       </span>`).join('');
     const subs = t && t.subtasks ? Object.entries(t.subtasks) : [];
     const hasSub = subs.length > 0;
@@ -1344,12 +1413,12 @@ function renderProgContent() {
 
     html += `<tr id="dndrow_${at.key}" onclick="${clickRowAction}" draggable="true" ondragstart="dndStart(event,'${at.key}')" ondragover="dndOver(event,'${at.key}')" ondragleave="dndLeave(event,'${at.key}')" ondrop="dndDrop(event,'${at.key}')" style="cursor:pointer${isDone?';opacity:0.5':''}">
       <td onclick="event.stopPropagation();quickDone('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
-      <td style="font-size:11px;">${t&&t.date?t.date:''}</td>
-      <td style="font-weight:${isDone?'400':'500'}">${at.label}${hasSub?`<span style="font-size:9px;color:var(--text3);margin-left:4px" id="stbtn_${at.key}" onclick="event.stopPropagation();progToggleSub('${at.key}')">▸ ${subDone}/${subs.length}</span>`:''}</td>
+      <td style="font-size:13px;">${t&&t.date?t.date:''}</td>
+      <td style="font-weight:${isDone?'400':'500'}">${at.label}${hasSub?`<span style="font-size:11px;color:var(--text3);margin-left:4px" id="stbtn_${at.key}" onclick="event.stopPropagation();progToggleSub('${at.key}')">▸ ${subDone}/${subs.length}</span>`:''}</td>
       <td><div style="display:flex;gap:3px;flex-wrap:wrap">${assignees}</div></td>
-      <td style="font-size:11px;">${t&&t.deadline?t.deadline:''}</td>
-      <td style="font-size:11px;">${t&&t.doneDate?t.doneDate:''}</td>
-      <td><button onclick="event.stopPropagation();${clickRowAction}" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px;">›</button></td>
+      <td style="font-size:13px;">${t&&t.deadline?t.deadline:''}</td>
+      <td style="font-size:13px;">${t&&t.doneDate?t.doneDate:''}</td>
+      <td><button onclick="event.stopPropagation();${clickRowAction}" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:18px;">›</button></td>
     </tr>`;
 
     if (hasSub) {
@@ -1362,11 +1431,11 @@ function renderProgContent() {
           <td style="padding-left:16px">
             <div class="check ${s.done?'done':''}" onclick="progSubToggle('${at.key}','${subKey}')">${s.done?'✓':''}</div>
           </td>
-          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.date||''}</td>
-          <td style="font-size:11px;color:var(--text2);${s.done?'text-decoration:line-through':''}">↳ ${s.title||''}</td>
+          <td style="font-size:12px;color:var(--text3);white-space:nowrap">${s.date||''}</td>
+          <td style="font-size:13px;color:var(--text2);${s.done?'text-decoration:line-through':''}">↳ ${s.title||''}</td>
           <td><div style="display:flex;gap:2px">${sAssignees}</div></td>
-          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.deadline||''}</td>
-          <td style="font-size:10px;color:var(--text3);white-space:nowrap">${s.doneDate||''}</td>
+          <td style="font-size:12px;color:var(--text3);white-space:nowrap">${s.deadline||''}</td>
+          <td style="font-size:12px;color:var(--text3);white-space:nowrap">${s.doneDate||''}</td>
           <td></td>
         </tr>`;
       });
@@ -1437,8 +1506,8 @@ function openProgDetail(atKey) {
     const sel = selP.includes(m.id);
     const ring = sel ? 'box-shadow:0 0 0 2px #fff, 0 0 0 4px var(--accent);' : '';
     return `<div id="tda_${m.id}" onclick="detailToggleAssignee('${m.id}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;opacity:${sel?1:0.4};transition:opacity 0.2s">
-      ${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`:`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`}
-      <span class="td-assignee-name" style="font-size:11px;color:${sel?'#8b8580':'#b4ada5'};white-space:nowrap">${m.name}</span>
+      ${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${ring}">`:`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`}
+      <span class="td-assignee-name" style="font-size:13px;color:${sel?'#8b8580':'#b4ada5'};white-space:nowrap">${m.name}</span>
     </div>`;
   }).join('');
   renderDetailSubs(t);
@@ -1459,14 +1528,14 @@ function renderDetailSubs(task) {
   const el = document.getElementById('tdSubtasks');
   if (!el) return;
   const subs = task && task.subtasks ? Object.entries(task.subtasks) : [];
-  if (!subs.length) { el.innerHTML = '<div style="font-size:12px;color:var(--text3);margin-top:8px;">尚無子計畫</div>'; return; }
+  if (!subs.length) { el.innerHTML = '<div style="font-size:14px;color:var(--text3);margin-top:8px;">尚無子計畫</div>'; return; }
   
   el.innerHTML = subs.map(([subKey, s]) => `
     <div style="padding:16px;border-radius:8px;background:var(--bg);border:1px solid var(--border2);margin-bottom:12px">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div class="check ${s.done?'done':''}" onclick="progSubToggle('${_detailKey}','${subKey}');renderDetailSubs(getProgTask('${_detailKey}'))">${s.done?'✓':''}</div>
-        <input type="text" value="${s.title||''}" placeholder="請輸入子計畫名稱" onchange="updateSubField('${subKey}','title',this.value)" style="flex:1;font-size:14px;font-weight:600;color:var(--text);border:none;background:transparent;outline:none;${s.done?'text-decoration:line-through;color:var(--text3)':''}">
-        <button onclick="deleteDetailSub('${subKey}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:16px">✕</button>
+        <input type="text" value="${s.title||''}" placeholder="請輸入子計畫名稱" onchange="updateSubField('${subKey}','title',this.value)" style="flex:1;font-size:16px;font-weight:600;color:var(--text);border:none;background:transparent;outline:none;${s.done?'text-decoration:line-through;color:var(--text3)':''}">
+        <button onclick="deleteDetailSub('${subKey}')" style="border:none;background:transparent;cursor:pointer;color:var(--text3);font-size:18px">✕</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
         <div><div class="flabel">日期</div><input type="date" value="${s.date||''}" onchange="updateSubField('${subKey}','date',this.value)"></div>
@@ -1637,10 +1706,10 @@ function updateCatColor(sel) { const colors = { data:'#dce4ef', meeting:'#efdcdc
 function renderProgYearSelect(y) { document.getElementById('iProgYear').innerHTML = progYears.map(yr => `<option value="${yr}" ${String(yr)===String(y)?'selected':''}>${waveLabel(yr)}</option>`).join(''); }
 function renderModalMembers() {
   const vis = getActiveMembers();
-  document.getElementById('creatorChips').innerHTML = vis.map(m => `<div onclick="selCreator='${m.id}';renderModalMembers()" style="cursor:pointer;opacity:${m.id===selCreator?1:0.4}">${m.photo?`<img src="${m.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;${m.id===selCreator?'box-shadow:0 0 0 2.5px var(--accent);':''}">`:`<div style="width:32px;height:32px;border-radius:50%;background:${m.bg};color:#555;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;${m.id===selCreator?'box-shadow:0 0 0 2.5px var(--accent);':''}">${m.initials}</div>`}</div>`).join('');
+  document.getElementById('creatorChips').innerHTML = vis.map(m => `<div onclick="selCreator='${m.id}';renderModalMembers()" style="cursor:pointer;opacity:${m.id===selCreator?1:0.4}">${m.photo?`<img src="${m.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;${m.id===selCreator?'box-shadow:0 0 0 2.5px var(--accent);':''}">`:`<div style="width:32px;height:32px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${m.id===selCreator?'box-shadow:0 0 0 2.5px var(--accent);':''}">${m.initials}</div>`}</div>`).join('');
   document.getElementById('partChips').innerHTML = vis.map(m => `<div onclick="(function(){const i=selParts.indexOf('${m.id}');i>=0?selParts.splice(i,1):selParts.push('${m.id}');renderModalMembers();})()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${selParts.includes(m.id)?1:0.4}">
-      ${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${selParts.includes(m.id)?'box-shadow:0 0 0 2.5px var(--accent);':''}">`:`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;${selParts.includes(m.id)?'box-shadow:0 0 0 2.5px var(--accent);':''}">${m.initials}</div>`}
-      <span style="font-size:9px;color:var(--text2);">${m.name}</span>
+      ${m.photo?`<img src="${m.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;${selParts.includes(m.id)?'box-shadow:0 0 0 2.5px var(--accent);':''}">`:`<div style="width:40px;height:40px;border-radius:50%;background:${m.bg};color:#555;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;${selParts.includes(m.id)?'box-shadow:0 0 0 2.5px var(--accent);':''}">${m.initials}</div>`}
+      <span style="font-size:11px;color:var(--text2);">${m.name}</span>
     </div>`).join('');
 }
 function saveTask() {
@@ -1722,11 +1791,11 @@ function renderRemitList() {
       <td style="text-align:center;">
         <label style="cursor:pointer; display:inline-flex; align-items:center; gap:8px; padding:4px 10px; border-radius:6px; background:var(--bg); border:1px solid var(--border2); transition:all 0.2s;">
           <input type="checkbox" id="${chkId}" ${isRemitted ? 'checked' : ''} onclick="toggleRemitStatus('${e.id}', this.checked)" style="width:16px; height:16px; cursor:pointer;">
-          <span style="font-size:12px; font-weight:700; color:${statusColor};">${isRemitted ? '已匯入' : '未匯入'}</span>
+          <span style="font-size:14px; font-weight:700; color:${statusColor};">${isRemitted ? '已匯入' : '未匯入'}</span>
         </label>
       </td>
       <td style="text-align:center;">
-        <input type="date" value="${e.remitDate || ''}" onchange="updateRemitDate('${e.id}', this.value)" style="width:100%; max-width:115px; padding:4px 8px; border:1px solid var(--border2); border-radius:4px; font-size:11px; font-family:inherit; outline:none; background:${inputBgColor}; cursor:pointer;">
+        <input type="date" value="${e.remitDate || ''}" onchange="updateRemitDate('${e.id}', this.value)" style="width:100%; max-width:115px; padding:4px 8px; border:1px solid var(--border2); border-radius:4px; font-size:13px; font-family:inherit; outline:none; background:${inputBgColor}; cursor:pointer;">
       </td>
     </tr>`;
   });
@@ -1785,8 +1854,8 @@ function renderLedgerResponsibleChips() {
     const isSelected = (m.name === selLedgerResponsible);
     const ring = isSelected ? 'box-shadow:0 0 0 2.5px var(--accent);' : '';
     return `<div onclick="selLedgerResponsible='${m.name}';renderLedgerResponsibleChips()" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;opacity:${isSelected?1:0.4}">
-      ${m.photo ? `<img src="${m.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;${ring}">` : `<div style="width:36px;height:36px;border-radius:50%;background:${m.bg};color:#555;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`}
-      <span style="font-size:9px;color:var(--text2);">${m.name}</span>
+      ${m.photo ? `<img src="${m.photo}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;${ring}">` : `<div style="width:36px;height:36px;border-radius:50%;background:${m.bg};color:#555;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;${ring}">${m.initials}</div>`}
+      <span style="font-size:11px;color:var(--text2);">${m.name}</span>
     </div>`;
   }).join('');
 }
@@ -1928,8 +1997,8 @@ function renderLedger() {
       const dynamicColorClass = isPending ? 'text-income' : 'text-expense';
       
       const titleDisplay = e.isVirtual 
-        ? `<span style="font-size:11px; color:#8a6b66;">↳ ${e.title}</span>` 
-        : `${e.title}${isPending ? ' <span style="font-size:10px; color:#8b8580; font-style:normal;">(待支付)</span>' : ''}`;
+        ? `<span style="font-size:13px; color:#8a6b66;">↳ ${e.title}</span>` 
+        : `${e.title}${isPending ? ' <span style="font-size:12px; color:#8b8580; font-style:normal;">(待支付)</span>' : ''}`;
 
       const clickId = e.isVirtual ? e.originalId : e.id;
 
@@ -1940,7 +2009,7 @@ function renderLedger() {
         <td style="text-align:right;" class="${e.expense > 0 ? dynamicColorClass : ''}">${e.expense > 0 ? e.expense : ''}</td>
         <td style="text-align:right;font-weight:600; ${textGray}">${currentBalance}</td>
         <td style="${textGray}">${e.responsible || ''}</td>
-        <td style="text-align:center; color: var(--accent); font-size:14px;">✎</td>
+        <td style="text-align:center; color: var(--accent); font-size:16px;">✎</td>
       </tr>`;
     }
   });
