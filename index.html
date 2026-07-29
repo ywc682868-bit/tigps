@@ -145,6 +145,14 @@ tr[draggable]:active{cursor:grabbing}
 .cleared-row{background:#fbeee9 !important;}
 .text-income{color:#2e7d32 !important;font-weight:600;}
 .text-expense{color:#c62828 !important;font-weight:600;}
+
+/* Manual (使用手冊) */
+.manual-bar{padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;background:var(--bg2)}
+.manual-bar-title{font-size:12px;font-weight:600;color:var(--text)}
+.manual-bar-link{margin-left:auto;font-size:11px;color:var(--text2);text-decoration:none;border:1px solid var(--border2);padding:4px 10px;border-radius:6px;background:var(--bg)}
+.manual-bar-link:hover{background:var(--bg3);color:var(--text)}
+.manual-frame-wrap{flex:1;overflow:hidden}
+#manualFrame{width:100%;height:100%;border:none;display:block;background:#F5F3EE}
 </style>
 </head>
 <body>
@@ -175,6 +183,7 @@ tr[draggable]:active{cursor:grabbing}
         <div class="team-grid" id="sidebarTeam"></div>
         <div class="sb-item" id="sb-progress" onclick="switchView('progress',this)">📊 工作進度</div>
         <div class="sb-item" id="sb-ledger" onclick="switchView('ledger',this)">💰 零用金記帳</div>
+        <div class="sb-item" id="sb-manual" onclick="switchView('manual',this)">📘 TIGPS 說明書</div>
       </div>
     </div>
 
@@ -309,6 +318,16 @@ tr[draggable]:active{cursor:grabbing}
               </thead>
               <tbody id="ledgerRemitTbody"></tbody>
             </table>
+          </div>
+        </div>
+
+        <div class="view" id="view-manual">
+          <div class="manual-bar">
+            <span class="manual-bar-title">📘 TIGPS 後台使用手冊</span>
+            <a class="manual-bar-link" href="tigps-manual.html" target="_blank" rel="noopener">在新分頁開啟 ↗</a>
+          </div>
+          <div class="manual-frame-wrap">
+            <iframe id="manualFrame" data-src="tigps-manual.html" title="TIGPS 後台使用手冊"></iframe>
           </div>
         </div>
 
@@ -1610,6 +1629,13 @@ function switchView(v, el) {
   if (v === 'progress') renderProgContent(); 
   else if (v === 'dashboard') { renderCalendar(); renderDashSidebar(); }
   else if (v === 'ledger') { initLedgerFilters(); renderLedger(); }
+  else if (v === 'manual') { loadManualFrame(); }
+}
+
+// ── 使用手冊 (延遲載入 iframe) ──────────────────────────────────────────────────
+function loadManualFrame() {
+  const f = document.getElementById('manualFrame');
+  if (f && !f.getAttribute('src')) f.setAttribute('src', f.dataset.src);
 }
 
 // ── 零用金記帳邏輯模組 (Pocket Money Ledger Module) ───────────────────────────────────
