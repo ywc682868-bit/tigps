@@ -323,6 +323,27 @@ kbd{
   .split{grid-template-columns:1fr;gap:14px}
 }
 
+/* ---------- back to top ---------- */
+.totop{
+  position:fixed;right:26px;bottom:26px;z-index:70;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:46px;height:46px;border-radius:50%;
+  background:#B3BCB2;color:#2F3A31;border:1px solid #A3AEA3;
+  cursor:pointer;box-shadow:0 3px 12px rgba(47,58,49,.18);
+  opacity:0;transform:translateY(10px);pointer-events:none;
+  transition:opacity .2s ease,transform .2s ease,background .15s ease;
+}
+.totop.is-on{opacity:1;transform:none;pointer-events:auto}
+.totop:hover,.totop:focus-visible{background:#9FAA9F;border-color:#8E9B90;outline:0}
+.totop span{font-size:19px;line-height:1;font-weight:600}
+@media (max-width:640px){
+  .totop{right:14px;bottom:14px;width:42px;height:42px}
+  .totop span{font-size:17px}
+}
+@media (prefers-reduced-motion:reduce){
+  .totop{transition:none}
+}
+
 /* ---------- award flow chart ---------- */
 .fchart{margin:0 0 8px}
 .fbranch{display:grid;grid-template-columns:1fr 1fr;gap:14px}
@@ -1322,6 +1343,10 @@ https://line.me/R/ti/p/@439hsboz</p>
   <span>截圖中的姓名、電話、地址、Gosu ID、LINE 暱稱、頭像與校名已遮蔽</span>
 </footer>
 
+<button id="toTop" class="totop" type="button" aria-label="回到最上面的索引" title="回到最上面">
+  <span aria-hidden="true">↑</span>
+</button>
+
 </div>
 
 <script>
@@ -1523,6 +1548,27 @@ https://line.me/R/ti/p/@439hsboz</p>
     t.classList.add('is-hit');
     flashed = t;
     setTimeout(function(){ if(t === flashed) t.classList.remove('is-hit'); }, 2000);
+  });
+})();
+</script>
+<script>
+(function(){
+  var btn = document.getElementById('toTop');
+  if(!btn) return;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function update(){
+    var y = window.pageYOffset || document.documentElement.scrollTop;
+    btn.classList.toggle('is-on', y > 420);
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update, { passive: true });
+  update();
+
+  btn.addEventListener('click', function(){
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    var q = document.getElementById('q');
+    if(q && !reduce) setTimeout(function(){ q.focus({ preventScroll: true }); }, 450);
   });
 })();
 </script>
