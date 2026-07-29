@@ -327,7 +327,7 @@ tr[draggable]:active{cursor:grabbing}
             <a class="manual-bar-link" href="tigps-manual.html" target="_blank" rel="noopener">在新分頁開啟 ↗</a>
           </div>
           <div class="manual-frame-wrap">
-            <iframe id="manualFrame" data-src="tigps-manual.html" title="TIGPS 後台使用手冊"></iframe>
+            <iframe id="manualFrame" data-src="tigps-manual.html" title="TIGPS 後台使用手冊" allow="clipboard-write"></iframe>
           </div>
         </div>
 
@@ -783,8 +783,18 @@ function waveLabel(y) {
   return y + ' 波次';
 }
 
-function getProgTask(atKey) {
-  return tasks.find(t => t.annualKey === atKey && !t.deleted) || null;
+function progYearOf(t) {
+  // 舊資料若沒有 progYear，視為 2023 波次
+  return t.progYear == null ? '2023' : String(t.progYear);
+}
+
+function progRecs(atKey, year) {
+  const y = String(year == null ? progYear : year);
+  return tasks.filter(t => t.annualKey === atKey && progYearOf(t) === y);
+}
+
+function getProgTask(atKey, year) {
+  return progRecs(atKey, year).find(t => !t.deleted) || null;
 }
 
 function closeTaskDetail() {
@@ -1231,7 +1241,8 @@ function yearTabDragLeave(ev) { ev.currentTarget.style.transform = 'none'; ev.cu
 function yearTabDrop(ev, targetYear) {
   ev.preventDefault(); ev.currentTarget.style.transform = 'none'; ev.currentTarget.style.boxShadow = 'none';
   const srcKey = _dndSrc; _dndSrc = null; if (!srcKey) return;
-  const t = getProgTask(srcKey); if (!t || String(t.progYear) === String(targetYear)) return;
+  const t = getProgTask(srcKey); if (!t || progYearOf(t) === String(targetYear)) return;
+  if (getProgTask(srcKey, targetYear)) { alert(`${targetYear} 波次已經有這個項目了，請先處理該筆再移動。`); return; }
   if (confirm(`確定將整筆工作移至 ${targetYear} 年度嗎？`)) {
     db.ref('tasks/' + t.id).update({ progYear: String(targetYear) }).then(() => renderProgContent());
   }
@@ -1287,11 +1298,12 @@ function renderProgContent() {
   if (!barEl || !tbody) return;
   let yearTasks = [];
   ANNUAL_TASKS.forEach(at => {
-    const t = getProgTask(at.key);
-    if (t && t.deleted) return; 
-    yearTasks.push({ at, t });
+    const recs = progRecs(at.key);                    // 只看目前波次
+    const live = recs.find(t => !t.deleted) || null;
+    if (!live && recs.length) return;                 // 本波次曾建立過但已刪除 → 不顯示
+    yearTasks.push({ at, t: live });
   });
-  const customTasks = tasks.filter(t => (String(t.progYear) === String(progYear) || (t.progYear == null && String(progYear) === '2023')) && t.annualKey && t.annualKey.startsWith('custom_') && !t.deleted);
+  const customTasks = tasks.filter(t => progYearOf(t) === String(progYear) && t.annualKey && t.annualKey.startsWith('custom_') && !t.deleted);
   customTasks.forEach(t => yearTasks.push({ at: { key: t.annualKey, label: t.title }, t }));
   let yearOrder = progOrders[progYear] || [];
   yearTasks.sort((a, b) => {
@@ -1641,6 +1653,7 @@ function loadManualFrame() {
 }
 
 // ── 零用金記帳邏輯模組 (Pocket Money Ledger Module) ───────────────────────────────────
+
 
 function switchLedgerTab(tab) {
   document.getElementById('tabLedgerMain').classList.toggle('active', tab === 'main');
