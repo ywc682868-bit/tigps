@@ -1340,7 +1340,7 @@ function renderProgContent() {
     const hasSub = subs.length > 0;
     const subDone = subs.filter(([k,s]) => s && s.done).length;
     
-    const clickRowAction = t ? `openEdit('${t.id}')` : `openProgDetail('${at.key}')`;
+    const clickRowAction = `openProgDetail('${at.key}')`;
 
     html += `<tr id="dndrow_${at.key}" onclick="${clickRowAction}" draggable="true" ondragstart="dndStart(event,'${at.key}')" ondragover="dndOver(event,'${at.key}')" ondragleave="dndLeave(event,'${at.key}')" ondrop="dndDrop(event,'${at.key}')" style="cursor:pointer${isDone?';opacity:0.5':''}">
       <td onclick="event.stopPropagation();quickDone('${at.key}')"><div class="check ${isDone?'done':''}">${isDone?'✓':''}</div></td>
@@ -1452,7 +1452,7 @@ function detailToggleAssignee(mid) {
   const idx = parts.indexOf(mid);
   if (idx >= 0) parts.splice(idx, 1); else parts.push(mid);
   t.parts = parts;
-  db.ref(`tasks/${t.id}/parts`).set(parts).then(() => openProgDetail(_detailKey));
+  db.ref(`tasks/${t.id}/parts`).set(parts).then(() => openProgDetail(_detailKey), dbFail('指派負責人'));
 }
 
 function renderDetailSubs(task) {
@@ -1479,7 +1479,7 @@ function renderDetailSubs(task) {
 
 function updateSubField(subKey, field, val) {
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
-  if (t && t.subtasks[subKey]) { t.subtasks[subKey][field] = val; db.ref(`tasks/${t.id}/subtasks/${subKey}/${field}`).set(val); }
+  if (t && t.subtasks[subKey]) { t.subtasks[subKey][field] = val; db.ref(`tasks/${t.id}/subtasks/${subKey}/${field}`).set(val).catch(dbFail('修改子計畫')); }
 }
 
 function toggleSubMember(subKey, mid) {
@@ -1490,13 +1490,13 @@ function toggleSubMember(subKey, mid) {
   const idx = parts.indexOf(mid);
   if (idx >= 0) parts.splice(idx, 1); else parts.push(mid);
   sub.parts = parts;
-  db.ref(`tasks/${t.id}/subtasks/${subKey}/parts`).set(parts).then(() => renderDetailSubs(t));
+  db.ref(`tasks/${t.id}/subtasks/${subKey}/parts`).set(parts).then(() => renderDetailSubs(t), dbFail('指派子計畫負責人'));
 }
 
 function addSubtask() {
   const newSub = { title: '', done: false, date: '', deadline: '', doneDate: '', parts: [], createdAt: new Date().toISOString() };
   ensureProgTask(_detailKey, t => {
-    db.ref(`tasks/${t.id}/subtasks`).push(newSub).then(() => {
+    db.ref(`tasks/${t.id}/subtasks`).push(newSub).catch(dbFail('新增子計畫')).then(() => {
       db.ref(`tasks/${t.id}`).once('value', snap => {
         const updated = { id: t.id, ...snap.val() };
         const idx = tasks.findIndex(x => x.id === t.id);
@@ -1524,7 +1524,7 @@ function progSubToggle(atKey, subKey) {
   if (!t || !t.subtasks || !t.subtasks[subKey]) return;
   const cur = t.subtasks[subKey].done;
   const doneDate = !cur ? new Date().toISOString().split('T')[0] : '';
-  db.ref(`tasks/${t.id}/subtasks/${subKey}`).update({ done: !cur, doneDate }).then(() => {
+  db.ref(`tasks/${t.id}/subtasks/${subKey}`).update({ done: !cur, doneDate }).catch(dbFail('勾選子計畫')).then(() => {
     t.subtasks[subKey].done = !cur;
     t.subtasks[subKey].doneDate = doneDate;
     renderDetailSubs(t); renderProgContent();
@@ -1535,7 +1535,7 @@ function deleteDetailSub(subKey) {
   if (!confirm('確定刪除子計畫？')) return;
   const t = _detailTaskId ? tasks.find(x => x.id === _detailTaskId) : null;
   if (!t) return;
-  db.ref(`tasks/${t.id}/subtasks/${subKey}`).remove().then(() => { delete t.subtasks[subKey]; renderDetailSubs(t); renderProgContent(); });
+  db.ref(`tasks/${t.id}/subtasks/${subKey}`).remove().then(() => { delete t.subtasks[subKey]; renderDetailSubs(t); renderProgContent(); }, dbFail('刪除子計畫'));
 }
 
 function saveTaskDetail() {
@@ -1590,7 +1590,7 @@ function ensureProgTask(atKey, cb) {
   if (t) { cb(t); return; }
   const at = ANNUAL_TASKS.find(x => x.key === atKey);
   const data = { annualKey: atKey, progYear: String(progYear), title: at ? at.label : (document.getElementById('tdTitle')?.value || '未命名工作'), done: false, status: 'notstarted', parts: [], subtasks: {}, deleted: false };
-  db.ref('tasks').push(data).then(ref => { const newT = { id: ref.key, ...data }; tasks.push(newT); cb(newT); });
+  db.ref('tasks').push(data).then(ref => { const newT = { id: ref.key, ...data }; tasks.push(newT); cb(newT); }, dbFail('建立工作'));
 }
 
 
