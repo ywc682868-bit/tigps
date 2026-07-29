@@ -1384,12 +1384,21 @@ function progToggleSub(safeKey) {
   if (btn) btn.textContent = isHidden ? `▾ ${btn.textContent.split(' ')[1]}` : `▸ ${btn.textContent.split(' ')[1]}`;
 }
 
+// ── 寫入結果回報（避免權限或網路錯誤靜默失敗）────────────────────────────────
+function dbFail(label) {
+  return function (err) {
+    console.error('[寫入失敗] ' + label, err);
+    alert('「' + label + '」寫入失敗：\n' + (err && err.message ? err.message : err) +
+          '\n\n若訊息包含 permission_denied，代表 Firebase 規則擋住了寫入。');
+  };
+}
+
 function quickDone(atKey) {
   const t = getProgTask(atKey);
   if (t) {
     const newDone = !t.done;
     const doneDate = newDone ? new Date().toISOString().split('T')[0] : '';
-    db.ref('tasks/' + t.id).update({ done: newDone, status: newDone ? 'done' : 'notstarted', doneDate });
+    db.ref('tasks/' + t.id).update({ done: newDone, status: newDone ? 'done' : 'notstarted', doneDate }).catch(dbFail('勾選完成'));
   } else {
     let at = ANNUAL_TASKS.find(x => x.key === atKey);
     const data = {
@@ -1403,7 +1412,7 @@ function quickDone(atKey) {
       subtasks: {},
       deleted: false
     };
-    db.ref('tasks').push(data);
+    db.ref('tasks').push(data).catch(dbFail('建立工作'));
   }
 }
 
@@ -1557,13 +1566,23 @@ function copyCurrentTask() {
 function deleteCurrentTask() {
   const fresh = _detailKey ? getProgTask(_detailKey) : null;
   if (fresh) _detailTaskId = fresh.id;
-  if (!_detailTaskId) { closeTaskDetail(); return; }
+  if (!_detailTaskId) {
+    // 這個項目還沒有任何紀錄：建立一筆標記為刪除的，讓它在本波次不再顯示
+    if (!confirm('確定要在本波次移除此工作嗎？')) return;
+    const at = ANNUAL_TASKS.find(x => x.key === _detailKey);
+    db.ref('tasks').push({
+      annualKey: _detailKey, progYear: String(progYear),
+      title: at ? at.label : '未命名工作',
+      done: false, status: 'notstarted', parts: {}, subtasks: {}, deleted: true
+    }).then(() => { _detailKey = null; closeTaskDetail(); }, dbFail('移除工作'));
+    return;
+  }
   if (!confirm('確定要刪除此工作的所有資料（包含子計畫）？')) return;
   db.ref('tasks/' + _detailTaskId).update({ deleted: true }).then(() => {
     const idx = tasks.findIndex(x => x.id === _detailTaskId);
     if (idx >= 0) tasks[idx].deleted = true;
     _detailTaskId = null; _detailKey = null; closeTaskDetail(); renderProgContent();
-  });
+  }, dbFail('刪除工作'));
 }
 
 function ensureProgTask(atKey, cb) {
@@ -1633,7 +1652,7 @@ function saveTask() {
   if (editingId) db.ref('tasks/' + editingId).update(data); else db.ref('tasks').push(data);
   closeModal(); if (isAlarm) sendAlarmEmail(title, selParts);
 }
-function deleteEditingTask() { if (editingId && confirm('確定要刪除？')) db.ref('tasks/' + editingId).update({ deleted: true }).then(closeModal); }
+function deleteEditingTask() { if (editingId && confirm('確定要刪除？')) db.ref('tasks/' + editingId).update({ deleted: true }).then(closeModal, dbFail('刪除工作')); }
 function toggleSidebar() { document.getElementById('mainSidebar').classList.toggle('collapsed'); }
 
 function switchView(v, el) {
