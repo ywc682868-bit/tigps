@@ -38,9 +38,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 
 /* Calendar */
 .cal-wrap{display:flex;flex:1;overflow:hidden}
-.cal-left{width:190px;min-width:190px;border-right:1px solid var(--border);padding:16px 12px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:16px}
+.cal-left{width:250px;min-width:250px;border-right:1px solid var(--border);padding:16px 12px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:16px}
 .cal-center{flex:1;display:flex;flex-direction:column;overflow-y:auto;min-height:0}
-.cal-right{width:190px;min-width:190px;border-left:1px solid var(--border);padding:16px 12px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:16px}
+.cal-right{width:250px;min-width:250px;border-left:1px solid var(--border);padding:16px 12px;overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column;gap:16px}
 .cal-side-section{display:flex;flex-direction:column;gap:8px}
 .cal-side-title{font-size:12px;font-weight:700;padding:4px 8px;border-radius:4px;display:inline-block;text-transform:uppercase;letter-spacing:0.05em}
 .cal-side-title.current{background:#e5e7e6;color:#6b7171}
@@ -58,11 +58,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans TC',sans
 .add-round{width:32px;height:32px;font-size:20px;line-height:1}
 .cal-today-btn{border-radius:var(--radius);width:auto;padding:0 12px;font-size:13px;font-weight:500}
 .arrow-btn:hover,.cal-today-btn:hover,.add-round:hover{background:var(--bg2);color:var(--text)}
-.cal-grid{padding:10px;display:flex;flex-direction:column;gap:0;flex:1}
+.cal-grid{padding:10px;display:flex;flex-direction:column;gap:0;flex:1;max-width:840px;width:100%;margin:0 auto}
 .cal-dow-row{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);margin-bottom:1px}
 .cal-dow{font-size:12px;color:var(--text3);text-align:center;font-weight:600;padding:6px 0;background:var(--bg)}
 .cal-body{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)}
-.cal-cell{min-height:90px;padding:5px;background:var(--bg);cursor:pointer;overflow:hidden;display:flex;flex-direction:column;vertical-align:top}
+.cal-cell{aspect-ratio:1/1;min-height:0;padding:5px;background:var(--bg);cursor:pointer;overflow:hidden;display:flex;flex-direction:column;vertical-align:top}
 .cal-cell:hover{background:var(--bg2)}
 .cal-cell.weekend{background:#fdf5f0}
 .cal-cell.weekend .cal-date-num{color:#c97070}
@@ -182,8 +182,8 @@ tr[draggable]:active{cursor:grabbing}
   .topbar > div[title]{width:220px !important}
 
   /* 日曆格子壓縮 */
-  .cal-grid{padding:5px}
-  .cal-cell{min-height:64px;padding:3px}
+  .cal-grid{padding:5px;max-width:none}
+  .cal-cell{min-height:0;padding:3px}
   .cal-nav{gap:8px;padding:10px}
   .cal-nav-title{font-size:20px}
 
@@ -218,7 +218,7 @@ tr[draggable]:active{cursor:grabbing}
 @media (max-width: 480px){
   .topbar > img{height:104px !important}
   .team-grid{grid-template-columns:repeat(3,1fr)}
-  .cal-cell{min-height:56px}
+  .cal-cell{min-height:0}
   .cal-dow{padding:4px 0}
   .ledger-summary-box{grid-template-columns:1fr}
 }
