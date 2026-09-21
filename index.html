@@ -149,30 +149,23 @@ tr[draggable]:active{cursor:grabbing}
 
 /* Schedule (排班表) */
 .sched-wrap{display:flex;flex:1;overflow:hidden}
-.sched-main{flex:1;overflow-y:auto;padding:16px}
-.sched-side{width:360px;min-width:360px;border-left:1px solid var(--border);padding:16px;overflow-y:auto;background:var(--bg2)}
+.sched-main{flex:1;overflow-y:auto;padding:16px 16px 16px 20px}
+.sched-side{width:400px;min-width:400px;border-left:1px solid var(--border);padding:16px;overflow-y:auto;background:var(--bg2)}
 .sched-side-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px}
-.sched-week{margin-bottom:18px;border:1px solid var(--border2);border-radius:var(--radius);overflow:hidden;background:var(--bg)}
-.sched-week-title{background:var(--bg2);padding:6px 12px;font-size:12px;font-weight:700;color:var(--text2);border-bottom:1px solid var(--border)}
-.sched-table-scroll{overflow-x:auto}
-.sched-table{width:100%;border-collapse:collapse;font-size:12px;min-width:720px}
-.sched-table th,.sched-table td{border:1px solid var(--border);padding:4px;vertical-align:top}
-.sched-table th{background:var(--bg2);font-weight:600;color:var(--text2);text-align:center;font-size:11px;line-height:1.5}
-.sched-table th.weekend{color:#c97070}
-.sched-table th.holiday-col,.sched-table td.holiday-col{background:#fdf5f0}
-.sched-table td.sched-name{background:var(--bg2);font-weight:600;white-space:nowrap;padding:4px 10px;font-size:12px;vertical-align:middle}
-.sched-table td.sched-total{background:var(--bg2);text-align:center;font-weight:700;vertical-align:middle;font-size:13px}
-.sched-cell{width:104px;position:relative}
-.sched-cell textarea{width:100%;min-height:46px;border:none;background:transparent;resize:vertical;font-size:11px;font-family:inherit;outline:none;padding:2px;color:var(--text);display:block}
-.sched-cell textarea:focus{background:#fff}
-.sched-hour-badge{font-size:10px;color:var(--text3);text-align:right;padding-right:2px}
-.sched-stat-table{width:100%;border-collapse:collapse;font-size:13px}
-.sched-stat-table th{text-align:left;font-size:11px;color:var(--text2);font-weight:700;padding:6px 4px;border-bottom:1px solid var(--border2);text-transform:uppercase;letter-spacing:0.03em}
-.sched-stat-table td{padding:6px 4px;border-bottom:1px solid var(--border)}
-.sched-stat-table input[type=number]{padding:5px 6px;font-size:13px;width:100%;text-align:right}
-.sched-stat-name{display:flex;align-items:center;gap:6px;font-weight:500}
 .sched-rate-note{font-size:11px;color:var(--text3);margin-top:2px;margin-bottom:14px;line-height:1.5}
+.sched-chip{font-size:11px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.3}
+.sched-chip:hover{opacity:0.8}
+.sched-chip.onsite{background:var(--cat-data);color:var(--cat-data-text)}
+.sched-chip.remote{background:var(--cat-admin);color:var(--cat-admin-text)}
+.sched-stat-table{width:100%;border-collapse:collapse;font-size:12px}
+.sched-stat-table th{text-align:right;font-size:11px;color:var(--text2);font-weight:700;padding:6px 4px;border-bottom:1px solid var(--border2);text-transform:uppercase;letter-spacing:0.03em}
+.sched-stat-table th:first-child{text-align:left}
+.sched-stat-table td{padding:6px 4px;border-bottom:1px solid var(--border)}
+.sched-stat-table input[type=number]{padding:5px 4px;font-size:12px;width:64px;text-align:right}
+.sched-stat-name{display:flex;align-items:center;gap:6px;font-weight:500;white-space:nowrap}
 .sched-total-row td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border2)}
+.sched-type-btn{padding:10px;font-size:14px;font-weight:500;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.2s}
+.sched-type-btn.active{border-color:var(--accent);background:#e5e7e6;color:#6b7171;font-weight:600}
 
 @media (max-width: 900px){
   .sched-wrap{flex-direction:column;overflow-y:auto}
@@ -242,7 +235,6 @@ tr[draggable]:active{cursor:grabbing}
   /* iOS 聚焦時不自動放大 */
   input[type="text"],input[type="date"],input[type="email"],
   input[type="password"],input[type="number"],select,textarea{font-size:16px}
-  .sched-cell textarea{font-size:14px}
 
   /* 點擊目標放大 */
   .btn{padding:10px 18px}
@@ -372,13 +364,16 @@ tr[draggable]:active{cursor:grabbing}
             </div>
             <button class="arrow-btn" onclick="changeSchedMonth(1)">›</button>
             <button class="cal-today-btn" onclick="schedGoToday()">Today</button>
-            <span style="margin-left:16px;font-size:12px;color:var(--text3)">每格可輸入多段時間，例如 09:30-12:00，換行可再輸入下一段</span>
+            <button class="add-round" onclick="openSchedAdd(null)" style="margin-left:16px" title="新增排班">＋</button>
+            <span style="margin-left:16px;font-size:12px;color:var(--text3)">點擊日期即可新增排班，同一天可新增多筆、指定不同人員</span>
           </div>
           <div class="sched-wrap">
-            <div class="sched-main" id="schedMain"></div>
+            <div class="sched-main">
+              <div class="cal-grid" id="schedMain"></div>
+            </div>
             <div class="sched-side">
               <div class="sched-side-title">📊 月時數統計</div>
-              <div class="sched-rate-note">時薪為每位成員固定設定；月薪＝月時數 × 時薪（自動計算）；月申報請手動填入實際申報金額。</div>
+              <div class="sched-rate-note">實體／遠端時數依當月所有排班自動加總；時薪為每位成員固定設定；月薪＝合計時數 × 時薪（自動計算）；月申報請手動填入實際申報金額。</div>
               <table class="sched-stat-table" id="schedStatTable"></table>
             </div>
           </div>
@@ -701,6 +696,50 @@ tr[draggable]:active{cursor:grabbing}
   </div>
 </div>
 
+<div class="modal-overlay" id="schedModalOverlay" onclick="if(event.target===this)closeSchedModal()">
+  <div class="modal" style="width:420px;">
+    <button class="close-btn" onclick="closeSchedModal()" style="position: absolute; top: 24px; right: 28px; z-index: 10;">✕</button>
+    <div class="modal-hdr">
+      <span class="modal-title" id="schedModalTitle">新增排班</span>
+    </div>
+    <input type="hidden" id="sEditingId">
+
+    <div class="fg">
+      <label class="flabel">人員</label>
+      <select id="sMember"></select>
+    </div>
+
+    <div class="fg">
+      <label class="flabel">日期</label>
+      <input type="date" id="sDate">
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:14px;">
+      <div class="fg" style="margin-bottom:0;">
+        <label class="flabel">開始時間</label>
+        <input type="time" id="sStart">
+      </div>
+      <div class="fg" style="margin-bottom:0;">
+        <label class="flabel">結束時間</label>
+        <input type="time" id="sEnd">
+      </div>
+    </div>
+
+    <div class="fg">
+      <label class="flabel">工作方式</label>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button type="button" class="sched-type-btn active" id="sTypeOnsiteBtn" onclick="setSchedType('onsite')" style="flex:1">🏢 實體</button>
+        <button type="button" class="sched-type-btn" id="sTypeRemoteBtn" onclick="setSchedType('remote')" style="flex:1">🏠 遠端</button>
+      </div>
+    </div>
+
+    <div class="modal-footer" style="display:flex;justify-content:space-between">
+      <button id="schedModalDeleteBtn" class="btn btn-danger" style="display:none" onclick="deleteSchedEntry()">刪除</button>
+      <button class="btn btn-primary" onclick="saveSchedEntry()">儲存</button>
+    </div>
+  </div>
+</div>
+
 <div class="member-overlay" id="memberEditOverlay" onclick="if(event.target===this)closeMemberEdit()">
   <div class="modal" style="width:340px">
     <div class="modal-hdr">
@@ -842,11 +881,12 @@ let bankBalanceData = { amount: '', lastUpdate: '' }; // 新增戶頭狀態
 let selLedgerResponsible = ''; 
 let calYear = new Date().getFullYear();
 let calMonth = new Date().getMonth();
-let scheduleData = {};      // { memberId: { 'YYYY-MM-DD': '09:30-12:00\n13:00-17:30' } }
+let scheduleEntries = {};   // { pushId: { memberId, date:'YYYY-MM-DD', start:'HH:MM', end:'HH:MM', type:'onsite'|'remote' } }
 let scheduleRates = {};     // { memberId: 時薪 }
 let scheduleDeclared = {};  // { 'YYYY-MM': { memberId: 月申報金額 } }
 let schedYear = new Date().getFullYear();
 let schedMonth = new Date().getMonth();
+let selSchedType = 'onsite';
 let editingId = null;
 let selCreator = '';
 let selParts = [];
@@ -1075,8 +1115,9 @@ function initDataListeners() {
   });
 
   // 監聽排班表資料
-  db.ref('schedule').on('value', snapshot => {
-    scheduleData = snapshot.val() || {};
+  db.ref('scheduleEntries').on('value', snapshot => {
+    scheduleEntries = {};
+    snapshot.forEach(child => { scheduleEntries[child.key] = child.val(); });
     renderSchedule();
   });
   db.ref('scheduleRates').on('value', snapshot => {
@@ -1817,7 +1858,7 @@ function loadManualFrame() {
 }
 
 // ── 排班表模組 (Schedule Module) ─────────────────────────────────────────────
-const SCHED_DOW = ['一','二','三','四','五','六','日']; // 週一起始，對應 getDay(): 1,2,3,4,5,6,0
+// 資料改為結構化事件（像新增行程一樣）：scheduleEntries/{id} = {memberId,date,start,end,type}
 
 function escapeHtml(str) {
   return String(str == null ? '' : str)
@@ -1828,50 +1869,20 @@ function dateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-// 解析儲存格內的文字，加總出時數（支援每行一段 "HH:MM-HH:MM" 或 "HHMM-HHMM"，跨午夜自動加 24 小時）
-function parseTimeRangesToHours(text) {
-  if (!text) return 0;
-  const lines = String(text).split(/[\n,;、]+/);
-  let total = 0;
-  lines.forEach(line => {
-    const m = line.trim().match(/^(\d{1,2}):?(\d{2})\s*[-~到至]\s*(\d{1,2}):?(\d{2})$/);
-    if (!m) return;
-    const sh = parseInt(m[1], 10), sm = parseInt(m[2], 10), eh = parseInt(m[3], 10), em = parseInt(m[4], 10);
-    let start = sh * 60 + sm;
-    let end = eh * 60 + em;
-    if (end <= start) end += 24 * 60; // 跨午夜
-    total += (end - start) / 60;
-  });
-  return total;
-}
-
 function formatHours(h) {
   if (!h) return '0';
   const r = Math.round(h * 100) / 100;
-  return Number.isInteger(r) ? String(r) : String(r);
+  return String(r);
 }
 
-// 依照 Excel 的排法：從「當月 1 號所在那週的週一」開始，每 7 天一組，
-// 最後一組在超過當月最後一天時直接截斷（不會延伸到下個月）。
-function getScheduleWeeks(y, m) {
-  const first = new Date(y, m, 1);
-  const last = new Date(y, m + 1, 0);
-  const mondayOffset = (first.getDay() + 6) % 7; // 0=週一
-  let weekStart = new Date(y, m, 1 - mondayOffset);
-  const weeks = [];
-  while (weekStart <= last) {
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(weekStart);
-      d.setDate(weekStart.getDate() + i);
-      if (d > last) break;
-      days.push(d);
-    }
-    if (days.length) weeks.push(days);
-    weekStart = new Date(weekStart);
-    weekStart.setDate(weekStart.getDate() + 7);
-  }
-  return weeks;
+// 計算某筆排班的時數（HH:MM 字串），結束時間小於等於開始時間時視為跨午夜
+function schedDuration(start, end) {
+  if (!start || !end) return 0;
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  let s = sh * 60 + sm, e = eh * 60 + em;
+  if (e <= s) e += 24 * 60;
+  return (e - s) / 60;
 }
 
 function changeSchedMonth(delta) {
@@ -1886,15 +1897,77 @@ function schedGoToday() {
   renderSchedule();
 }
 
-function saveSchedCell(mid, ds, val) {
-  if (!scheduleData[mid]) scheduleData[mid] = {};
-  if (val.trim() === '') {
-    delete scheduleData[mid][ds];
-    db.ref(`schedule/${mid}/${ds}`).remove().catch(dbFail('排班儲存'));
+// ── 新增／編輯排班 Modal ──
+function populateSchedMemberSelect(selectedId) {
+  const sel = document.getElementById('sMember');
+  const vis = getActiveMembers();
+  sel.innerHTML = vis.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+  if (selectedId) sel.value = selectedId;
+}
+
+function setSchedType(t) {
+  selSchedType = t;
+  document.getElementById('sTypeOnsiteBtn').classList.toggle('active', t === 'onsite');
+  document.getElementById('sTypeRemoteBtn').classList.toggle('active', t === 'remote');
+}
+
+function openSchedAdd(ds) {
+  document.getElementById('schedModalTitle').textContent = '新增排班';
+  document.getElementById('sEditingId').value = '';
+  populateSchedMemberSelect(loggedInMemberId || null);
+  document.getElementById('sDate').value = ds || dateStr(new Date());
+  document.getElementById('sStart').value = '09:00';
+  document.getElementById('sEnd').value = '18:00';
+  setSchedType('onsite');
+  document.getElementById('schedModalDeleteBtn').style.display = 'none';
+  document.getElementById('schedModalOverlay').classList.add('open');
+}
+
+function openSchedEdit(id) {
+  const e = scheduleEntries[id];
+  if (!e) return;
+  document.getElementById('schedModalTitle').textContent = '編輯排班';
+  document.getElementById('sEditingId').value = id;
+  populateSchedMemberSelect(e.memberId);
+  document.getElementById('sDate').value = e.date || '';
+  document.getElementById('sStart').value = e.start || '';
+  document.getElementById('sEnd').value = e.end || '';
+  setSchedType(e.type === 'remote' ? 'remote' : 'onsite');
+  document.getElementById('schedModalDeleteBtn').style.display = 'inline-block';
+  document.getElementById('schedModalOverlay').classList.add('open');
+}
+
+function closeSchedModal() {
+  document.getElementById('schedModalOverlay').classList.remove('open');
+}
+
+function saveSchedEntry() {
+  const mid = document.getElementById('sMember').value;
+  const ds = document.getElementById('sDate').value;
+  const start = document.getElementById('sStart').value;
+  const end = document.getElementById('sEnd').value;
+  if (!mid || !ds || !start || !end) { alert('請完整填寫人員、日期與時間'); return; }
+  const data = { memberId: mid, date: ds, start, end, type: selSchedType };
+  const id = document.getElementById('sEditingId').value;
+  if (id) {
+    scheduleEntries[id] = data;
+    db.ref('scheduleEntries/' + id).set(data).catch(dbFail('排班儲存'));
   } else {
-    scheduleData[mid][ds] = val;
-    db.ref(`schedule/${mid}/${ds}`).set(val).catch(dbFail('排班儲存'));
+    const ref = db.ref('scheduleEntries').push();
+    scheduleEntries[ref.key] = data;
+    ref.set(data).catch(dbFail('排班新增'));
   }
+  closeSchedModal();
+  renderSchedule();
+}
+
+function deleteSchedEntry() {
+  const id = document.getElementById('sEditingId').value;
+  if (!id) return;
+  if (!confirm('確定要刪除這筆排班嗎？')) return;
+  delete scheduleEntries[id];
+  db.ref('scheduleEntries/' + id).remove().catch(dbFail('排班刪除'));
+  closeSchedModal();
   renderSchedule();
 }
 
@@ -1923,6 +1996,7 @@ function updateSchedDeclared(monthKey, mid, val) {
   renderSchedule();
 }
 
+// ── 渲染：月曆 + 右側月時數統計 ──
 function renderSchedule() {
   const mainEl = document.getElementById('schedMain');
   const statEl = document.getElementById('schedStatTable');
@@ -1931,78 +2005,92 @@ function renderSchedule() {
   document.getElementById('schedMonthTitle').textContent = MONTHS[schedMonth];
   document.getElementById('schedYearLabel').textContent = schedYear + '年';
 
-  const weeks = getScheduleWeeks(schedYear, schedMonth);
-  const members = getActiveMembers();
-  const monthKey = `${schedYear}-${String(schedMonth + 1).padStart(2, '0')}`;
-  const monthlyTotals = {}; // memberId -> hours
-  members.forEach(m => monthlyTotals[m.id] = 0);
+  const first = new Date(schedYear, schedMonth, 1);
+  const lastDay = new Date(schedYear, schedMonth + 1, 0).getDate();
+  const startDow = first.getDay();
+  const prevMonth = schedMonth === 0 ? 11 : schedMonth - 1;
+  const prevYear = schedMonth === 0 ? schedYear - 1 : schedYear;
+  const prevLastDay = new Date(prevYear, prevMonth + 1, 0).getDate();
 
-  let mainHtml = '';
-  weeks.forEach((days, wi) => {
-    const weekTotals = {}; // memberId -> hours for this week
-    let headHtml = '<tr><th style="min-width:90px">成員</th>';
-    days.forEach(d => {
-      const ds = dateStr(d);
-      const dow = SCHED_DOW[(d.getDay() + 6) % 7];
-      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-      const holidayName = TW_HOLIDAYS[ds] || '';
-      const cls = [isWeekend ? 'weekend' : '', holidayName ? 'holiday-col' : ''].filter(Boolean).join(' ');
-      headHtml += `<th class="${cls}">週${dow}<br>${d.getMonth() + 1}/${d.getDate()}${holidayName ? `<br><span style="color:#c97070">${holidayName}</span>` : ''}</th>`;
-    });
-    headHtml += '<th style="width:56px">時數</th></tr>';
+  const allEntries = Object.entries(scheduleEntries).map(([id, e]) => ({ id, ...e }));
 
-    let bodyHtml = '';
-    members.forEach(m => {
-      let rowTotal = 0;
-      let rowHtml = `<tr><td class="sched-name">${getMemberAvatar(m, 20)} ${m.name}</td>`;
-      days.forEach(d => {
-        const ds = dateStr(d);
-        const raw = (scheduleData[m.id] && scheduleData[m.id][ds]) || '';
-        const hrs = parseTimeRangesToHours(raw);
-        rowTotal += hrs;
-        const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-        const holidayName = TW_HOLIDAYS[ds] || '';
-        const cls = [isWeekend ? 'weekend' : '', holidayName ? 'holiday-col' : ''].filter(Boolean).join(' ');
-        rowHtml += `<td class="sched-cell ${cls}"><textarea placeholder="09:30-12:00" onchange="saveSchedCell('${m.id}','${ds}',this.value)">${escapeHtml(raw)}</textarea>${hrs > 0 ? `<div class="sched-hour-badge">${formatHours(hrs)}h</div>` : ''}</td>`;
-      });
-      rowHtml += `<td class="sched-total">${formatHours(rowTotal)}</td></tr>`;
-      bodyHtml += rowHtml;
-      weekTotals[m.id] = rowTotal;
-      monthlyTotals[m.id] += rowTotal;
-    });
+  let cells = '';
+  for (let i = 0; i < startDow; i++) {
+    const d = prevLastDay - startDow + i + 1;
+    cells += `<div class="cal-cell other-month"><div class="cal-date-num">${d}</div></div>`;
+  }
 
-    const startLabel = `${days[0].getMonth() + 1}/${days[0].getDate()}`;
-    const endLabel = `${days[days.length - 1].getMonth() + 1}/${days[days.length - 1].getDate()}`;
-    mainHtml += `<div class="sched-week">
-      <div class="sched-week-title">第 ${wi + 1} 週（${startLabel} - ${endLabel}）</div>
-      <div class="sched-table-scroll"><table class="sched-table"><thead>${headHtml}</thead><tbody>${bodyHtml}</tbody></table></div>
+  for (let d = 1; d <= lastDay; d++) {
+    const ds = `${schedYear}-${String(schedMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEntries = allEntries.filter(e => e.date === ds).sort((a,b) => (a.start||'').localeCompare(b.start||''));
+    const isT = new Date(schedYear, schedMonth, d).getTime() === today.getTime();
+    const numCls = isT ? 'cal-date-num today' : 'cal-date-num';
+    const dow = new Date(ds).getDay();
+    const weekendCls = (dow === 0 || dow === 6) ? 'weekend' : '';
+    const holidayName = TW_HOLIDAYS[ds] || '';
+    const holidayCls = holidayName ? 'holiday' : '';
+    const todayCls = isT ? 'is-today' : '';
+    const holidayLabel = holidayName
+      ? `<div style="font-size:10px;color:#c97070;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${holidayName}</div>`
+      : '';
+    const chips = dayEntries.slice(0, 4).map(e => {
+      const mem = memberData[e.memberId] || {};
+      const name = mem.name || '?';
+      const icon = e.type === 'remote' ? '🏠' : '🏢';
+      const typeCls = e.type === 'remote' ? 'remote' : 'onsite';
+      return `<div class="sched-chip ${typeCls}" onclick="openSchedEdit('${e.id}');event.stopPropagation()">${icon} ${name} ${e.start}-${e.end}</div>`;
+    }).join('');
+    const more = dayEntries.length > 4 ? `<div style="font-size:11px;color:var(--text3);padding:1px">+${dayEntries.length-4}</div>` : '';
+    cells += `<div class="cal-cell ${weekendCls} ${holidayCls} ${todayCls}" onclick="openSchedAdd('${ds}')">
+      <div class="${numCls}">${d}</div>${holidayLabel}${chips}${more}
     </div>`;
-  });
+  }
 
-  mainEl.innerHTML = mainHtml || '<div style="color:var(--text3);font-size:13px">本月無資料</div>';
+  const total = startDow + lastDay;
+  const rem = (7 - total % 7) % 7;
+  for (let i = 0; i < rem; i++) cells += `<div class="cal-cell other-month"><div class="cal-date-num">${i+1}</div></div>`;
 
-  // 右側月時數統計
-  let statHtml = '<thead><tr><th>姓名</th><th style="text-align:right">時數</th><th style="text-align:right">時薪</th><th style="text-align:right">月薪</th><th style="text-align:right">月申報</th></tr></thead><tbody>';
-  let sumHours = 0, sumSalary = 0, sumDeclared = 0;
+  mainEl.innerHTML = `
+    <div class="cal-dow-row">
+      <div class="cal-dow">日</div><div class="cal-dow">一</div><div class="cal-dow">二</div>
+      <div class="cal-dow">三</div><div class="cal-dow">四</div><div class="cal-dow">五</div><div class="cal-dow">六</div>
+    </div>
+    <div class="cal-body">${cells}</div>
+  `;
+
+  // ── 右側月時數統計（依目前顯示月份，含實體／遠端拆分）──
+  const monthKey = `${schedYear}-${String(schedMonth + 1).padStart(2, '0')}`;
+  const monthEntries = allEntries.filter(e => e.date && e.date.startsWith(monthKey));
+  const members = getActiveMembers();
+
+  let statHtml = '<thead><tr><th>姓名</th><th>實體</th><th>遠端</th><th>合計</th><th>時薪</th><th>月薪</th><th>月申報</th></tr></thead><tbody>';
+  let sumOnsite = 0, sumRemote = 0, sumTotal = 0, sumSalary = 0, sumDeclared = 0;
   members.forEach(m => {
-    const hrs = monthlyTotals[m.id] || 0;
+    const mine = monthEntries.filter(e => e.memberId === m.id);
+    const onsiteH = mine.filter(e => e.type !== 'remote').reduce((s, e) => s + schedDuration(e.start, e.end), 0);
+    const remoteH = mine.filter(e => e.type === 'remote').reduce((s, e) => s + schedDuration(e.start, e.end), 0);
+    const totalH = onsiteH + remoteH;
     const rate = scheduleRates[m.id];
-    const salary = rate ? Math.round(hrs * rate) : null;
+    const salary = rate ? Math.round(totalH * rate) : null;
     const declared = (scheduleDeclared[monthKey] && scheduleDeclared[monthKey][m.id] != null) ? scheduleDeclared[monthKey][m.id] : '';
-    sumHours += hrs;
+    sumOnsite += onsiteH; sumRemote += remoteH; sumTotal += totalH;
     if (salary != null) sumSalary += salary;
     if (declared !== '') sumDeclared += Number(declared);
     statHtml += `<tr>
-      <td class="sched-stat-name">${getMemberAvatar(m, 22)} ${m.name}</td>
-      <td style="text-align:right">${formatHours(hrs)}</td>
-      <td><input type="number" min="0" value="${rate != null ? rate : ''}" placeholder="時薪" onchange="updateSchedRate('${m.id}',this.value)"></td>
+      <td class="sched-stat-name">${getMemberAvatar(m, 20)} ${m.name}</td>
+      <td style="text-align:right">${formatHours(onsiteH)}</td>
+      <td style="text-align:right">${formatHours(remoteH)}</td>
+      <td style="text-align:right;font-weight:600">${formatHours(totalH)}</td>
+      <td><input type="number" min="0" value="${rate != null ? rate : ''}" placeholder="-" onchange="updateSchedRate('${m.id}',this.value)"></td>
       <td style="text-align:right">${salary != null ? salary.toLocaleString() : '-'}</td>
-      <td><input type="number" min="0" value="${declared}" placeholder="月申報" onchange="updateSchedDeclared('${monthKey}','${m.id}',this.value)"></td>
+      <td><input type="number" min="0" value="${declared}" placeholder="-" onchange="updateSchedDeclared('${monthKey}','${m.id}',this.value)"></td>
     </tr>`;
   });
   statHtml += `<tr class="sched-total-row">
     <td>合計</td>
-    <td style="text-align:right">${formatHours(sumHours)}</td>
+    <td style="text-align:right">${formatHours(sumOnsite)}</td>
+    <td style="text-align:right">${formatHours(sumRemote)}</td>
+    <td style="text-align:right">${formatHours(sumTotal)}</td>
     <td></td>
     <td style="text-align:right">${sumSalary.toLocaleString()}</td>
     <td style="text-align:right">${sumDeclared.toLocaleString()}</td>
