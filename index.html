@@ -153,10 +153,8 @@ tr[draggable]:active{cursor:grabbing}
 .sched-side{width:400px;min-width:400px;border-left:1px solid var(--border);padding:16px;overflow-y:auto;background:var(--bg2)}
 .sched-side-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px}
 .sched-rate-note{font-size:11px;color:var(--text3);margin-top:2px;margin-bottom:14px;line-height:1.5}
-.sched-chip{font-size:11px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.3}
+.sched-chip{font-size:11px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.3;font-weight:600}
 .sched-chip:hover{opacity:0.8}
-.sched-chip.onsite{background:var(--cat-data);color:var(--cat-data-text)}
-.sched-chip.remote{background:var(--cat-admin);color:var(--cat-admin-text)}
 .sched-stat-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0 8px;font-size:12px}
 .sched-stat-table th{text-align:right;font-size:11px;color:var(--text2);font-weight:700;padding:0 4px 6px;text-transform:uppercase;letter-spacing:0.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sched-stat-table th:first-child{text-align:left}
@@ -164,11 +162,8 @@ tr[draggable]:active{cursor:grabbing}
 .sched-stat-table td:first-child{text-align:left}
 .sched-stat-table input[type=number]{padding:5px 3px;font-size:12px;width:100%;max-width:56px;text-align:right;border-radius:6px}
 .sched-stat-name{display:flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sched-member-row td:first-child{border-radius:8px 0 0 8px;border-left:5px solid var(--row-accent,var(--accent));padding-left:9px}
-.sched-member-row td:last-child{border-radius:0 8px 8px 0}
+.sched-member-row td:first-child{border-left:5px solid var(--row-accent,var(--accent));padding-left:9px}
 .sched-total-row td{font-weight:700;background:var(--bg3)}
-.sched-total-row td:first-child{border-radius:8px 0 0 8px}
-.sched-total-row td:last-child{border-radius:0 8px 8px 0}
 .sched-type-btn{padding:10px;font-size:14px;font-weight:500;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.2s}
 .sched-type-btn.active{border-color:var(--accent);background:#e5e7e6;color:#6b7171;font-weight:600}
 
@@ -2021,6 +2016,14 @@ function renderSchedule() {
   const prevLastDay = new Date(prevYear, prevMonth + 1, 0).getDate();
 
   const allEntries = Object.entries(scheduleEntries).map(([id, e]) => ({ id, ...e }));
+  const members = getActiveMembers();
+  const memberColor = {}; // memberId -> {accent, bg}
+  members.forEach((m, i) => {
+    memberColor[m.id] = {
+      accent: SCHED_ACCENTS[i % SCHED_ACCENTS.length],
+      bg: SCHED_ROW_BG[i % SCHED_ROW_BG.length]
+    };
+  });
 
   let cells = '';
   for (let i = 0; i < startDow; i++) {
@@ -2045,8 +2048,8 @@ function renderSchedule() {
       const mem = memberData[e.memberId] || {};
       const name = mem.name || '?';
       const icon = e.type === 'remote' ? '🏠' : '🏢';
-      const typeCls = e.type === 'remote' ? 'remote' : 'onsite';
-      return `<div class="sched-chip ${typeCls}" onclick="openSchedEdit('${e.id}');event.stopPropagation()">${icon} ${name} ${e.start}-${e.end}</div>`;
+      const col = memberColor[e.memberId] || { accent: 'var(--accent)', bg: 'var(--bg3)' };
+      return `<div class="sched-chip" style="background:${col.bg};color:${col.accent}" onclick="openSchedEdit('${e.id}');event.stopPropagation()">${icon} ${name} ${e.start}-${e.end}</div>`;
     }).join('');
     const more = dayEntries.length > 4 ? `<div style="font-size:11px;color:var(--text3);padding:1px">+${dayEntries.length-4}</div>` : '';
     cells += `<div class="cal-cell ${weekendCls} ${holidayCls} ${todayCls}" onclick="openSchedAdd('${ds}')">
@@ -2069,7 +2072,6 @@ function renderSchedule() {
   // ── 右側月時數統計（依目前顯示月份，含實體／遠端拆分）──
   const monthKey = `${schedYear}-${String(schedMonth + 1).padStart(2, '0')}`;
   const monthEntries = allEntries.filter(e => e.date && e.date.startsWith(monthKey));
-  const members = getActiveMembers();
 
   let statHtml = `<colgroup>
       <col style="width:26%"><col style="width:11%"><col style="width:11%"><col style="width:11%">
@@ -2088,9 +2090,8 @@ function renderSchedule() {
     sumOnsite += onsiteH; sumRemote += remoteH; sumTotal += totalH;
     if (salary != null) sumSalary += salary;
     if (declared !== '') sumDeclared += Number(declared);
-    const accent = SCHED_ACCENTS[mi % SCHED_ACCENTS.length];
-    const rowBg = SCHED_ROW_BG[mi % SCHED_ROW_BG.length];
-    statHtml += `<tr class="sched-member-row" style="--row-accent:${accent};--row-bg:${rowBg}">
+    const col = memberColor[m.id];
+    statHtml += `<tr class="sched-member-row" style="--row-accent:${col.accent};--row-bg:${col.bg}">
       <td class="sched-stat-name">${getMemberAvatar(m, 20)} ${m.name}</td>
       <td>${formatHours(onsiteH)}</td>
       <td>${formatHours(remoteH)}</td>
