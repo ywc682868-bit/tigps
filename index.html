@@ -156,14 +156,17 @@ tr[draggable]:active{cursor:grabbing}
 .sched-chip{font-size:11px;padding:2px 5px;border-radius:3px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.3;font-weight:600}
 .sched-chip:hover{opacity:0.8}
 .sched-stat-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px}
-.sched-stat-table th{text-align:right;font-size:11px;color:var(--text2);font-weight:700;padding:8px 4px;border-bottom:1px solid var(--border2);text-transform:uppercase;letter-spacing:0.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sched-stat-table thead tr{border-bottom:1px solid var(--border2)}
+.sched-stat-table th{text-align:right;font-size:11px;color:var(--text2);font-weight:700;padding:8px 4px;text-transform:uppercase;letter-spacing:0.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sched-stat-table th:first-child{text-align:left}
-.sched-stat-table td{padding:9px 4px;text-align:right;overflow:hidden;border-bottom:1px solid var(--border)}
+.sched-stat-table tbody tr{border-bottom:1px solid var(--border)}
+.sched-stat-table td{padding:9px 4px;text-align:right;overflow:hidden}
 .sched-stat-table td:first-child{text-align:left}
 .sched-stat-table tr:hover td{background:var(--bg2)}
 .sched-stat-table input[type=number]{padding:5px 3px;font-size:12px;width:100%;max-width:56px;text-align:right;border-radius:6px}
 .sched-stat-name{display:flex;align-items:center;gap:6px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sched-total-row td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border2);border-bottom:none}
+.sched-total-row{border-top:2px solid var(--border2);border-bottom:none}
+.sched-total-row td{font-weight:700;background:var(--bg3)}
 .sched-type-btn{padding:10px;font-size:14px;font-weight:500;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.2s}
 .sched-type-btn.active{border-color:var(--accent);background:#e5e7e6;color:#6b7171;font-weight:600}
 
