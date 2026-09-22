@@ -157,13 +157,18 @@ tr[draggable]:active{cursor:grabbing}
 .sched-chip:hover{opacity:0.8}
 .sched-chip.onsite{background:var(--cat-data);color:var(--cat-data-text)}
 .sched-chip.remote{background:var(--cat-admin);color:var(--cat-admin-text)}
-.sched-stat-table{width:100%;border-collapse:collapse;font-size:12px}
-.sched-stat-table th{text-align:right;font-size:11px;color:var(--text2);font-weight:700;padding:6px 4px;border-bottom:1px solid var(--border2);text-transform:uppercase;letter-spacing:0.03em}
+.sched-stat-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0 8px;font-size:12px}
+.sched-stat-table th{text-align:right;font-size:11px;color:var(--text2);font-weight:700;padding:0 4px 6px;text-transform:uppercase;letter-spacing:0.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sched-stat-table th:first-child{text-align:left}
-.sched-stat-table td{padding:6px 4px;border-bottom:1px solid var(--border)}
-.sched-stat-table input[type=number]{padding:5px 4px;font-size:12px;width:64px;text-align:right}
-.sched-stat-name{display:flex;align-items:center;gap:6px;font-weight:500;white-space:nowrap}
-.sched-total-row td{font-weight:700;background:var(--bg3);border-top:2px solid var(--border2)}
+.sched-stat-table td{padding:10px 4px;text-align:right;overflow:hidden;background:var(--row-bg,var(--bg2))}
+.sched-stat-table td:first-child{text-align:left}
+.sched-stat-table input[type=number]{padding:5px 3px;font-size:12px;width:100%;max-width:56px;text-align:right;border-radius:6px}
+.sched-stat-name{display:flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sched-member-row td:first-child{border-radius:8px 0 0 8px;border-left:5px solid var(--row-accent,var(--accent));padding-left:9px}
+.sched-member-row td:last-child{border-radius:0 8px 8px 0}
+.sched-total-row td{font-weight:700;background:var(--bg3)}
+.sched-total-row td:first-child{border-radius:8px 0 0 8px}
+.sched-total-row td:last-child{border-radius:0 8px 8px 0}
 .sched-type-btn{padding:10px;font-size:14px;font-weight:500;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;color:var(--text2);transition:all 0.2s}
 .sched-type-btn.active{border-color:var(--accent);background:#e5e7e6;color:#6b7171;font-weight:600}
 
@@ -903,6 +908,9 @@ today.setHours(0, 0, 0, 0);
 
 const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 const MEMBER_BG = ['#e5ddd8','#dfe5df','#e5dfd8','#e5dfe5','#dde5e8','#e8e0d5','#e8dfd5','#d5e8e6'];
+// 排班統計表每位成員的區隔色（比大頭貼底色更飽和，才看得出區別）
+const SCHED_ACCENTS = ['#8a9a78','#6f8fb5','#c99a5c','#9a7ec2','#4fa89c','#c07d94','#7594a8','#b39a4a'];
+const SCHED_ROW_BG = ['#f4f6f1','#eff3f7','#faf4ec','#f5f1f8','#eef7f5','#faf0f2','#eff3f5','#f8f5ec'];
 const CAT_NAMES = {data:'資料',meeting:'會議',admin:'行政',questionnaire:'問卷',platform:'平台'};
 
 const TW_HOLIDAYS = {
@@ -2063,9 +2071,13 @@ function renderSchedule() {
   const monthEntries = allEntries.filter(e => e.date && e.date.startsWith(monthKey));
   const members = getActiveMembers();
 
-  let statHtml = '<thead><tr><th>姓名</th><th>實體</th><th>遠端</th><th>合計</th><th>時薪</th><th>月薪</th><th>月申報</th></tr></thead><tbody>';
+  let statHtml = `<colgroup>
+      <col style="width:26%"><col style="width:11%"><col style="width:11%"><col style="width:11%">
+      <col style="width:14%"><col style="width:14%"><col style="width:14%">
+    </colgroup>
+    <thead><tr><th>姓名</th><th>實體</th><th>遠端</th><th>合計</th><th>時薪</th><th>月薪</th><th>月申報</th></tr></thead><tbody>`;
   let sumOnsite = 0, sumRemote = 0, sumTotal = 0, sumSalary = 0, sumDeclared = 0;
-  members.forEach(m => {
+  members.forEach((m, mi) => {
     const mine = monthEntries.filter(e => e.memberId === m.id);
     const onsiteH = mine.filter(e => e.type !== 'remote').reduce((s, e) => s + schedDuration(e.start, e.end), 0);
     const remoteH = mine.filter(e => e.type === 'remote').reduce((s, e) => s + schedDuration(e.start, e.end), 0);
@@ -2076,24 +2088,26 @@ function renderSchedule() {
     sumOnsite += onsiteH; sumRemote += remoteH; sumTotal += totalH;
     if (salary != null) sumSalary += salary;
     if (declared !== '') sumDeclared += Number(declared);
-    statHtml += `<tr>
+    const accent = SCHED_ACCENTS[mi % SCHED_ACCENTS.length];
+    const rowBg = SCHED_ROW_BG[mi % SCHED_ROW_BG.length];
+    statHtml += `<tr class="sched-member-row" style="--row-accent:${accent};--row-bg:${rowBg}">
       <td class="sched-stat-name">${getMemberAvatar(m, 20)} ${m.name}</td>
-      <td style="text-align:right">${formatHours(onsiteH)}</td>
-      <td style="text-align:right">${formatHours(remoteH)}</td>
-      <td style="text-align:right;font-weight:600">${formatHours(totalH)}</td>
+      <td>${formatHours(onsiteH)}</td>
+      <td>${formatHours(remoteH)}</td>
+      <td style="font-weight:600">${formatHours(totalH)}</td>
       <td><input type="number" min="0" value="${rate != null ? rate : ''}" placeholder="-" onchange="updateSchedRate('${m.id}',this.value)"></td>
-      <td style="text-align:right">${salary != null ? salary.toLocaleString() : '-'}</td>
+      <td>${salary != null ? salary.toLocaleString() : '-'}</td>
       <td><input type="number" min="0" value="${declared}" placeholder="-" onchange="updateSchedDeclared('${monthKey}','${m.id}',this.value)"></td>
     </tr>`;
   });
   statHtml += `<tr class="sched-total-row">
     <td>合計</td>
-    <td style="text-align:right">${formatHours(sumOnsite)}</td>
-    <td style="text-align:right">${formatHours(sumRemote)}</td>
-    <td style="text-align:right">${formatHours(sumTotal)}</td>
+    <td>${formatHours(sumOnsite)}</td>
+    <td>${formatHours(sumRemote)}</td>
+    <td>${formatHours(sumTotal)}</td>
     <td></td>
-    <td style="text-align:right">${sumSalary.toLocaleString()}</td>
-    <td style="text-align:right">${sumDeclared.toLocaleString()}</td>
+    <td>${sumSalary.toLocaleString()}</td>
+    <td>${sumDeclared.toLocaleString()}</td>
   </tr>`;
   statHtml += '</tbody>';
   statEl.innerHTML = statHtml;
